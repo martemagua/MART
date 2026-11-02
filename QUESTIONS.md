@@ -5,7 +5,8 @@ Write the answer under each question (or just reply in chat with the IDs).
 ⭐ = shapes the design most, so worth answering first.
 Background for each group: `PLANNING.md`.
 
-Answered so far: bundles exist (client × country × renewal date) · BM+ state
+Answered so far: **MART is built new and standalone; MAPT NEO is reference
+only** (own database, own notes/to-dos, nothing migrated) · bundles exist (client × country × renewal date) · BM+ state
 and actual state are kept side by side · an MCP connection for the local AI
 agent is wanted · an AI plugin (MCP + skills + templates) is wanted.
 
@@ -13,11 +14,11 @@ agent is wanted · an AI plugin (MCP + skills + templates) is wanted.
 
 ## A. Scope & setup
 
-**A1 ⭐** Should MART sit *alongside* MAPT NEO, *replace* it eventually, or become part of it? Should it have its own database or share MAPT's?
-→
+**A1** ~~Alongside / replace / part of MAPT?~~
+→ **Answered:** built new in MART, standalone. MAPT NEO is reference only.
 
-**A2 ⭐** MAPT already holds notes, to-dos, chasers, the contact log and meetings on these renewals. Should MART **take them over** (migrate), **share** MAPT's tables, or start fresh?
-→
+**A2** ~~Take over / share / start fresh with MAPT's notes, to-dos, chasers?~~
+→ **Answered:** start fresh; MART has its own.
 
 **A3** Who uses MART? Only you, or colleagues too? When "working with colleagues" on the Kanban, do you share your screen in a call, or should they open MART themselves?
 →
@@ -28,7 +29,7 @@ agent is wanted · an AI plugin (MCP + skills + templates) is wanted.
 **A5** Where does it run? Same as MAPT (local Windows, OneDrive folder, `.bat` launcher)? Any corporate restrictions (installs, cloud, Outlook automation)?
 →
 
-**A6** Same tech stack OK (Python · FastAPI · SQLite · HTMX, no build step)?
+**A6** Since MART is new: same stack as MAPT (Python · FastAPI · SQLite · HTMX, no build step), or something else?
 →
 
 ---
@@ -140,7 +141,10 @@ agent is wanted · an AI plugin (MCP + skills + templates) is wanted.
 **H3 ⭐** What may the agent *write*? Proposal: notes, to-dos, deadlines, seen-marks, contact log entries freely. **Actual-state changes only as suggestions you confirm.** Never BM+ data.
 →
 
-**H4** One agent with **two** MCP servers (MAPT_NEO + MART), or should MART's server also answer the MAPT questions (premiums, coverages, networks)?
+**H4** ~~Two MCP servers or one?~~
+→ **Answered:** MART has its own MCP server; it does not depend on MAPT's.
+
+**H4b** Which tracker data does MART need beyond the renewal workflow, e.g. premiums, headcount, loss ratios (for the post-renewal review and savings), insurer networks?
 →
 
 **H5** Should the plugin include **scheduled routines** (e.g. a weekday morning brief, a weekly stale-overview sweep)?

@@ -2,8 +2,11 @@
 
 > Status: **planning only, nothing built.** This is a picture of what is
 > possible plus open questions. Everything here can still change.
-> Source material: a read-through of the MAPT NEO repository (trackers, data
-> model, follow-ups/chasers, to-dos, meetings, audits).
+> **MART is a new, standalone app.** MAPT NEO is *reference only*: its
+> knowledge of the BM+ trackers, its patterns and the lessons it learned the
+> hard way inform MART, but nothing is shared at runtime (no shared database,
+> no shared code dependency, no data migrated). Where this plan says "as in
+> MAPT", read "the same idea, rebuilt in MART".
 
 ---
 
@@ -262,7 +265,7 @@ data MAPT already ingests:
 
 Then the **knowledge capture** items: record the savings (amount, basis,
 type), record the plan design changes (what, from → to, effective date),
-lessons learned. Whether these feed a register, a report or the MAPT dossier
+lessons learned. Whether these feed a MART knowledge register, a report or something else
 is open question Q16.
 
 Findings can be **waived** ("accepted, not applicable"), so they don't nag
@@ -319,17 +322,28 @@ rules: one place, editable without touching code.
 
 ---
 
-## 7. Options for the relationship to MAPT NEO
+## 7. Relationship to MAPT NEO (decided)
 
-| Option | Pros | Cons |
-|---|---|---|
-| **A. A new module inside MAPT NEO** | zero duplication, one upload | MAPT is already large; the PM model would be squeezed into an analytics app's shape again |
-| **B. Separate app reading MAPT's DB** (read-only) + its own DB for PM data | no second ingestion; MAPT stays the BM+ mirror | coupled to MAPT's schema; MAPT drops completed renewals, so MART must snapshot anyway; two apps to run |
-| **C. Separate app with its own ingestion** (reuse MAPT's spec-driven readers, cleaned up) | clean model built around cases; free to fix the history problems | some duplicated code; uploads go to two places (unless MART becomes the successor) |
+**MART is built new, as its own app**, with its own repo, database,
+ingestion, notes, to-dos, chasers, board and AI plugin. MAPT NEO is
+reference only:
 
-Leaning: **C, on the same stack** (Python · FastAPI · SQLite · Jinja + HTMX,
-no build step, local and single-user), copying MAPT's ingestion layer and
-correcting it as described in §2.3. This depends on Q1–Q5.
+- **Reused as knowledge:** how the BM+ trackers are shaped (sheets, header
+  rows, column names, the two Task Tracker flavours, the id system), the
+  cross-tracker glue, NULL = TBC, working-day clocks, and the gotchas listed
+  in §2.3 and in MAPT's CLAUDE.md.
+- **Reused as patterns (rebuilt, not imported):** spec-driven ingestion (column
+  names in YAML), stage → preview → commit uploads, the `(scope, ref)`
+  convention, live filters, the MCP server's design rules.
+- **Not carried over:** MAPT's database, its user data (notes, to-dos,
+  chasers, meetings), and its analytics/exploration features, unless you
+  ask for one specifically.
+- MART's own ingestion fixes what MAPT can't do for a project tool: it
+  keeps completed renewals, records changes between uploads, and treats the
+  renewal cycle as a first-class object.
+
+Stack is still open (QUESTIONS A6). Default assumption: Python · FastAPI ·
+SQLite · Jinja + HTMX, no build step, local and single-user.
 
 ---
 
