@@ -23,6 +23,124 @@ MART puts the **renewal case** at the centre and hangs everything else off it.
 
 ---
 
+## 1b. What Martin wants to be able to do (round 2 input)
+
+MART = **Martin's Awesome Renewal Tool**.
+
+1. **Orient myself on opening it.** A summary of my clients with their notes
+   and to-dos. My **local AI agent connects over MCP**, reads the database and
+   helps organise my day.
+2. **Client → renewals, bundled.** Selecting a client shows all of their
+   renewals **bundled by country + renewal date**. Selecting a bundle shows
+   its individual renewals.
+3. **Kanban with colleagues: show the *real* state.** BM+ often lags reality.
+   For example, the strategy is already agreed, but the broker hasn't
+   submitted it in BM+ yet. I need to be able to record the actual state and
+   **point out the discrepancy**.
+4. **Overview freshness + broker deadlines.** See which policies have **new**
+   renewal overview comments and which are **stale**. When a broker gives an
+   expected date for an update, I can record it as a **deadline**.
+5. **Notes and to-dos on renewals.**
+
+### What this settles
+
+- Q25 (MCP/AI agent): **yes**, from day one, and as part of the daily routine.
+- Q8 (unit): the natural grouping is the **bundle = client × country ×
+  renewal date**. It can be derived automatically from the trackers; no manual
+  grouping is needed.
+- Q10 (who wins): **neither overwrites the other.** BM+ state and actual state
+  are kept side by side, and the *difference* is a first-class thing to see
+  and act on.
+
+---
+
+## 1c. The screens
+
+### Home — "where am I?"
+One card per client, ranked by what needs attention:
+
+- renewals in flight and the next renewal date
+- 🟢 new overview comments since I last looked · 🟠 stale overviews
+- broker deadlines passed or due this week
+- open discrepancies (actual state ≠ BM+)
+- open to-dos (count + the next few) and the latest note
+
+Above the cards is a **"Today"** strip: deadlines due, to-dos due, overdue
+broker promises. The AI agent's day plan (written over MCP) can appear here
+as a note or a set of to-dos it created.
+
+### Client page — renewals by bundle
+```
+Mercedes-Benz Group AG
+├─ Poland · 01.01.2027            3 renewals   strategy: Remarketing (actual) ≠ BM+ blank ⚠
+│    ├─ Life           Allianz    overview 3d ago 🟢
+│    ├─ Medical        PZU        overview 41d ago 🟠   broker promise: 15.11 ⏰
+│    └─ Disability     Allianz    …
+├─ Spain · 01.01.2027             2 renewals
+└─ Brazil · 01.03.2027            1 renewal
+```
+
+- A bundle row rolls up its renewals: the worst freshness, the soonest
+  deadline, the stage mix, and discrepancies.
+- Clicking a bundle opens its renewals. Clicking a renewal opens the
+  **renewal drawer** (BM+ facts, the actual-state panel, the overview
+  timeline, notes, to-dos and deadlines).
+- Notes, to-dos and deadlines can be attached at **bundle** level (they apply
+  to all renewals in it, like one email covering several policies) or at
+  **renewal** level.
+
+### Kanban — the shared picture when working with colleagues
+- Columns = stages. **The card sits in the column of its *actual* state.**
+  If BM+ shows something different, the card carries a badge such as
+  "BM+: Strategy — not started".
+- Dragging a card records an actual-state change, with an optional one-line
+  reason ("agreed with HR on call 28.10").
+- The cards could be bundles or individual renewals (see Q-B2).
+- Filters: client, country, owner, "only discrepancies", "only stale".
+
+### Overview freshness
+- **New** = an overview entry dated after the last time I marked it seen
+  (or after a reference point such as the last meeting).
+- **Stale** = no overview entry for N days. N could tighten as the renewal
+  date approaches (see Q-C1).
+- MAPT already parses dated `DD MMM YYYY:` entries out of the overview and
+  stores `latest_overview_date`. This can be reused directly.
+
+### Broker deadlines ("they said they'd update by …")
+- A **deadline** = (renewal or bundle, who promised, what, expected date,
+  source note).
+- **Fulfilled automatically** when a new overview entry dated on or after the
+  promise appears in BM+, or manually ticked.
+- **Overdue** → it appears on Home/Today, and a chase can be started
+  (chaser ladder, with a ready-to-send draft as in MAPT).
+
+---
+
+## 1d. "Actual state" vs BM+: the discrepancy model
+
+This is the most distinctive feature, so it gets its own design.
+
+- **Per renewal, per field**, MART can hold *my* value next to BM+'s value.
+  Candidate fields: stage (Strategy / Proposals / Update Policy / done),
+  upcoming strategy, workflow status, plan design changes yes/no, new insurer,
+  expected effective date.
+- Each assertion stores: value, who and when, an optional reason/evidence
+  note, and **the BM+ value at the time it was made**.
+- Every view computes three states:
+  - **in sync**: BM+ = actual (or no actual recorded, so BM+ is shown)
+  - **BM+ behind**: actual is ahead → "broker to submit in BM+". This is
+    itself a follow-up item, possibly a deadline or a chase
+  - **conflict**: BM+ moved to something *different* from what I asserted →
+    needs my look
+- **Self-healing**: when an ingest brings BM+ in line with my value, the
+  discrepancy closes and is logged ("BM+ caught up on 04.11"). Nothing has to
+  be cleaned up by hand.
+- This generalises MAPT's `renewal_strategies` pattern (an answer stored
+  *beside* the tracker, BM+ wins once it has one). In MART the actual state
+  wins *on the board*, and BM+ wins as the record. Both are shown.
+
+---
+
 ## 2. What we learned from the MAPT trackers
 
 ### 2.1 The four BM+ exports
@@ -179,7 +297,12 @@ renewal_cases                  id, expiring_policy_id, cycle_key (renewal_unique
                                client, country, product_group, renewal_date, strategy,
                                phase, health, ball_in_court, owner, bundle_id,
                                opened_at, closed_at          ← MART-owned, never dropped
-bundles                        a group of cases moved/chased together
+bundles                        client × country × renewal date (derived; overridable?)
+actual_state                   case_id, field, value, bm_value_at_assertion, reason,
+                               asserted_by (user|AI), asserted_at, resolved_at, resolution
+deadlines                      (scope, ref) bundle|case, promised_by, what, expected_date,
+                               source, fulfilled_at, fulfilled_by (overview entry|manual)
+seen_marks                     per case: last time I acknowledged its overview (→ "new")
 playbooks (config YAML)        phases, items, relative due offsets (WD), gate rules, variants
 work_items                     case_id, phase, title, source (bm+|playbook|manual|review),
                                due_date, status, assignee, waiting_on, depends_on
@@ -212,17 +335,72 @@ correcting it as described in §2.3. This depends on Q1–Q5.
 
 ## 8. Possible build order (once the questions are answered)
 
-1. Ingestion reuse + `renewal_cases` + change events (the backbone)
-2. Playbook YAML + back-scheduled work items + health
-3. Kanban board + case drawer + list view
-4. Reminders + chasers + My Day + Outlook .ics
-5. Post-renewal review checks + waivers
-6. Knowledge capture (savings / plan design) + reporting
-7. MCP server for the AI agent (if wanted)
+Re-ordered after round 2, so that the things Martin described come first:
+
+1. **Backbone**: reused ingestion → `renewal_cases` + derived bundles +
+   change events, with overview entries parsed (freshness comes for free)
+2. **Client page** (renewals by country × date) + **renewal drawer** with
+   notes and to-dos
+3. **Home** (client cards + Today) and the **MCP server** (reads + user-data writes)
+4. **Broker deadlines** + overview new/stale + seen-marks
+5. **Actual state + discrepancies** + the **Kanban board**
+6. Reminders / chasers / Outlook .ics
+7. Playbook YAML + back-scheduled work items + health
+8. Post-renewal review checks + waivers, then knowledge capture (savings /
+   plan design) + reporting
 
 ---
 
 ## 9. Questions & clarifications
+
+### Round 2: new questions from Martin's picture
+
+**A. Home & the AI agent**
+- **Q-A1.** On a client card, which 3–5 things matter most at a glance?
+- **Q-A2.** What should the AI agent be allowed to *write*? (Proposal: notes,
+  to-dos, deadlines, seen-marks, actual-state *suggestions* you confirm.
+  Never BM+ data.)
+- **Q-A3.** Should the agent's day plan be shown in MART (a "Today" list it
+  fills), or does it live in the agent's own chat and only *read* MART?
+
+**B. Bundles & the board**
+- **Q-B1.** Bundle = client × country × **exact** renewal date, or the same
+  month? Does entity matter (two entities in one country, same date)?
+- **Q-B2.** Kanban card = bundle or individual renewal? What happens when one
+  renewal in a bundle diverges (e.g. different strategy or stage)?
+- **Q-B3.** Which columns? A proposal: *Not started · Strategy · Proposals /
+  Marketing · Decision · Update Policy · Post-renewal review · Done.*
+- **Q-B4.** "Working with my colleagues": do you share your screen in a call
+  (MART stays single-user), or should colleagues open MART themselves?
+
+**C. Freshness & deadlines**
+- **Q-C1.** When is an overview *stale*: a fixed number of days (MAPT warns at
+  N days), or tighter as the renewal date approaches?
+- **Q-C2.** "New" relative to what: since I last *marked it seen*, since the
+  last client meeting, or since the last upload?
+- **Q-C3.** Freshness on *all* overview entries, or on client-ready ones only?
+- **Q-C4.** Is a broker deadline fulfilled by any new overview entry, or
+  should I always confirm it myself?
+- **Q-C5.** When a deadline passes: just flag it, or start a chase (with a
+  draft email) automatically?
+
+**D. Discrepancies**
+- **Q-D1.** Which fields are typically out of sync besides the strategy
+  (stage, workflow status, plan design changes, insurer, dates)?
+- **Q-D2.** Should a "BM+ behind" discrepancy automatically become a follow-up
+  for the broker ("please submit the strategy in BM+")?
+- **Q-D3.** Do you need a list or export of all discrepancies, e.g. to send
+  to the brokers or COE?
+
+**E. Notes & to-dos**
+- **Q-E1.** MAPT already holds notes, to-dos, chasers and meetings on these
+  renewals. Should MART **take them over** (migrate), **share** MAPT's tables,
+  or start fresh? (This is Q1 again, and it is now the most important open
+  decision.)
+
+### Round 1 questions (status)
+Answered or partly answered by round 2: **Q8** (bundle), **Q10** (side by
+side), **Q25** (MCP yes). The rest are still open.
 
 ### Scope & setup
 - **Q1.** Is MART meant to sit *alongside* MAPT NEO, *replace* it eventually, or become part of it? Should it share MAPT's database or have its own?
