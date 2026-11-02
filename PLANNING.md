@@ -333,6 +333,80 @@ correcting it as described in §2.3. This depends on Q1–Q5.
 
 ---
 
+## 7b. The AI plugin (MCP server + skills + templates)
+
+MART ships with an **AI plugin**: one installable package that lets the local
+AI agent *use* MART, not just query it. It has three parts:
+
+```
+mart-plugin/
+├─ .claude-plugin/plugin.json      name, version, description
+├─ .mcp.json                       registers the MART MCP server (stdio, the venv's python)
+├─ skills/
+│  ├─ mart-navigation/SKILL.md     data model, which tool answers which question, gotchas
+│  ├─ mart-daily-plan/SKILL.md     the morning routine: read Today → propose a day plan
+│  └─ mart-capture/SKILL.md        turn emails / meeting notes / broker replies into
+│                                  notes, to-dos, deadlines, actual-state suggestions
+├─ commands/                       slash shortcuts: /mart-today, /mart-client <name>,
+│                                  /mart-stale, /mart-discrepancies
+└─ templates/                      fixed shapes the agent fills (see below)
+```
+
+(The layout above is the Claude plugin format. If the agent is something
+else, see QUESTIONS H1. The MCP server itself works with any MCP-capable
+agent.)
+
+### 1. MCP server (`tools/mcp_server.py`, registered as `MART`)
+
+| Kind | Tools (first sketch) |
+|---|---|
+| Orient | `today()` · `list_clients()` · `client_overview(client)` |
+| Drill down | `bundle(client, country, date)` · `renewal(id)` · `overview_timeline(id)` |
+| Signals | `new_overviews(since)` · `stale_overviews()` · `deadlines(due\|overdue)` · `discrepancies()` |
+| Your data | `notes(scope, ref)` · `todos(filter)` · `contact_log(id)` |
+| Writes (user data only) | `add_note` · `create_todo` · `set_deadline` · `fulfil_deadline` · `mark_seen` · `log_contact` · `suggest_actual_state` (you confirm in MART) |
+| Escape hatch | `describe_schema` · `query` (read-only connection) |
+
+Lessons carried over from MAPT's server:
+- Tool and server names must match `^[a-zA-Z0-9_-]{1,128}$`. One bad
+  character makes strict runtimes reject *every* tool.
+- Return **compact rows**. Long text (overview histories) comes from its own
+  tool, or the output limit is exceeded.
+- **Purpose-built tools before SQL.** The skill says so explicitly, so
+  answers match what the web app shows.
+- **Never write tracker (BM+) data.** Everything the agent writes is
+  stamped `created_by='AI'` and shown as such.
+- A tool that writes a **file** requires an explicit `path`, with no default
+  folder. The agent asks the user where it should go.
+- A `mcp_selftest --config` tool prints the exact registration for this
+  machine, so nobody types paths from memory.
+
+### 2. Skills
+Written for the agent: when to use which tool, the data model in a few
+paragraphs (case → bundle → renewal; BM+ state vs actual state; NULL = TBC;
+working days), and step-by-step routines (morning plan, capture, meeting
+prep). The skill text is kept in the repo next to the code, so a tool change
+and its description change in the same commit.
+
+### 3. Templates
+Fixed shapes the agent fills, so output looks the same every time. Two
+families; which ones are wanted is QUESTIONS H2:
+
+| Out of MART (reports) | Into MART (extraction) |
+|---|---|
+| Daily brief | Broker email → deadline + note ("update by Fri 15.11") |
+| Client status (per bundle) | Meeting notes → to-dos + actual-state suggestions + notes |
+| Discrepancy list for brokers/COE ("please submit in BM+") | Broker reply → contact log entry (answered / acknowledged only) |
+| Meeting prep / agenda | Pasted BM+ overview text → what changed |
+| Post-renewal review summary | |
+| Chase email draft | |
+
+Each template = a markdown file with the required inputs (which tools to
+call), the output skeleton, and rules (e.g. a client-facing output never
+includes `!`-internal notes or internal overview entries).
+
+---
+
 ## 8. Possible build order (once the questions are answered)
 
 Re-ordered after round 2, so that the things Martin described come first:
@@ -341,7 +415,7 @@ Re-ordered after round 2, so that the things Martin described come first:
    change events, with overview entries parsed (freshness comes for free)
 2. **Client page** (renewals by country × date) + **renewal drawer** with
    notes and to-dos
-3. **Home** (client cards + Today) and the **MCP server** (reads + user-data writes)
+3. **Home** (client cards + Today) and the **AI plugin v1**: MCP server (reads + user-data writes) + the navigation skill
 4. **Broker deadlines** + overview new/stale + seen-marks
 5. **Actual state + discrepancies** + the **Kanban board**
 6. Reminders / chasers / Outlook .ics
@@ -353,90 +427,5 @@ Re-ordered after round 2, so that the things Martin described come first:
 
 ## 9. Questions & clarifications
 
-### Round 2: new questions from Martin's picture
-
-**A. Home & the AI agent**
-- **Q-A1.** On a client card, which 3–5 things matter most at a glance?
-- **Q-A2.** What should the AI agent be allowed to *write*? (Proposal: notes,
-  to-dos, deadlines, seen-marks, actual-state *suggestions* you confirm.
-  Never BM+ data.)
-- **Q-A3.** Should the agent's day plan be shown in MART (a "Today" list it
-  fills), or does it live in the agent's own chat and only *read* MART?
-
-**B. Bundles & the board**
-- **Q-B1.** Bundle = client × country × **exact** renewal date, or the same
-  month? Does entity matter (two entities in one country, same date)?
-- **Q-B2.** Kanban card = bundle or individual renewal? What happens when one
-  renewal in a bundle diverges (e.g. different strategy or stage)?
-- **Q-B3.** Which columns? A proposal: *Not started · Strategy · Proposals /
-  Marketing · Decision · Update Policy · Post-renewal review · Done.*
-- **Q-B4.** "Working with my colleagues": do you share your screen in a call
-  (MART stays single-user), or should colleagues open MART themselves?
-
-**C. Freshness & deadlines**
-- **Q-C1.** When is an overview *stale*: a fixed number of days (MAPT warns at
-  N days), or tighter as the renewal date approaches?
-- **Q-C2.** "New" relative to what: since I last *marked it seen*, since the
-  last client meeting, or since the last upload?
-- **Q-C3.** Freshness on *all* overview entries, or on client-ready ones only?
-- **Q-C4.** Is a broker deadline fulfilled by any new overview entry, or
-  should I always confirm it myself?
-- **Q-C5.** When a deadline passes: just flag it, or start a chase (with a
-  draft email) automatically?
-
-**D. Discrepancies**
-- **Q-D1.** Which fields are typically out of sync besides the strategy
-  (stage, workflow status, plan design changes, insurer, dates)?
-- **Q-D2.** Should a "BM+ behind" discrepancy automatically become a follow-up
-  for the broker ("please submit the strategy in BM+")?
-- **Q-D3.** Do you need a list or export of all discrepancies, e.g. to send
-  to the brokers or COE?
-
-**E. Notes & to-dos**
-- **Q-E1.** MAPT already holds notes, to-dos, chasers and meetings on these
-  renewals. Should MART **take them over** (migrate), **share** MAPT's tables,
-  or start fresh? (This is Q1 again, and it is now the most important open
-  decision.)
-
-### Round 1 questions (status)
-Answered or partly answered by round 2: **Q8** (bundle), **Q10** (side by
-side), **Q25** (MCP yes). The rest are still open.
-
-### Scope & setup
-- **Q1.** Is MART meant to sit *alongside* MAPT NEO, *replace* it eventually, or become part of it? Should it share MAPT's database or have its own?
-- **Q2.** Who uses it: only you, or colleagues too (COE analysts, account specialists, managers)? Multi-user changes hosting, login and assignment.
-- **Q3.** What is your role in the renewal? Which steps do *you* do, and which do COE, the local broker, the insurer and the client do?
-- **Q4.** Where does it run? Same as MAPT (local Windows laptop, OneDrive folder, `.bat` launcher)? Any corporate restrictions (installs, cloud, Outlook automation)?
-- **Q5.** Same tech stack OK, or do you want something different (e.g. a richer front end)?
-
-### The lifecycle
-- **Q6.** Can you walk me through one real renewal end to end, with typical timings (T-minus)? Is there an internal playbook or SLA document?
-- **Q7.** Does the process differ by strategy (remarketing vs incumbent vs rate guarantee / non-expiring / multi-year), product group or country?
-- **Q8.** What is one card on the board: a single policy, or a client/country bundle that renews together? How many live renewals at once (≈50? 300?)
-- **Q9.** When does a renewal *start* for you, and when is it really *done*?
-- **Q10.** If you move a card ahead of BM+ (or BM+ is ahead of you), who wins? Should BM+ ever move a card automatically?
-- **Q11.** Is "Annual Renewal/Review Date" the policy's effective renewal date, or a review date before it? Which date should deadlines count back from?
-
-### Tasks, chasers, reminders
-- **Q12.** Is MAPT's chaser ladder (5 COE rungs + 3 AS rungs, working days) still correct? Do you need country holiday calendars?
-- **Q13.** How should reminders reach you: in-app only, Outlook calendar (.ics), email, Teams, phone? What is technically allowed on your work machine?
-- **Q14.** Do you want "waiting on X since Y" and simple dependencies, or is a checklist enough?
-- **Q15.** Should BM+ tasks only be mirrored, or should MART's playbook also contain your own sub-steps inside each BM+ stage?
-
-### Post-renewal
-- **Q16.** "Updating our internal knowledge on savings / plan design changes": where does that live today (an Excel savings log, SharePoint, a stewardship report, BM+ itself)? What format does it need?
-- **Q17.** How are savings defined and calculated (vs the renewal ask? vs the expiring premium? vs the best alternative quote? which currency)? Could you share an anonymised sample of the Renewal Tracker's `Savings`, `Proposals` and `Renewal Strategy` sheets? MAPT doesn't read them yet.
-- **Q18.** Which fields *exactly* must be correct after a renewal? Is the list in §4.1 right, and what is missing?
-- **Q19.** Should the post-renewal review *block* closing a case, or only be a checklist with waivers?
-
-### Data & history
-- **Q20.** Which trackers will you upload, and how often? (Upload frequency limits how accurately MART can date events.) Any new sources: Jira, Outlook mails, meeting notes?
-- **Q21.** Should MART keep every completed renewal forever, so each policy has a year-over-year renewal history (strategy, outcome, savings, cycle time)?
-
-### Board & views
-- **Q22.** Which board columns do you picture: the phases in §4, BM+'s three stages, or your own? Swimlanes? WIP limits?
-- **Q23.** Besides the board, which views matter most: My Day, calendar/timeline, per-client, a management summary?
-
-### Reuse from MAPT NEO
-- **Q24.** Which MAPT features should come along (meetings & agenda, Client Room, partner tracker, dossier, contact log, MCP/AI agent), and which stay in MAPT?
-- **Q25.** Should your AI agent work with MART over MCP (e.g. "what's overdue", "log this reply", "draft the chaser")?
+All open questions now live in **`QUESTIONS.md`** (grouped A–J, with space for
+the answers, and the most important ones starred).
