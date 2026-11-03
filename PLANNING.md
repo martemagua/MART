@@ -396,9 +396,31 @@ Consequences:
 - Skills must work on both OpenAI and Anthropic models: few tools, plain
   names, explicit steps. All write safety (AI stamp, source, undo feed)
   lives in MART, not in the model.
-- Still to confirm: what the `Mode` values mean, which Python the connector
-  should run, and the exact plugin manifest (from the app's `skill-builder`
-  skill or an exported plugin).
+- Connector `Mode`: **both** (confirmed). Plan = the agent proposes, Build =
+  it acts. MART refuses writes in Plan mode.
+
+**What the app's `skill-builder` skill shows (v1.0.3):**
+- The agent works in a **sandboxed workspace**: `workspace_bash`, `deno run`
+  for TS scripts, and Python = **Pyodide** (WebAssembly, in the app, not
+  the laptop's Python). No network inside the sandbox.
+  → **Skill scripts cannot reach MART's database.** All MART data goes
+  through the MCP connector, which the app starts as a real local process.
+- Skill contract: folder name = frontmatter `name`
+  (`^[a-z0-9][a-z0-9_-]{0,63}$`) + a `description` saying *when* to use it
+  (optional: `icon`, `auto-detectable`). `references/*.md`, `scripts/`
+  (Deno/TS or Python), `assets/` (UTF-8 text only). **5 MB per skill.**
+  Script output goes to `$WORKSPACE_OUTPUT_DIR`.
+- Skills can call other skills' scripts via `$SKILLS_DIR` (e.g. built-in
+  `docx`, `marsh-xlsx`), and use `markitdown` / `render-doc`.
+- Skills can be created by the agent itself (draft → `workspace_skill_save`)
+  or imported as `.zip` / `.skill` / `.md`.
+- Body conventions: a "Pick a mode" table, which reference to read for which
+  task, "Hard rules" at the end; keep SKILL.md short (about 80 lines), detail
+  in `references/`.
+
+Still to confirm: which executable the MART connector runs on the laptop
+(Python per-user install, or a bundled runtime), and the **plugin** manifest
+format (skill-builder covers skills only).
 
 ### 1. MCP server (`tools/mcp_server.py`, registered as `MART`)
 
