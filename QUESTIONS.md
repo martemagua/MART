@@ -21,45 +21,52 @@ agent is wanted · an AI plugin (MCP + skills + templates) is wanted.
 → **Answered:** start fresh; MART has its own.
 
 **A3** Who uses MART? Only you, or colleagues too? When "working with colleagues" on the Kanban, do you share your screen in a call, or should they open MART themselves?
-→
+→i will be the one using MART. when collaborating, I'l share my screen.
 
 **A4** What is your role in a renewal? Which steps do *you* do, and which do COE, the local broker, the insurer and the client do?
-→
+→ i am a global account specialist, also refered to as internationaö consultong administrator. i am responsible for the project management and timely deliverable of the renewals. i am also responsible for peer reviewing the data 
+that my Data Analyst (COE) gahters from the brokers and following up if i identify issues or need clarification. i also present the data to the client together with the account manager.
 
 **A5** Where does it run? Same as MAPT (local Windows, OneDrive folder, `.bat` launcher)? Any corporate restrictions (installs, cloud, Outlook automation)?
-→
+→I can only run it locally currently. I want to have it running on a local folder and back up to onedrive or one of our compamy network folder. I also cannot install anything that requires admin authorization.
 
 **A6** Since MART is new: same stack as MAPT (Python · FastAPI · SQLite · HTMX, no build step), or something else?
-→
+→Whatever works best for this app. it needs to be fast, reliable, flexible and work well with AI. it should also have a nice UX
 
 ---
 
 ## B. The renewal lifecycle
 
 **B1 ⭐** Walk me through one real renewal end to end, with typical timings (T-minus days). Is there an internal playbook or SLA document?
-→
+→a renewal is kicked-off automatically in the system, creating a new entry in the renewals. usually, this happens 4 months before renewal, however different clients and individual countries can have their own tomelines.
+we follow up with the clients requesting information on the strategy. The broker needs to take care contacting the local client and insurers themself, and will either give us expectations, dates or a strategy, that can be a straight renewal with the incumbent or a remarketing.
+policies can also be under rate guarantee for multiple years or be non-expiring. 
+there is also the question of plan design changes, so wether coverages stay the same or have cost containment or enhancements proposed as well. These need to be saved and quantified.
+Then we require proposals from the insurer or insurers. There might also be multiple rounds if negotiations involved until the final quotes are agreed on. We require the first and the last quote from each insurer involved in the renewal. we also hold on to different proposals (with or without pdc) if offered.
+finally, we need to know when and what proposal the client accepted.
+after finalizing the renewal, it's nexessary thst all data in the system (BM+) is updated and properly reviewed. this includes document data, claims, headcount, financial and design information for instance.
 
 **B2** Does the process differ by strategy (remarketing / incumbent / rate guarantee / non-expiring / multi-year), product group or country?
-→
+→a a remarketing involves reaching out to multiple providers and involving pooling partners. each client has different partners for pooling and their local partners need to be invited in the remarketing. we also need to inform pooling partners regularly about ongoing remarketings.
 
 **B3** When does a renewal *start* for you, and when is it really *done*?
-→
+→it starts when the system kicks off the renewal and ends when all the information has been reviewed in the system.
 
 **B4 ⭐** Is BM+'s "Annual Renewal/Review Date" the date the renewal takes effect, or a review date before it? Which date should deadlines count back from?
-→
+→the newal date is the date it takes effect. there are also different timelines where we expext tasks to be completed as well, but this depends on the individual client.
 
 **B5** Roughly how many renewals are live at once (≈50? 300?)
-→
+→ this depends on the time of year, but it can be about 300 per client on high season
 
 ---
 
 ## C. Bundles & the Kanban board
 
 **C1 ⭐** Bundle = client × country × **exact** renewal date, or the same month? Does entity matter (two entities in one country, same date)?
-→
+→it would be nice to split and join policies. some can be bundled by country and renewal date, others also need to be broken down by entity, policy number, insurer etc)
 
 **C2 ⭐** Is one Kanban card a **bundle** or a **single renewal**? What should happen when one renewal in a bundle diverges (different strategy or stage)?
-→
+→it should be a bundle, but by the logic above, sometimes it might be that it's only one policy, others can be dozens. it depends
 
 **C3 ⭐** Which columns? Proposal: *Not started · Strategy · Proposals / Marketing · Decision · Update Policy · Post-renewal review · Done.*
 →
