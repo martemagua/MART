@@ -168,7 +168,7 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 ## I. Post-renewal
 
 **I1 ⭐** "Updating our internal knowledge on savings / plan design changes": where does that live today (an Excel savings log, SharePoint, a stewardship report, BM+ itself)? What format does it need?
-→
+→ **Answered 03.11.2026:** savings must be saved in BM+; the central knowledge lives in MART; no fixed format. Only Martin reads it. Savings entries are updated from the BM+ tracker upload or by hand (MART does not calculate them). What he'll look things up by is still unsure → start simple. See PLANNING §7c.
 
 **I2** How are savings defined (vs the renewal ask? the expiring premium? the best alternative quote? which currency)? Could you share an anonymised sample of the Renewal Tracker's `Savings`, `Proposals` and `Renewal Strategy` sheets?
 →

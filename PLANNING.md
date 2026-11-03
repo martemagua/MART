@@ -537,6 +537,38 @@ includes `!`-internal notes or internal overview entries).
 
 ---
 
+## 7c. Knowledge base (decided 03.11.2026)
+
+Savings must still be **recorded in BM+**. MART holds the **central
+knowledge**: what was saved, what changed in the plan design, what was
+learned, what a client prefers. There is no existing format to match.
+
+**v1: start simple, grow from use.** Martin can't yet say what he will
+look things up by, so no detailed schema up front.
+
+- **Entry** = one short fact: `type` (savings · plan design change · lesson
+  · client fact), short text, BM+ figures where they exist (amount, %,
+  currency, BM+ savings category and driver), free tags, and links to the
+  renewal cycle → policy, client, country, insurer, product group.
+- **Sources:** each upload creates or refreshes savings entries from the
+  Renewal Tracker's **Savings** and **Proposals** sheets. Martin adds or edits
+  entries by hand (his AI agent can too, over MCP). MART does **not**
+  calculate savings itself.
+- **Provenance:** every entry is marked *from BM+* or *by you* (or *AI*). An
+  upload refreshes only BM+-sourced entries and never overwrites what was
+  typed in MART.
+- **Internal only:** read by Martin alone. Never included in client-facing
+  output, so it can stay terse.
+- **Where it shows:** a Knowledge section in each renewal's panel, a
+  per-client view, search across everything, and year-over-year history per
+  policy.
+- **Post-renewal review** has two separate checks: *BM+ Savings section
+  filled?* and *knowledge recorded in MART?*
+- Fields get added later from real use (e.g. structured plan-design fields
+  once a pattern shows).
+
+---
+
 ## 8. Possible build order (once the questions are answered)
 
 Re-ordered after round 2, so that the things Martin described come first:
