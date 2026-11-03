@@ -188,3 +188,28 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 
 **J2** Should MART keep every completed renewal forever, giving each policy a year-over-year renewal history (strategy, outcome, savings, cycle time)?
 →
+
+---
+
+## K. From the tracker files (03.11.2026, see TRACKER_MAP.md)
+
+**K1 ⭐** Which export flavour will you upload day to day: **cross-client** (all clients in one file), **per client**, or both?
+→
+
+**K2 ⭐** Can the Renewal Tracker export include *Completed within last 6 months* and *Upcoming within next 6 months*? (That would give MART history and the pipeline directly.)
+→
+
+**K3** What are "Transitioned Inprogress / Completed" renewals (migrated from an older system)? Will they get Policy/Renewal Unique IDs?
+→
+
+**K4** Is *"Expected date to receive the final renewal terms"* (Renewal Strategy sheet) where brokers record the date they give you, or is it usually empty?
+→
+
+**K5** Is `Global Review Pending` the queue of tasks waiting for *your* peer review?
+→
+
+**K6** Proposals: BM+ keeps the first and the final quote per proposal. Do you need the intermediate negotiation rounds in MART too?
+→
+
+**K7** Should the **Benefit Tracker** come into MART as well? The post-renewal checks need it (claims, headcount, financials, design).
+→
