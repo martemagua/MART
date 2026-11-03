@@ -21,7 +21,12 @@
 
 Shorter alternative: *"BM+ is the record. MART is the reality, and my plan."*
 
-Decision: ☐ ✅ ☐ ✏️ ______________________________
+Decision: ☐ ✅ x ✏️ 
+> MART is the center of operations for all the renewals I manage. it allows me to set the real state that
+> the renewals are in, and keep track of deadlines, follow-ups, tasks, notes and promises. From upcoming
+> renewals to post-renewal to-dos, over requests form the client and network partners. Everything is
+> connected and reachable via AI.
+______________________________
 
 ---
 
