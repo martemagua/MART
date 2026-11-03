@@ -370,6 +370,36 @@ mart-plugin/
 else, see QUESTIONS H1. The MCP server itself works with any MCP-capable
 agent.)
 
+### 0. The target app (what we know, 03.11.2026)
+
+Martin's agent is a **company-built desktop app**, with a choice of OpenAI
+and Anthropic models (mostly Sonnet 4.6 / 5). It uses the standard
+skill / plugin format:
+
+- **Connectors** = local MCP servers started by the app: `Name`, `Command`,
+  `Arguments` (comma-separated), optional `Env Secrets`, and a `Mode`
+  (both / plan / build). So MART's MCP server runs as a local stdio process.
+- **Skills**: a `SKILL.md` plus `assets/`, `references/` and `scripts/`
+  subfolders. Built-in skills run Python and JS scripts (the `docx` skill
+  ships `scripts/blocks/*.py` using `python-docx`). Trigger is a slash
+  command and/or automatic. Imported as `.zip`, `.skill` or `.md`.
+- **Plugins** bundle skills, agents, hooks and connectors, and install as a
+  `.plugin` or `.zip`.
+
+Consequences:
+- MART ships as **one `.zip` plugin**: connector registration + skills +
+  templates in `assets/`.
+- Word and Excel output can **reuse the app's built-in docx/xlsx skills**
+  (MART supplies the data and template). MART only builds a file itself where
+  the layout is fixed and must have a single implementation (e.g. the
+  partner tracker).
+- Skills must work on both OpenAI and Anthropic models: few tools, plain
+  names, explicit steps. All write safety (AI stamp, source, undo feed)
+  lives in MART, not in the model.
+- Still to confirm: what the `Mode` values mean, which Python the connector
+  should run, and the exact plugin manifest (from the app's `skill-builder`
+  skill or an exported plugin).
+
 ### 1. MCP server (`tools/mcp_server.py`, registered as `MART`)
 
 | Kind | Tools (first sketch) |
