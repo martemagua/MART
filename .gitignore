@@ -12,3 +12,12 @@
 *.csv
 # Excel lock files ("~$Book.xlsx")
 ~$*
+
+# --- Build output, caches, local data --------------------------------------
+dist/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.db
+*.db.gz

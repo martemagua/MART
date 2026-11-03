@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% set setup_mode = True %}
+{% block title %}{{ status_code }}{% endblock %}
+{% block content %}
+<header class="page-head">
+  <h1>{% if status_code == 404 %}Page not found{% elif status_code == 403 %}Not allowed{% else %}Something went wrong{% endif %}</h1>
+  <p class="lead">{{ message }}</p>
+</header>
+<section class="card narrow">
+  {% if log_file %}<p>The details were written to <code>{{ log_file }}</code>.</p>{% endif %}
+  <p><a href="/">← Back to Home</a></p>
+</section>
+{% endblock %}

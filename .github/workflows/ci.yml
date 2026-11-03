@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Test-only tools. MART itself installs nothing: it runs on the standard
+      # library, openpyxl (preinstalled on the work laptop) and vendor/.
+      - run: python -m pip install pytest==9.2.0 openpyxl==3.1.5 ruff
+      - run: ruff check .
+      - run: python -m pytest
+      - run: python tools/build_zip.py
+      - uses: actions/upload-artifact@v4
+        if: matrix.os == 'windows-latest'
+        with:
+          name: MART-zip
+          path: dist/*.zip

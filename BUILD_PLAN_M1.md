@@ -8,7 +8,7 @@ date, open a renewal, and add notes and to-dos.
 you unzip over the previous version (your data folder is never touched),
 plus a short **"what to try"** list. Your feedback steers the next day.
 
-Status: **proposal, not started**. Nothing is built until Martin says go.
+Status: **in progress.** Day 1 done (MART 0.1.0, 03.11.2026).
 
 ---
 
@@ -30,7 +30,7 @@ Status: **proposal, not started**. Nothing is built until Martin says go.
 
 | Day | Increment | What you can try |
 |---|---|---|
-| 1 | **Skeleton**: `MART.bat`, start-up check, first-run **Settings** (data folder, backup folder), empty Home, database created, automatic backup on start | unzip, double-click, choose your folders, see MART open in the browser; restart and see the backup appear |
+| 1 ✅ | **Skeleton**: `MART.bat`, start-up check, first-run **Settings** (data folder, backup folder), empty Home, database created, automatic backup on start | unzip, double-click, choose your folders, see MART open in the browser; restart and see the backup appear |
 | 2 | **Renewal Tracker upload**: detect tracker + flavour (cross-client / per client), **preview before commit** (clients found, renewals, warnings), **"My clients"** picker so demo clients are ignored, commit | upload a cross-client Renewal Tracker, tick your clients, commit; upload it again and see "no changes" |
 | 3 | **Clients and bundles**: client list, client page with renewals **bundled by country + renewal date**, counts and next renewal date | open each client and check the bundles look right |
 | 4 | **Task Tracker upload + renewal detail**: tasks linked to *this* cycle (stable id + per-cycle id), renewal panel with BM+ facts, the stage strip (Renewal Strategy → Proposals → Update Policy + peer review state), the dated overview timeline, the Renewal Strategy sheet's fields | open a renewal and compare it with BM+ |

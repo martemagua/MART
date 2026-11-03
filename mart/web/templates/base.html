@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}MART{% endblock %} · MART</title>
+<link rel="stylesheet" href="/static/mart.css">
+</head>
+<body>
+<div class="shell">
+  <nav class="sidebar" aria-label="Main">
+    <a class="brand" href="/">
+      <span class="brand-name">MART</span>
+      <span class="brand-sub">renewals</span>
+    </a>
+    {% if not setup_mode %}
+    <a class="nav-link {% if active == 'home' %}is-active{% endif %}" href="/">Home</a>
+    <span class="nav-link is-soon" title="Coming in M1 · day 3">Clients</span>
+    <span class="nav-link is-soon" title="Coming in M1 · day 2">Uploads</span>
+    <span class="nav-link is-soon" title="Coming in M3">Board</span>
+    <a class="nav-link {% if active == 'settings' %}is-active{% endif %}" href="/settings">Settings</a>
+    {% endif %}
+    <div class="sidebar-foot">
+      <span>MART {{ version }}</span>
+      <span>{{ release }}</span>
+    </div>
+  </nav>
+  <main class="content">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+</body>
+</html>

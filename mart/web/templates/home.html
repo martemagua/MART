@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<header class="page-head">
+  <h1>Home</h1>
+  <p class="lead">Your renewals will show up here once trackers are uploaded.</p>
+</header>
+
+{% if welcome %}
+<div class="notice notice-ok" role="status">MART is set up. Your data lives in <code>{{ status_info.data_dir }}</code>, backups go to <code>{{ status_info.backup_dir }}</code>.</div>
+{% endif %}
+
+<div class="grid">
+  <section class="card empty">
+    <h2>No trackers uploaded yet</h2>
+    <p>Next step (M1 · day 2): upload a <strong>Renewal Tracker</strong> export, pick <em>your</em> clients, and MART builds your renewal list from it.</p>
+  </section>
+
+  {% set st = status_info %}
+  <section class="card" aria-labelledby="sys-h">
+    <h2 id="sys-h">System</h2>
+    <dl class="facts">
+      <dt>MART</dt><dd>{{ st.version }} <span class="muted">({{ st.release }})</span></dd>
+      <dt>Python</dt><dd>{{ st.python }}</dd>
+      <dt>Excel reader</dt><dd>{% if st.excel %}{{ st.excel }}{% else %}<span class="warn">missing — uploads won't work</span>{% endif %}</dd>
+      <dt>Database</dt><dd>{{ st.db_size | filesize }} · schema {{ st.schema_version }}</dd>
+      <dt>Last backup</dt><dd>{% if st.last_backup %}{{ st.last_backup.taken_at | dmy(True) }}{% else %}<span class="muted">none yet</span>{% endif %}</dd>
+    </dl>
+    <p><a href="/settings">Folders and backups →</a></p>
+  </section>
+</div>
+{% endblock %}
