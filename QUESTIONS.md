@@ -30,8 +30,8 @@ that my Data Analyst (COE) gahters from the brokers and following up if i identi
 **A5** Where does it run? Same as MAPT (local Windows, OneDrive folder, `.bat` launcher)? Any corporate restrictions (installs, cloud, Outlook automation)?
 →I can only run it locally currently. I want to have it running on a local folder and back up to onedrive or one of our compamy network folder. I also cannot install anything that requires admin authorization.
 
-**A6** Since MART is new: same stack as MAPT (Python · FastAPI · SQLite · HTMX, no build step), or something else?
-→Whatever works best for this app. it needs to be fast, reliable, flexible and work well with AI. it should also have a nice UX
+**A6** ~~Same stack as MAPT, or something else?~~
+→ **Answered:** "whatever works best". **Decided 03.11.2026:** Python 3.12 (already on the laptop) + standard library + preinstalled `openpyxl`, no installs; shipped as a portable zip. See PLANNING §7.
 
 ---
 

@@ -342,8 +342,38 @@ reference only:
   keeps completed renewals, records changes between uploads, and treats the
   renewal cycle as a first-class object.
 
-Stack is still open (QUESTIONS A6). Default assumption: Python · FastAPI ·
-SQLite · Jinja + HTMX, no build step, local and single-user.
+### Runtime and delivery (decided 03.11.2026)
+
+The work laptop has **Python 3.12** (`C:\Program Files\Python312`) with only a
+few preinstalled packages: `openpyxl`, `et_xmlfile`, `pandas`, `numpy`,
+`python-dateutil`, `pywin32`, `six`, `tzdata`. pip points at the company's
+internal package server, which needs credentials Martin doesn't have
+(requested from IT as an optional extra, never required). No Node or Deno.
+
+So MART is built to need **nothing installed**:
+
+| Part | Built with |
+|---|---|
+| Database | `sqlite3` (standard library) |
+| Web server | standard-library HTTP server + a small MART router, on `127.0.0.1` only |
+| Pages | server-rendered HTML; a templating library only if clearly worth it, and then pure-Python, copied into `vendor/` (licence kept) |
+| Excel in/out | `openpyxl` (preinstalled) |
+| Browser side | HTMX, SortableJS (drag-and-drop), a chart library: plain JS files shipped in the folder, no build step |
+| MCP connector | MART's own small JSON-RPC-over-stdio implementation (standard library), no MCP SDK |
+| Outlook (optional, later) | `pywin32`, only if company rules allow it |
+
+**Rules that follow:**
+- Every dependency is either in the standard library, preinstalled on the
+  laptop, or pure Python shipped inside MART. **No compiled packages.**
+- The startup script checks this on launch and says clearly what is missing,
+  instead of crashing.
+- **Delivery = one zip**: unzip into a local folder, double-click
+  `MART.bat`, open `http://127.0.0.1:<port>`. Updates = unzip the new
+  version over the app folder.
+- **Data lives outside the app folder** (its own data directory), backed up
+  automatically to OneDrive or a company network folder. The live database
+  never runs from a synced folder.
+- MART **generates its AI plugin** with this machine's paths (see §7b).
 
 ---
 
