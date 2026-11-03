@@ -418,9 +418,43 @@ Consequences:
   task, "Hard rules" at the end; keep SKILL.md short (about 80 lines), detail
   in `references/`.
 
-Still to confirm: which executable the MART connector runs on the laptop
-(Python per-user install, or a bundled runtime), and the **plugin** manifest
-format (skill-builder covers skills only).
+**Runtime on the laptop (03.11.2026):** `C:\Program Files\Python312\python.exe`
+(Python 3.12) is installed; the `WindowsApps\python.exe` entry is only the
+Store alias. **No Node, no Deno.** → MART's server and connector run on
+Python 3.12, in MART's own virtual environment (no admin needed).
+
+**Plugin format (from the app's plugin development guide):** the same shape
+as Claude Code plugins.
+
+```
+mart/
+├── .claude-plugin/plugin.json   # REQUIRED: {"name": "mart", "version", "description"}
+├── skills/<skill>/SKILL.md      # + references/, scripts/, assets/
+├── agents/<agent>.md            # subagents (frontmatter: name, description, model, tools)
+├── commands/<command>.md        # slash commands
+├── hooks/hooks.json             # optional (only if useful)
+└── .mcp.json                    # the connector
+```
+
+- `.mcp.json`: `{"mcpServers": {"<name>": {"command", "args", "env",
+  "working_dir", "init_timeout_secs", "call_timeout_secs", "mode": "both"}}}`.
+- Installed from a **folder** (fastest while developing) or a **`.plugin` /
+  `.zip`** archive; scope personal (global) or per project. An org
+  marketplace exists for distribution later.
+- **Namespacing:** skills become `mart:<skill>`; the connector becomes
+  `mart__<server>`; its tools are seen as `mcp_mart__<server>_<tool>`, so
+  server and tool names stay short.
+- Skill frontmatter also accepts `icon`, `allowed-tools`, `model` (pin a
+  model), `max-iterations`, `triggers`; a skill body over about 5000 tokens
+  draws a warning (detail goes in `references/`).
+- The app's diagnostics lint expects each skill to have a **"## What I Need
+  From You"** (or "## Required Inputs") section.
+- Paths in the manifest start with `./` and never contain `..`.
+
+Consequence: the connector's `command` must point at **this machine's**
+MART Python and server script. MART therefore **generates its own plugin**
+(a `build_plugin` tool writes `.mcp.json` with the real paths and
+`MART_DB_PATH`, then zips the folder), so nobody types paths by hand.
 
 ### 1. MCP server (`tools/mcp_server.py`, registered as `MART`)
 
