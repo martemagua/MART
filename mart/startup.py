@@ -28,7 +28,7 @@ def run_checks() -> list[Check]:
     if v < (3, 10):
         checks.append(Check("Python", False, f"{version} is too old; MART needs Python 3.12.", fatal=True))
     elif v < (3, 12):
-        checks.append(Check("Python", False, f"{version} works, but MART is built and tested for 3.12."))
+        checks.append(Check("Python", False, f"{version} may work; MART is tested on 3.12 and newer."))
     else:
         checks.append(Check("Python", True, version))
 

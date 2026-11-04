@@ -8,6 +8,9 @@ the current `BUILD_PLAN_*.md` before changing anything.
 
 ## Hard constraints (from the work laptop)
 
+- **Python versions:** 3.12 on the work laptop, 3.14 on Martin's personal PC;
+  CI runs both on Windows. `MART.bat` finds any real Python 3.10+ (test-runs
+  each candidate, so the Microsoft Store placeholder is skipped).
 - **Nothing can be installed there.** Runtime = Python 3.12 + standard
   library + preinstalled `openpyxl` + pure-Python code in `vendor/`.
   Never add a dependency that needs `pip install` or has compiled parts.
