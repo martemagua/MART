@@ -83,7 +83,7 @@ before changing anything.
 - Test data: `tests/fixtures.py` builds exports to the real layout. Real
   exports can be checked with `MART_REAL_EXPORTS=<folder>` (never committed).
 - Timestamps in the DB are UTC; `| dmy(True)` shows them in local time.
-- **Desktop only** (landscape and portrait windows). Explorer pages: side panel scrolls on its own (`.bundle-nav`), content in the middle.
+- **Desktop only** (landscape and portrait windows). The main menu (`.sidebar`) is pinned to the window; explorer pages: side panel scrolls on its own (`.bundle-nav`), content in the middle.
 - CSS: `[hidden]` always wins (`display: none !important`), so filters work on flex/grid items.
 - Keep files under ~400 lines; one shared helper over duplicated logic.
 

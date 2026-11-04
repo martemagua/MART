@@ -16,9 +16,14 @@ laptop.
   faint dotted stage dot. If BM+ does create a Proposals task anyway, MART
   shows that task.
 
+### Fixed
+- **The left menu stays put** while a page scrolls (Martin, 04.11.2026):
+  it is as tall as the window, with the MART version at its bottom, instead
+  of growing with the page and scrolling away.
+
 ### What to try
 Open a renewal with *Incumbent with Rate Guarantee*: the Proposals stage
-says "not needed".
+says "not needed". Scroll down a long renewal: the menu on the left stays.
 
 ## 0.4.5 — 04.11.2026 · renewal tasks only; every period type
 
