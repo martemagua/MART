@@ -45,18 +45,16 @@ def test_bundles_are_country_plus_renewal_date():
     # opens at the top, Martin 04.11.2026), here one already past its date
     s = v["selected"]
     assert (s["country"], s["renewal_date"], len(s["renewals"])) == ("Brazil", "2026-07-01", 1)
-    assert cs.explorer(cid, group="country", today=TODAY)["selected"]["country"] == "Brazil"
     s = cs.explorer(cid, bundle=cs.bundle_key("Poland", "2027-01-01"), today=TODAY)["selected"]
     assert s["days_until"] == 58 and s["entities"] == ["Acme PL", "Acme PL Services"]
     assert v["filters"] == {"countries": ["Brazil", "Poland", "Spain"],
-                            "months": [("2026-07", "July 2026"), ("2027-01", "January 2027"),
-                                       ("2027-02", "February 2027")]}
+                            "first": "2026-07-01", "last": "2027-02-01"}
 
 
-def test_grouping_by_country_and_choosing_a_bundle():
+def test_choosing_a_bundle():
     cid = _load(_book())
-    v = cs.explorer(cid, group="country", bundle=cs.bundle_key("Spain", "2027-02-01"), today=TODAY)
-    assert list(v["groups"]) == ["Brazil", "Poland", "Spain"]
+    v = cs.explorer(cid, bundle=cs.bundle_key("Spain", "2027-02-01"), today=TODAY)
+    assert list(v["groups"]) == ["July 2026", "January 2027", "February 2027"]   # always by month
     assert v["selected"]["country"] == "Spain"
 
 
@@ -110,12 +108,13 @@ def test_clients_and_explorer_pages(app):
     html = get(app, "/clients").body_bytes.decode()
     assert f'href="/clients/{cid}"' in html and "1 with gaps" in html
     page = get(app, f"/clients/{cid}").body_bytes.decode()
-    assert "By country" in page and "Brazil · 01.07.2026" in page and 'data-fresh' in page
+    assert "Brazil · 01.07.2026" in page and 'data-fresh' in page
+    assert "By country" not in page and "group=" not in page          # the toggle is gone
     assert '<img class="flag" src="/static/flags/br.svg"' in page
-    assert '<option value="2027-01">From January 2027' in page
+    assert 'type="date" data-f="from" min="2026-07-01" max="2027-02-01"' in page
     spain = get(app, f"/clients/{cid}?bundle=Spain%7C2027-02-01").body_bytes.decode()
     assert "Spain · 01.02.2027" in spain and "data-fresh" not in spain
-    assert 'data-country="Spain" data-first="2027-02" data-last="2027-02"' in spain
+    assert 'data-country="Spain" data-first="2027-02-01" data-last="2027-02-01"' in spain
     poland = get(app, f"/clients/{cid}?bundle=Poland%7C2027-01-01").body_bytes.decode()
     assert "not in client-ready" in poland and "no client-ready" in poland
     assert "Internal: budget tight." in poland

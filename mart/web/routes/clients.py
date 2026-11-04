@@ -20,7 +20,7 @@ def clients_page(request: Request) -> Response:
 
 def _explorer(request: Request, client_id: int, **kw):
     try:
-        return client_service.explorer(client_id, group=request.arg("group", "date") or "date",
+        return client_service.explorer(client_id,
                                        show_all=request.arg("all") == "1" or kw.pop("show_all", False), **kw)
     except client_service.NotFound as exc:
         raise HTTPError(404, str(exc)) from exc
@@ -69,9 +69,8 @@ def client_notes(request: Request, client_id: int) -> Response:
 
 
 # -- moving renewals between bundles ---------------------------------------------------
-def _to_bundle(request: Request, client_id: int, key: str) -> Response:
-    group = request.arg("group") or "date"
-    return Response.redirect(f"/clients/{client_id}?bundle={quote(key, safe='')}&group={quote(group)}")
+def _to_bundle(client_id: int, key: str) -> Response:
+    return Response.redirect(f"/clients/{client_id}?bundle={quote(key, safe='')}")
 
 
 @router.route("/clients/{client_id:int}/bundles/move", methods=("POST",))
@@ -81,7 +80,7 @@ def bundle_move(request: Request, client_id: int) -> Response:
         key = bundle_service.move(client_id, ids, request.arg("target") or "", request.arg("name"))
     except bundle_service.Invalid as exc:
         raise HTTPError(400, str(exc)) from exc
-    return _to_bundle(request, client_id, key)
+    return _to_bundle(client_id, key)
 
 
 @router.route("/clients/{client_id:int}/bundles/rename", methods=("POST",))
@@ -90,4 +89,4 @@ def bundle_rename(request: Request, client_id: int) -> Response:
         key = bundle_service.rename(client_id, request.arg("key") or "", request.arg("name"))
     except bundle_service.Invalid as exc:
         raise HTTPError(400, str(exc)) from exc
-    return _to_bundle(request, client_id, key)
+    return _to_bundle(client_id, key)

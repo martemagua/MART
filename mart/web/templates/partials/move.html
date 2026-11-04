@@ -2,9 +2,8 @@
    choose renewals sit in the renewal cards with form="<form_id>", so the
    form wraps nothing and the cards keep their own controls. With `one`, the
    form moves just that renewal (renewal panel). #}
-{% macro move_form(base, group, s, form_id, back, one=none) %}
+{% macro move_form(base, s, form_id, back, one=none) %}
 <form method="post" action="{{ base }}/bundles/move" id="{{ form_id }}" class="move-bar" data-move-form>
-  <input type="hidden" name="group" value="{{ group }}">
   {% if one %}<input type="hidden" name="renewal" value="{{ one }}">{% endif %}
   <span class="move-label">{% if one %}Move this renewal to{% else %}Move the selected renewals to{% endif %}</span>
   <select name="target" aria-label="Bundle to move to" data-move-target>

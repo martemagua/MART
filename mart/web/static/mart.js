@@ -18,7 +18,7 @@
   });
 
   // [data-bundle-filters="<client id>"]: the explorer's side panel filters —
-  // text, country, and renewal months from / until — hide the bundles that
+  // text, country, and renewal dates from / until (ISO, so they compare as text) — hide the bundles that
   // don't match, and the groups left empty. They are remembered per client
   // in this browser tab (clicking a bundle reloads the page); [data-fresh]
   // (the client opened from the list) starts without them.
@@ -64,7 +64,7 @@
       });
     } catch (e) { /* storage blocked: start without filters */ }
     fields.forEach(function (f) {
-      f.addEventListener(f.tagName === "SELECT" ? "change" : "input", apply);
+      f.addEventListener(f.getAttribute("data-f") === "text" ? "input" : "change", apply);
       // Enter in the text filter must not submit anything.
       f.addEventListener("keydown", function (e) { if (e.key === "Enter") e.preventDefault(); });
     });
@@ -131,6 +131,46 @@
     function sync() { var isNew = target.value === "new"; name.hidden = !isNew; name.required = isNew; }
     target.addEventListener("change", sync);
     sync();
+  });
+  // <form data-dropzone>: tracker files dropped on its [data-drop-area] go into
+  // its file input and the form is sent (the preview comes next; nothing is
+  // committed). Only .xlsx files are taken. A file dropped elsewhere on the
+  // page is ignored instead of the browser opening it.
+  document.querySelectorAll("form[data-dropzone]").forEach(function (form) {
+    var area = form.querySelector("[data-drop-area]"), input = form.querySelector("input[type=file]");
+    var status = form.querySelector("[data-drop-status]");
+    if (!area || !input) return;
+    function say(text, isError) {
+      if (!status) return;
+      status.hidden = false;
+      status.textContent = text;
+      status.classList.toggle("is-error", !!isError);
+    }
+    ["dragenter", "dragover"].forEach(function (t) {
+      area.addEventListener(t, function (e) { e.preventDefault(); area.classList.add("is-over"); });
+    });
+    area.addEventListener("dragleave", function (e) {
+      if (!area.contains(e.relatedTarget)) area.classList.remove("is-over");
+    });
+    area.addEventListener("drop", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      area.classList.remove("is-over");
+      var files = Array.prototype.filter.call(e.dataTransfer.files || [], function (f) {
+        return /\.xlsx$/i.test(f.name);
+      });
+      if (!files.length) { say("Only .xlsx tracker exports can be uploaded.", true); return; }
+      try {
+        var dt = new DataTransfer();
+        files.forEach(function (f) { dt.items.add(f); });
+        input.files = dt.files;
+      } catch (err) { say("This browser can't take dropped files: please choose them.", true); return; }
+      say("Uploading " + files.length + " file" + (files.length === 1 ? "" : "s") + "…");
+      form.submit();
+    });
+    ["dragover", "drop"].forEach(function (t) {
+      document.addEventListener(t, function (e) { e.preventDefault(); });
+    });
   });
   // [data-focus-on-open] in a <details>: put the cursor there when it opens.
   document.querySelectorAll("details").forEach(function (d) {
