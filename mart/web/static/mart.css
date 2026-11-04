@@ -294,3 +294,49 @@ a.rc-name:hover { color: var(--accent); text-decoration: underline; }
 /* In the renewal panel the label never takes more than ~40%: long BM+
    questions wrap, so the answer keeps room and words are not split. */
 .rd-section .facts:not(.facts-wide) { grid-template-columns: minmax(8rem, 40%) minmax(0, 1fr); }
+
+/* ── What Martin writes (partials/mine.html): kept apart from BM+ data ── */
+.sec-mine { border-left: 4px solid var(--accent); }
+.mine-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+@media (max-width: 1320px) { .mine-cols { grid-template-columns: minmax(0, 1fr); } }
+.mine-cols h4, .mine-also h4 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.todo-list, .note-list { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.todo { display: flex; align-items: flex-start; gap: 8px; }
+.todo-check { margin: 0; }
+.check-btn { width: 20px; height: 20px; margin-top: 1px; border: 1.5px solid var(--muted); border-radius: 5px; background: var(--surface);
+  cursor: pointer; padding: 0; font-size: 13px; line-height: 1; color: var(--ok-ink); }
+.check-btn:hover { border-color: var(--accent); }
+.todo-main { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: baseline; }
+.todo-title { overflow-wrap: anywhere; }
+.todo-due, .todo-target { font-size: 12px; color: var(--muted); }
+.todo-target { flex-basis: 100%; }
+.todo.is-overdue .todo-due { color: var(--err-ink); font-weight: 600; }
+.todo.is-done .todo-title { text-decoration: line-through; color: var(--muted); }
+.row-edit { font-size: 12px; }
+.row-edit > summary { cursor: pointer; color: var(--muted); list-style: none; }
+.row-edit > summary::-webkit-details-marker { display: none; }
+.row-edit[open] { flex-basis: 100%; display: flex; flex-direction: column; gap: 6px; padding: 6px 0; }
+.todo:has(.row-edit[open]) { flex-wrap: wrap; }
+.inline-form { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0; }
+.inline-form input[type=text] { flex: 1 1 120px; min-width: 0; width: auto; }
+.inline-form input[type=date] { flex: 0 0 150px; width: 150px; padding: 0 8px; }
+.inline-form input { padding: 0 10px; }
+textarea { font: inherit; border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; background: var(--surface); color: var(--ink); }
+.inline-form input, .stack-form textarea { min-height: 32px; font: inherit; font-size: 13px; }
+.stack-form { display: flex; flex-direction: column; gap: 6px; margin: 0; }
+.stack-form textarea { width: 100%; resize: vertical; }
+.add-form { margin-bottom: 10px; }
+.btn-danger { color: var(--err-ink); border-color: var(--err-ink); }
+.note { border-left: 2px solid var(--border); padding: 2px 0 2px 10px; }
+.note-head { font-size: 12px; color: var(--muted); display: flex; gap: 6px; }
+.note-body { white-space: pre-line; overflow-wrap: anywhere; font-size: 14px; }
+.clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.done-fold > summary { cursor: pointer; font-size: 13px; color: var(--muted); margin: 4px 0; }
+.mine-also h4 a { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.mine-also { margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--border); }
+.todo.is-ro { font-size: 14px; }
+.mine-badges { display: inline-flex; gap: 4px; flex-shrink: 0; }
+.mb { font-size: 11px; padding: 0 5px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+.todo-page .todo { padding: 6px 0; border-bottom: 1px solid var(--border); }
+.todo-home .todo { display: block; }
+.todo-home .todo-due { display: block; }

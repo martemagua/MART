@@ -34,6 +34,11 @@ class Request:
     headers: dict[str, str] = field(default_factory=dict)  # lower-case keys
     body: bytes = b""
 
+    @property
+    def url(self) -> str:
+        """Path + query string: where a form on this page returns to."""
+        return self.path + ("?" + self.query_string if self.query_string else "")
+
     @cached_property
     def query(self) -> dict[str, list[str]]:
         return parse_qs(self.query_string, keep_blank_values=True)

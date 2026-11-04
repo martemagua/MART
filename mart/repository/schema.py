@@ -140,6 +140,38 @@ MIGRATIONS: list[tuple[int, str]] = [
         CREATE INDEX ix_tasks_policy ON tasks(policy_id);
         CREATE INDEX ix_tasks_expiring ON tasks(expiring_policy_id, review_date);
     """),
+    (4, """
+        -- What Martin writes (USER data: uploads never touch it). Both hang on
+        -- a target, the (scope, ref) convention:
+        --   renewal  ref = renewals.id (MART's own id; renewals are never deleted)
+        --   bundle   ref = "<client id>|<country>|<renewal date>"
+        -- client_id is the target's client, for per-client lists.
+        CREATE TABLE notes (
+            id          INTEGER PRIMARY KEY,
+            scope       TEXT NOT NULL,
+            ref         TEXT NOT NULL,
+            client_id   INTEGER NOT NULL REFERENCES clients(id),
+            body        TEXT NOT NULL,
+            created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at  TEXT
+        );
+        CREATE INDEX ix_notes_target ON notes(scope, ref);
+        CREATE INDEX ix_notes_client ON notes(client_id);
+
+        CREATE TABLE todos (
+            id          INTEGER PRIMARY KEY,
+            scope       TEXT NOT NULL,
+            ref         TEXT NOT NULL,
+            client_id   INTEGER NOT NULL REFERENCES clients(id),
+            title       TEXT NOT NULL,
+            due_date    TEXT,               -- ISO date; NULL = no date
+            done_at     TEXT,               -- UTC timestamp; NULL = open
+            created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at  TEXT
+        );
+        CREATE INDEX ix_todos_target ON todos(scope, ref);
+        CREATE INDEX ix_todos_open ON todos(done_at, due_date);
+    """),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1][0]

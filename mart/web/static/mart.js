@@ -70,4 +70,10 @@
     closeMenus(e.target.closest ? e.target.closest("details.menu") : null);
   });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeMenus(null); });
+  // <form data-confirm="Question?">: ask before submitting (deletes).
+  document.querySelectorAll("form[data-confirm]").forEach(function (f) {
+    f.addEventListener("submit", function (e) {
+      if (!window.confirm(f.getAttribute("data-confirm"))) e.preventDefault();
+    });
+  });
 })();

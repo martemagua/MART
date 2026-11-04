@@ -144,3 +144,15 @@ def get(conn: sqlite3.Connection, renewal_id: int) -> dict[str, Any] | None:
         d[col[:-5]] = json.loads(d.pop(col) or "{}")
     d["product_groups"] = json.loads(d["product_groups"] or "[]")
     return d
+
+
+def labels(conn: sqlite3.Connection, renewal_ids: list[int]) -> dict[int, dict[str, Any]]:
+    """id -> the few fields that name a renewal (for lists of notes / to-dos)."""
+    out: dict[int, dict[str, Any]] = {}
+    for i in range(0, len(renewal_ids), 500):
+        chunk = renewal_ids[i:i + 500]
+        for r in conn.execute(
+                f"""SELECT id, client_id, country, policy_name, entity, renewal_date FROM renewals
+                    WHERE id IN ({','.join('?' * len(chunk))})""", chunk):
+            out[r["id"]] = dict(r)
+    return out

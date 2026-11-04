@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% from "partials/mine.html" import todo_row %}
+{% block title %}To-dos{% endblock %}
+{% block content %}
+<header class="page-head">
+  <h1>To-dos</h1>
+  <p class="lead">Everything you noted to do, on your renewals and bundles.
+    {% if overdue %}<strong class="warn">{{ overdue }} overdue.</strong>{% endif %}
+    {% if this_week %}{{ this_week }} due in the next 7 days.{% endif %}</p>
+</header>
+
+<section class="card" id="mine" aria-labelledby="open-h">
+  <h2 id="open-h">Open ({{ open | length }})</h2>
+  {% if open %}
+  <ul class="todo-list todo-page">{% for t in open %}{{ todo_row(t, "/todos" ~ ("?done=all" if show_done else ""), show_target=true) }}{% endfor %}</ul>
+  {% else %}<p class="muted">Nothing open. Add to-dos on a renewal or a bundle (Clients → a client → a bundle or a renewal).</p>{% endif %}
+</section>
+
+<section class="card spaced-card" aria-labelledby="done-h">
+  <div class="card-head">
+    <h2 id="done-h">Done {% if not show_done %}<span class="muted small">(last {{ done_days }} days)</span>{% endif %}</h2>
+    <a class="small" href="/todos{{ '' if show_done else '?done=all' }}">{{ "Only the last " ~ done_days ~ " days" if show_done else "Show all done" }}</a>
+  </div>
+  {% if done %}
+  <ul class="todo-list todo-page">{% for t in done %}{{ todo_row(t, "/todos" ~ ("?done=all" if show_done else ""), show_target=true) }}{% endfor %}</ul>
+  {% else %}<p class="muted">Nothing done {{ "yet" if show_done else "in the last " ~ done_days ~ " days" }}.</p>{% endif %}
+</section>
+{% endblock %}

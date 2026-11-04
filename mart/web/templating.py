@@ -7,7 +7,7 @@ the next page load without restarting MART. Autoescaping is on for every
 
 from __future__ import annotations
 
-from datetime import UTC, date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -36,7 +36,7 @@ def dmy(value: Any, with_time: bool = False) -> str:
     except ValueError:
         return text
     if len(text) > 10 and parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=UTC).astimezone()
+        parsed = parsed.replace(tzinfo=timezone.utc).astimezone()  # noqa: UP017 (3.10 has no datetime.UTC)
     return parsed.strftime("%d.%m.%Y %H:%M" if with_time and len(text) > 10 else "%d.%m.%Y")
 
 
