@@ -131,3 +131,17 @@ def test_single_client_upload_after_cross_keeps_overview_when_cross_has_none():
     _load(_book(), CROSS, report_date="10 Nov 2026")          # no overview in this one
     s = cs.explorer(cid, bundle=cs.bundle_key("Poland", "2027-01-01"), today=TODAY)["selected"]
     assert any(r["overview"]["entries"] for r in s["renewals"])
+
+
+def test_cards_put_the_name_on_top_and_the_policy_number_under_the_entity(app):
+    """Martin, 04.11.2026: the policy name was cut off in its column. It now
+    spans the card; the first field is the entity with the policy number,
+    which BM+ only gives on the detail sheets."""
+    book = _book()
+    book[0] = R(**{**book[0].__dict__, "policy_number": "PL-4711"})
+    cid = _load(book)
+    page = get(app, f"/clients/{cid}?bundle=Poland%7C2027-01-01").body_bytes.decode()
+    card = page.split('<article class="renewal-card')[1:]
+    assert all(c.index('class="rc-name"') < c.index('class="renewal-row"') for c in card)
+    assert page.count("Policy no. PL-4711") == 1 and page.count("Policy no.") == 1
+    assert '<div class="rc-label">Entity</div>' in page

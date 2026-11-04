@@ -87,6 +87,7 @@ def _enrich(r: dict[str, Any], today: date) -> dict[str, Any]:
         **r,
         "insurer_upcoming": upcoming if upcoming and upcoming != r["insurer"] else None,
         "benefit_owner": f.get("benefit_owner"),
+        "policy_number": renewal_service.policy_number(r.get("details")),
         "local_analyst": f.get("local_analyst"),
         "pdc_considered": f.get("pdc_considered"),
         "overview": timeline,
@@ -180,7 +181,10 @@ def explorer(client_id: int, bundle: str | None = None,
     if selected:
         stage_of = {r["id"]: renewal_service.stages(linked[r["id"]], today, r.get("upcoming_strategy"))
                     for r in selected["renewals"]}
-        items = sorted((_with_stages(_enrich(r, today), stage_of[r["id"]]) for r in selected["renewals"]),
+        with connection() as conn:          # the detail sheets: only for the bundle shown
+            details = renewals_repo.details_of(conn, [r["id"] for r in selected["renewals"]])
+        items = sorted((_with_stages(_enrich({**r, "details": details.get(r["id"])}, today),
+                                     stage_of[r["id"]]) for r in selected["renewals"]),
                        key=lambda r: ((r["policy_name"] or "").casefold(), r["entity"] or ""))
         detail = {
             **selected, "renewals": items,

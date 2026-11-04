@@ -35,6 +35,7 @@ class R:
     renewal_date: datetime = datetime(2027, 1, 1, 1, 0)   # 01:00 like a CET export
     status: str = "In Progress"
     strategy: str = "TBC"
+    policy_number: str | None = None      # on the detail sheets only, as in BM+
     insurer: str = "Meridian Health"
     insurer_upcoming: str | None = None
     provider: str | None = None           # "Provider" beside "Insurer" (BM+ fills it rarely)
@@ -202,12 +203,12 @@ def renewal_tracker(renewals: list[R], flavour: str = CROSS, report_date: str = 
 
     # --- the three detail sheets ---------------------------------------------------
     id_cols = [("Policy Information (Expiring Policy Period)", h)
-               for h in ("Country", "Entity", "Policy Unique ID*", "Policy Name",
+               for h in ("Country", "Entity", "Policy Unique ID*", "Policy Name", "Policy Number",
                          "Annual Renewal/Review Date")]
     ren_col = [("General Renewal Information (Upcoming Policy Period)", "Renewal Unique ID*")]
 
     def ids_of(r: R) -> list:
-        return [r.country, r.entity, _policy_cell(r, flavour), r.policy, r.renewal_date]
+        return [r.country, r.entity, _policy_cell(r, flavour), r.policy, r.policy_number, r.renewal_date]
 
     strat = wb.create_sheet("Renewal Strategy")
     _write_table(strat, flavour, 6, id_cols + ren_col + [

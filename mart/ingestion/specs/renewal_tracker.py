@@ -72,6 +72,10 @@ _DETAIL_IDS: list[Col] = [
     Col("policy_name", "Policy Name"),
 ]
 
+# The policy number is not on the Overview sheet, only on the detail sheets
+# (Renewal Strategy, Proposals, Savings): read from the first that has one.
+POLICY_NUMBER = "Policy Number"
+
 DETAIL_SHEETS: dict[str, tuple[str, list[Col]]] = {
     # key        sheet name          columns
     "strategy": ("Renewal Strategy", _DETAIL_IDS),

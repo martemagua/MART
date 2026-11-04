@@ -130,15 +130,14 @@
     <div class="renewal-list">
       {% for r in s.renewals %}
       <article class="renewal-card {{ r.upcoming_strategy | strategy_class }}{% if not r.in_latest_export %} is-left{% endif %}" id="r{{ r.id }}">
+        <div class="rc-name-row">
+          <input type="checkbox" name="renewal" value="{{ r.id }}" form="move-form" class="rc-pick" aria-label="Select {{ r.policy_name }} to move" title="Select to move to another bundle">
+          <a class="rc-name" href="/clients/{{ client.id }}/renewals/{{ r.id }}{{ q_all1 }}" title="Open the renewal: {{ r.policy_name }}">{{ r.policy_name or "—" }}</a>
+          {{ links_menu(r.links, "Links for " ~ (r.policy_name or "this renewal")) }}
+        </div>
         <div class="renewal-row">
-          <div class="rc-policy">
-            <div class="rc-name-row">
-              <input type="checkbox" name="renewal" value="{{ r.id }}" form="move-form" class="rc-pick" aria-label="Select {{ r.policy_name }} to move" title="Select to move to another bundle">
-              <a class="rc-name" href="/clients/{{ client.id }}/renewals/{{ r.id }}{{ q_all1 }}" title="Open the renewal: {{ r.policy_name }}">{{ r.policy_name or "—" }}</a>
-              {{ links_menu(r.links, "Links for " ~ (r.policy_name or "this renewal")) }}
-            </div>
-            <div class="rc-sub" title="{{ r.entity or '' }}">{{ r.entity or "—" }}</div>
-          </div>
+          <div class="rc-cell rc-policy"><div class="rc-label">Entity</div><span title="{{ r.entity or '' }}">{{ r.entity or "—" }}</span>
+            {% if r.policy_number %}<div class="rc-sub" title="Policy number (BM+)">Policy no. {{ r.policy_number }}</div>{% endif %}</div>
           <div class="rc-cell"><div class="rc-label">Coverage</div>{{ r.product_groups | join(", ") or "—" }}</div>
           <div class="rc-cell"><div class="rc-label">Insurer</div><span title="{{ r.insurer or '' }}">{{ r.insurer or "—" }}</span>{% if r.insurer_upcoming %}<div class="rc-sub">→ {{ r.insurer_upcoming }}</div>{% endif %}</div>
           <div class="rc-cell"><div class="rc-label">Strategy</div><span class="pill pill-st {{ r.upcoming_strategy | strategy_class }}">{{ r.upcoming_strategy or "—" }}</span></div>

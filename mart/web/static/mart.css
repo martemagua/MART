@@ -235,11 +235,11 @@ input[type=file] { padding: 8px 12px; min-height: 44px; }
 .renewal-list { display: flex; flex-direction: column; gap: 12px; }
 .renewal-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; }
 .renewal-card.is-left { opacity: 0.75; border-style: dashed; }
-.renewal-row { display: grid; grid-template-columns: minmax(180px, 2fr) repeat(5, minmax(110px, 1fr)); gap: 16px; align-items: start; }
+/* The policy name has the card's whole width on top; the fields sit below it. */
+.renewal-row { display: grid; grid-template-columns: minmax(150px, 1.4fr) repeat(5, minmax(110px, 1fr)); gap: 16px; align-items: start; margin-top: 8px; }
 /* Portrait or narrower desktop windows: the card's fields wrap into 3 columns. */
 @media (max-width: 1320px) {
   .renewal-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .rc-policy { grid-column: 1 / -1; }
   .bundle-view { padding: 24px 24px 40px; }
 }
 .rc-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -311,7 +311,7 @@ a.rc-name:hover { color: var(--accent); text-decoration: underline; }
 .menu-list a:hover, .menu-list a:focus { background: var(--accent-soft); }
 .menu-empty { padding: 7px 10px; font-size: 12px; color: var(--muted); }
 .rc-name-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.rc-name-row .rc-name { min-width: 0; }
+.rc-name-row .rc-name { min-width: 0; flex: 0 1 auto; font-size: 15px; }
 .rc-name-row .menu-list { left: 0; right: auto; }
 .rd-head .pills { margin-top: 8px; }
 .rd-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 14px; min-width: 0; }

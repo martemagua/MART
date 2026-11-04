@@ -172,6 +172,17 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
     }
 
 
+def policy_number(details: dict[str, Any] | None) -> str | None:
+    """The policy number BM+ gives on the detail sheets (Renewal Strategy,
+    then Proposals, then Savings); None when no sheet has one."""
+    for key in rspec.DETAIL_SHEETS:
+        for row in (details or {}).get(key) or []:
+            value = lookup(row, rspec.POLICY_NUMBER) if isinstance(row, dict) else None
+            if value is not None and str(value).strip():
+                return str(value).strip()
+    return None
+
+
 def bm_links(fields: dict[str, Any], stage_list: list[dict[str, Any]]) -> list[dict[str, str]]:
     """The renewal's links to BM+ for its "⋯" menu, best first. Only links BM+
     wrote in the exports. The renewal link the cross-client Renewal Tracker
