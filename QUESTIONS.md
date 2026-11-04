@@ -230,3 +230,4 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 (a) Date Types: Renewal Date, Task Start Date, Task Due Date, Task Complete Date, Not Specified — all applied (0.4.5). (b) Implementation and contract tasks: not important, ignored; only Renewal Workspace tasks are loaded (0.4.5).
 
 **L11** Notes and to-dos (0.5.0) hang on a renewal cycle or a bundle. Should notes about a *policy* also carry over to its next renewal cycle (e.g. "HR always wants the renewal before October")? And should a client have its own notes (Home: "my clients with their notes")?
+→ **Answered 04.11.2026:** see the notes of past renewals; yes, a space for client notes. Both in 0.5.1: a renewal shows its policy's notes from earlier cycles (read-only); clients have their own notes and to-dos.

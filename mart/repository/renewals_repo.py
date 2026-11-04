@@ -156,3 +156,11 @@ def labels(conn: sqlite3.Connection, renewal_ids: list[int]) -> dict[int, dict[s
                     WHERE id IN ({','.join('?' * len(chunk))})""", chunk):
             out[r["id"]] = dict(r)
     return out
+
+
+def cycles_of(conn: sqlite3.Connection, client_id: int, expiring_policy_id: str) -> list[dict[str, Any]]:
+    """Every renewal cycle MART has of one policy (BM+'s stable policy id)."""
+    return [dict(r) for r in conn.execute(
+        """SELECT id, renewal_date, policy_name, in_latest_export FROM renewals
+           WHERE client_id = ? AND expiring_policy_id = ? ORDER BY renewal_date DESC""",
+        (client_id, expiring_policy_id))]

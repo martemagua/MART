@@ -97,3 +97,15 @@ def set_done(conn: sqlite3.Connection, todo_id: int, done: bool) -> None:
 
 def delete_todo(conn: sqlite3.Connection, todo_id: int) -> None:
     conn.execute("DELETE FROM todos WHERE id = ?", (todo_id,))
+
+
+def client_target_counts(conn: sqlite3.Connection) -> dict[int, dict[str, int]]:
+    """client id -> {"notes", "todos" (open)} written on the client itself."""
+    out: dict[int, dict[str, int]] = {}
+    for r in conn.execute("""SELECT client_id, COUNT(*) AS n FROM notes
+                             WHERE scope = 'client' GROUP BY client_id"""):
+        out.setdefault(r["client_id"], {"notes": 0, "todos": 0})["notes"] = r["n"]
+    for r in conn.execute("""SELECT client_id, COUNT(*) AS n FROM todos
+                             WHERE scope = 'client' AND done_at IS NULL GROUP BY client_id"""):
+        out.setdefault(r["client_id"], {"notes": 0, "todos": 0})["todos"] = r["n"]
+    return out

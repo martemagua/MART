@@ -6,6 +6,10 @@ USER data: uploads never touch it. Everything hangs on a target (scope, ref):
 * ``bundle``  - ref = "<client id>|<country>|<renewal date>", the same key the
   explorer uses for a bundle (client_service.bundle_key). A note on a bundle
   is about all its renewals, like one mail covering several policies.
+* ``client``  - ref = the client's MART id: about the client as a whole.
+
+A renewal also shows the notes of the policy's EARLIER cycles (same stable
+policy id), read-only: the history is built from the renewals MART keeps.
 
 Only targets of "my" clients can be written on.
 """
@@ -20,7 +24,7 @@ from mart.repository import clients_repo, notes_repo, renewals_repo
 from mart.repository.db import connection
 from mart.services.client_service import bundle_key
 
-SCOPES = ("renewal", "bundle")
+SCOPES = ("renewal", "bundle", "client")
 NOTE_MAX = 20_000
 TITLE_MAX = 300
 DONE_SHOWN_DAYS = 30
@@ -53,13 +57,18 @@ def _target(conn, scope: str, ref: str) -> dict[str, Any]:
         if not r or not client or client["is_mine"] != 1:
             raise Invalid("This renewal doesn't exist (or isn't one of your clients').")
         return {"scope": scope, "ref": ref, "client_id": r["client_id"]}
+    if scope == "client":
+        client = clients_repo.get(conn, int(ref)) if ref.isdigit() else None
+        if not client or client["is_mine"] != 1:
+            raise Invalid("This client doesn't exist (or isn't one of yours).")
+        return {"scope": scope, "ref": ref, "client_id": int(ref)}
     if scope == "bundle":
         cid, _, _ = _split_bundle(ref)
         client = clients_repo.get(conn, cid)
         if not client or client["is_mine"] != 1:
             raise Invalid("This bundle doesn't exist (or isn't one of your clients').")
         return {"scope": scope, "ref": ref, "client_id": cid}
-    raise Invalid("Notes and to-dos go on a renewal or a bundle.")
+    raise Invalid("Notes and to-dos go on a renewal, a bundle or a client.")
 
 
 def _describe(t: dict[str, Any], renewal_labels: dict[int, dict[str, Any]]) -> dict[str, Any]:
@@ -69,6 +78,9 @@ def _describe(t: dict[str, Any], renewal_labels: dict[int, dict[str, Any]]) -> d
         return {"kind": "renewal", "country": r.get("country"), "renewal_date": r.get("renewal_date"),
                 "name": r.get("policy_name") or "—",
                 "url": f"/clients/{t['client_id']}/renewals/{t['ref']}"}
+    if t["scope"] == "client":
+        return {"kind": "client", "country": None, "renewal_date": None, "name": "client notes",
+                "url": f"/clients/{t['client_id']}/notes"}
     cid, country, rdate = _split_bundle(t["ref"])
     return {"kind": "bundle", "country": country, "renewal_date": rdate if rdate[:4].isdigit() else None,
             "name": "whole bundle",
@@ -83,12 +95,40 @@ def _on(conn, scope: str, ref: str, today: date) -> dict[str, Any]:
 
 
 def for_renewal(r: dict[str, Any], today: date | None = None) -> dict[str, Any]:
-    """The renewal's own notes / to-dos, and (under "bundle") its bundle's."""
+    """The renewal's own notes / to-dos, its bundle's (under "bundle"), and the
+    notes of the policy's other renewal cycles (under "earlier")."""
     today = today or date.today()
     with connection() as conn:
         return {**_on(conn, "renewal", str(r["id"]), today),
                 "bundle": _on(conn, "bundle", bundle_ref(r["client_id"], r["country"], r["renewal_date"]),
-                              today)}
+                              today),
+                "earlier": _earlier_notes(conn, r)}
+
+
+def _earlier_notes(conn, r: dict[str, Any]) -> list[dict[str, Any]]:
+    """Notes on the same policy's other cycles, newest cycle first, each with
+    its cycle's renewal date and link. Only renewals with BM+'s stable policy
+    id can be matched across cycles."""
+    if not r.get("expiring_policy_id"):
+        return []
+    cycles = {c["id"]: c for c in renewals_repo.cycles_of(conn, r["client_id"], r["expiring_policy_id"])
+              if c["id"] != r["id"]}
+    notes = notes_repo.notes_for(conn, [("renewal", str(i)) for i in cycles])
+    out = [{**n, "cycle": cycles[int(n["ref"])],
+            "url": f"/clients/{r['client_id']}/renewals/{n['ref']}"} for n in notes]
+    return sorted(out, key=lambda n: (n["cycle"]["renewal_date"] or "", n["created_at"]), reverse=True)
+
+
+def for_client(client_id: int, today: date | None = None) -> dict[str, Any]:
+    with connection() as conn:
+        _target(conn, "client", str(client_id))
+        return _on(conn, "client", str(client_id), today or date.today())
+
+
+def client_totals() -> dict[int, dict[str, int]]:
+    """client id -> notes / open to-dos on the CLIENT itself (Clients list)."""
+    with connection() as conn:
+        return notes_repo.client_target_counts(conn)
 
 
 def for_bundle(client_id: int, country: str | None, renewal_date: str | None,

@@ -21,6 +21,9 @@
       {% else %}No overview loaded yet: upload a single-client Renewal Tracker{% endif %}
     </p>
 
+    <a class="client-notes-link {% if client_mine %}is-selected{% endif %}" href="{{ base }}/notes?group={{ group }}{{ q_all }}">
+      <span>Client notes &amp; to-dos</span>{{ mine_badges(client_counts) }}</a>
+
     <div class="seg" role="group" aria-label="Group bundles by">
       <a class="seg-btn {% if group == 'date' %}is-on{% endif %}" href="{{ base }}?group=date{{ q_all }}{% if selected %}&bundle={{ selected.key | urlencode }}{% endif %}">By date</a>
       <a class="seg-btn {% if group == 'country' %}is-on{% endif %}" href="{{ base }}?group=country{{ q_all }}{% if selected %}&bundle={{ selected.key | urlencode }}{% endif %}">By country</a>
@@ -36,7 +39,7 @@
       <div class="bundle-group" data-filter-group>
         <h2 class="bundle-group-title">{{ label }}</h2>
         {% for b in items %}
-        <a class="bundle-item {% if selected and b.key == selected.key %}is-selected{% endif %}"
+        <a class="bundle-item {% if selected and b.key == selected.key and not client_mine %}is-selected{% endif %}"
            href="{{ base }}?bundle={{ b.key | urlencode }}&group={{ group }}{{ q_all }}" data-filter-item>
           <span class="bundle-main">
             <span class="bundle-name">{% if group == "country" %}{{ b.renewal_date | dmy or "No date" }}{% else %}{{ b.country }}{% endif %}</span>
@@ -57,7 +60,11 @@
 
   {# ── middle: the selected bundle ─────────────────────────────────────── #}
   <section class="bundle-view" aria-live="polite">
-    {% if detail %}
+    {% if client_mine %}
+    <header class="bundle-head"><div><h2 class="bundle-title">{{ client.name }}</h2>
+      <p class="muted">About the client as a whole. Notes on a single renewal or bundle go there.</p></div></header>
+    {{ mine_section(client_mine, here, heading="Notes and to-dos on " ~ client.name) }}
+    {% elif detail %}
     {% include "partials/renewal_detail.html" %}
     {% elif selected %}
     {% set s = selected %}
