@@ -21,7 +21,7 @@ Status: **planned** (04.11.2026, after the M1 review). The foundations of M1
 | Stale overview | amber after **7 days** without a new overview entry, red after **14**; both in Settings → Time limits |
 | New overview entry | by the **date written on the entry** (its `DD MMM YYYY:` header); entries dated within the last N days are new (N in Settings, proposed 7) |
 | Which entries count | **all** of them; "client ready" is a toggle that is sometimes forgotten |
-| Broker deadline vs to-do | **two different things** (Martin, 04.11.2026): a **broker deadline belongs to a bundle**, the date you expect an update on those renewals; a **to-do** is a task of your own about renewals or countries |
+| Broker deadline vs to-do | **two different things** (Martin, 04.11.2026): a **broker deadline belongs to a bundle**, the date you expect an update on those renewals; a **to-do** is a task of your own, on a renewal, a bundle or the client (no country-wide to-dos, M2c) |
 | Broker deadline fulfilled | **you confirm it**; MART only points out a new entry dated on or after the promise |
 | Prefill | from the Renewal Strategy sheet's **"Expected date to receive the final renewal terms"** when BM+ has it |
 | Reminders | **inside MART** (Home); the AI agent (M4) and an email brief later |
@@ -69,9 +69,9 @@ on someone). Martin decided otherwise, and it fits how the work runs:
   with a draft email (later, with the chaser ladder)?
 - **F3** "Waiting on X since Y" comes with the richer to-dos; simple
   dependencies between to-dos stay out unless you miss them.
-- **M2c** To-dos "about countries": today a to-do sits on a renewal, a
-  bundle (= country + date) or the client. Is a to-do on a client's
-  *country* as a whole (all its bundles there) needed? Answer before day 2.
+- ~~**M2c** To-dos on a client's country as a whole?~~ No (Martin,
+  04.11.2026): keep them with the bundle. To-dos stay on a renewal, a
+  bundle or the client.
 
 ## M2 review (after a full day of real work)
 

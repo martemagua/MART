@@ -245,4 +245,4 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 → **Answered 04.11.2026:** its own thing. **Broker deadlines are linked to the bundles**: when Martin expects updates for those renewals. **To-dos are other tasks** he has to get done regarding the renewals or countries. See BUILD_PLAN_M2.md.
 
 **M2c** To-dos "regarding countries": a to-do sits today on a renewal, a bundle (country + date) or the client. Should a to-do also sit on a client's *country* as a whole, across its bundles there?
-→
+→ **Answered 04.11.2026:** no, **keep it with the bundle**. No country-wide target; to-dos stay on a renewal, a bundle or the client.
