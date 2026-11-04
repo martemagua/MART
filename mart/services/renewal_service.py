@@ -14,6 +14,7 @@ from typing import Any
 from mart.ingestion import overview as ov
 from mart.ingestion import renewal_tracker as rt
 from mart.ingestion import task_tracker as tt
+from mart.ingestion import values
 from mart.ingestion.ids import bm_link
 from mart.ingestion.sheet import lookup, norm, section_items
 from mart.ingestion.specs import renewal_tracker as rspec
@@ -155,6 +156,7 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
     stages_ = stages(mine, today, r.get("upcoming_strategy"))
     return {
         "client": client, "renewal": r, "fields": f, "days_until": days,
+        "coverage_lines": values.coverage_lines(f.get("lines_of_coverage")),
         "stages": stages_, "has_task_data": has_task_data, "other_tasks": others,
         "strategy": _facts(strategy, rspec.STRATEGY_FIELDS),
         "last_renewal": _facts(strategy, rspec.LAST_RENEWAL_FIELDS),

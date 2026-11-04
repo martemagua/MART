@@ -50,6 +50,11 @@ the files are deliberately not copied here.
 | Proposals | **5** | **6** | sections + super-section |
 | Savings | **5** | **6** | sections + super-section |
 
+**Lines of Coverage** is one cell per renewal, the lines joined by ", "
+("Healthcare - Inpatient (Hospital and Surgical), Healthcare - Maternity");
+each line is "<product group> - <line>". No comma inside brackets in the
+demo exports, but MART doesn't split there anyway.
+
 **Policy Number** is on the three detail sheets (Policy Information section)
 and on the Task Tracker, NOT on the Overview sheet. BM+ writes it as the
 insurer's number, or "(multiple)"; 40 of the 49 demo renewals have one.

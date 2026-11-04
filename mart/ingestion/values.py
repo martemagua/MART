@@ -108,15 +108,29 @@ def client_key(name: str) -> str:
     return " ".join(_KEY_DROP.sub(" ", text).split())
 
 
+def coverage_lines(lines_of_coverage: str | None) -> list[str]:
+    """BM+'s Lines of Coverage cell -> its lines, in BM+'s order: split on
+    commas, semicolons and line breaks, but never inside brackets
+    ('Healthcare - Inpatient (Hospital, Surgical)' stays one line)."""
+    out, depth, cur = [], 0, []
+    for ch in lines_of_coverage or "":
+        if ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth = max(depth - 1, 0)
+        if ch in ",;\n" and depth == 0:
+            out.append("".join(cur))
+            cur = []
+        else:
+            cur.append(ch)
+    out.append("".join(cur))
+    return [p.strip() for p in out if p.strip()]
+
+
 def product_groups(lines_of_coverage: str | None) -> list[str]:
     """'Healthcare - Medical, Life - Basic Term Life' -> ['Healthcare', 'Life']."""
-    if not lines_of_coverage:
-        return []
     groups: list[str] = []
-    for part in re.split(r"[\n,;]+", lines_of_coverage):
-        part = part.strip()
-        if not part:
-            continue
+    for part in coverage_lines(lines_of_coverage):
         group = part.split(" - ", 1)[0].strip()
         if group and group not in groups:
             groups.append(group)

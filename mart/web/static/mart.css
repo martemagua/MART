@@ -329,6 +329,9 @@ a.rc-name:hover { color: var(--accent); text-decoration: underline; }
 /* (after the rule above, which it overrides) The Renewal section's short facts: two label / value pairs per row (one in narrow windows). */
 .rd-section .facts.facts-2col { grid-template-columns: minmax(8rem, max-content) minmax(0, 1fr) minmax(8rem, max-content) minmax(0, 1fr); column-gap: 16px; }
 @media (max-width: 1100px) { .rd-section .facts.facts-2col { grid-template-columns: minmax(8rem, 40%) minmax(0, 1fr); } }
+.rd-section .facts.facts-lines { grid-template-columns: minmax(8rem, max-content) minmax(0, 1fr); }
+.loc-list { margin: 0; padding-left: 1.1em; columns: 2 18rem; column-gap: 28px; }
+.loc-list li { break-inside: avoid; margin-bottom: 2px; }
 
 /* ── What Martin writes (partials/mine.html): kept apart from BM+ data ── */
 .sec-mine { border-left: 4px solid var(--accent); }

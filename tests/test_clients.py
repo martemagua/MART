@@ -157,3 +157,18 @@ def test_renewal_panel_stacks_renewal_and_strategy(app):
     assert "rd-cols" not in page and '<dl class="facts facts-2col">' in page
     assert page.index('id="facts-h"') < page.index('id="strat-h"')
     assert "group=" not in page
+
+
+def test_lines_of_coverage_are_a_list_in_the_panel(app):
+    """Martin, 04.11.2026: BM+ joins the lines of coverage with commas; the
+    panel shows one per bullet."""
+    book = _book()
+    book[0] = R(**{**book[0].__dict__,
+                   "loc": "Healthcare - Inpatient (Hospital and Surgical), Healthcare - Maternity"})
+    cid = _load(book)
+    with connection() as conn:
+        rid = conn.execute("SELECT id FROM renewals WHERE policy_name = 'Medical' AND country = 'Poland'"
+                           ).fetchone()["id"]
+    page = get(app, f"/clients/{cid}/renewals/{rid}").body_bytes.decode()
+    assert ('<ul class="loc-list"><li>Healthcare - Inpatient (Hospital and Surgical)</li>'
+            "<li>Healthcare - Maternity</li></ul>") in page

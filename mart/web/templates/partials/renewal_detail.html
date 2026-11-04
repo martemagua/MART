@@ -57,7 +57,7 @@
     <h3 id="facts-h">Renewal</h3>
     {{ facts([
       ("Insurer", r.insurer), ("Upcoming insurer", f.insurer_upcoming if f.insurer_upcoming != r.insurer else None),
-      ("Lines of coverage", f.lines_of_coverage), ("Period", (r.start_date | dmy) ~ " – " ~ ("non-expiring" if r.non_expiring else (r.end_date | dmy)) if r.start_date else None),
+      ("Period", (r.start_date | dmy) ~ " – " ~ ("non-expiring" if r.non_expiring else (r.end_date | dmy)) if r.start_date else None),
       ("Kick-off", ((f.kickoff_date | dmy) ~ (" · " ~ f.kickoff_timing if f.kickoff_timing else "")) if f.kickoff_date or f.kickoff_timing else None),
       ("Rate guarantee until", f.rate_guarantee_end), ("Multi-year policy", f.multi_year),
       ("Last remarketing", f.last_remarketing), ("Expected rate change", f.expected_rate_change),
@@ -65,6 +65,10 @@
       ("Date of local meeting", f.local_meeting_date), ("Client approval", f.client_approval_date),
       ("Benefit owner", f.benefit_owner), ("Local analyst", f.local_analyst),
     ] | selectattr(1) | list, "facts-2col") }}
+    {% if detail.coverage_lines %}
+    {# one line of coverage per bullet, on a full-width row (Martin, 04.11.2026) #}
+    <dl class="facts facts-lines"><dt>Lines of coverage</dt><dd><ul class="loc-list">{% for line in detail.coverage_lines %}<li>{{ line }}</li>{% endfor %}</ul></dd></dl>
+    {% endif %}
   </section>
   <section class="rd-section" aria-labelledby="strat-h">
     <h3 id="strat-h">Strategy <span class="sec-src">Renewal Strategy sheet</span> {{ older("strategy") }}</h3>

@@ -6,6 +6,19 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.7.6 — 04.11.2026 · lines of coverage as a list
+
+### Changed (Martin's note on 0.7.5)
+- **Lines of coverage are a bulleted list** in the renewal panel, one line
+  per bullet (two columns on a wide window), on their own row under the
+  Renewal facts. BM+ joins them with commas; MART splits on commas,
+  semicolons and line breaks but never inside brackets, so "Inpatient
+  (Hospital and Surgical)" stays one line. The cards' Coverage (product
+  groups) uses the same splitting.
+
+### What to try
+Open a renewal with several lines of coverage: one per bullet.
+
 ## 0.7.5 — 04.11.2026 · renewal panel: Renewal and Strategy stacked
 
 ### Changed (Martin's note on 0.7.4)
