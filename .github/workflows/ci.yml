@@ -9,21 +9,38 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        include:
+          - { os: windows-latest, python: "3.12" }   # the work laptop
+          - { os: windows-latest, python: "3.14" }   # Martin's personal PC
+          - { os: ubuntu-latest,  python: "3.12" }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python }}
       # Test-only tools. MART itself installs nothing: it runs on the standard
       # library, openpyxl (preinstalled on the work laptop) and vendor/.
       - run: python -m pip install pytest==9.2.0 openpyxl==3.1.5 ruff
       - run: ruff check .
       - run: python -m pytest
-      - run: python tools/build_zip.py
+      # The launcher must find Python on its own (no PATH tricks).
+      - name: MART.bat finds Python and passes its start-up check
+        if: runner.os == 'Windows'
+        shell: cmd
+        env:
+          MART_NO_PAUSE: "1"
+        run: MART.bat check
+      - name: make-zip.bat builds and tests the zip
+        if: runner.os == 'Windows'
+        shell: cmd
+        env:
+          MART_NO_PAUSE: "1"
+        run: make-zip.bat --no-pull
+      - if: runner.os != 'Windows'
+        run: python tools/build_zip.py --verify
       - uses: actions/upload-artifact@v4
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-latest' && matrix.python == '3.12'
         with:
           name: MART-zip
           path: dist/*.zip

@@ -8,6 +8,9 @@ the current `BUILD_PLAN_*.md` before changing anything.
 
 ## Hard constraints (from the work laptop)
 
+- **Python versions:** 3.12 on the work laptop, 3.14 on Martin's personal PC;
+  CI runs both on Windows. `MART.bat` finds any real Python 3.10+ (test-runs
+  each candidate, so the Microsoft Store placeholder is skipped).
 - **Nothing can be installed there.** Runtime = Python 3.12 + standard
   library + preinstalled `openpyxl` + pure-Python code in `vendor/`.
   Never add a dependency that needs `pip install` or has compiled parts.
@@ -25,6 +28,8 @@ the current `BUILD_PLAN_*.md` before changing anything.
 | Path | Holds |
 |---|---|
 | `MART.bat` | Windows launcher (CRLF line endings, see `.gitattributes`) |
+| `mart/find-python.cmd` | the ONE Python search, shared by `MART.bat` and `make-zip.bat` |
+| `make-zip.bat` | on the PC with the repo: git pull → build → verify → show in Explorer (not shipped) |
 | `mart/__main__.py` | CLI: run (check → schema → backup → serve) · check · backup · restore |
 | `mart/settings.py` | settings file (`%APPDATA%\MART\settings.json`, override `MART_SETTINGS_FILE`), validation; the live DB must never sit in a synced folder |
 | `mart/startup.py` | start-up checks with plain-language messages |
@@ -35,7 +40,7 @@ the current `BUILD_PLAN_*.md` before changing anything.
 | `mart/web/routes/` | thin handlers, one module per page. **Routes never write SQL.** |
 | `mart/web/templates/`, `static/` | Jinja2 pages (autoescaped, reload per request), CSS |
 | `vendor/` | Jinja2 + MarkupSafe (pure Python) |
-| `tools/build_zip.py` | builds `dist/MART-<version>.zip` |
+| `tools/build_zip.py` | builds `dist/MART-<version>.zip` (+ `BUILD-INFO.txt`); `--verify` unpacks and runs `mart check` from the zip |
 | `tests/` | pytest; every test gets its own settings file and folders (`conftest.py`) |
 
 ## Rules
