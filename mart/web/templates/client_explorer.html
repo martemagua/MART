@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/overview.html" import overview_timeline, overview_pill %}
 {% from "partials/stages.html" import stage_dots %}
+{% from "partials/links.html" import links_menu %}
 {% block title %}{{ client.name }}{% endblock %}
 {% block content_class %}content-explorer{% endblock %}
 {% block content %}
@@ -80,7 +81,10 @@
       <article class="renewal-card {% if not r.in_latest_export %}is-left{% endif %}" id="r{{ r.id }}">
         <div class="renewal-row">
           <div class="rc-policy">
-            <a class="rc-name" href="/clients/{{ client.id }}/renewals/{{ r.id }}?group={{ group }}{{ q_all }}" title="Open the renewal: {{ r.policy_name }}">{{ r.policy_name or "—" }}</a>
+            <div class="rc-name-row">
+              <a class="rc-name" href="/clients/{{ client.id }}/renewals/{{ r.id }}?group={{ group }}{{ q_all }}" title="Open the renewal: {{ r.policy_name }}">{{ r.policy_name or "—" }}</a>
+              {{ links_menu(r.links, "Links for " ~ (r.policy_name or "this renewal")) }}
+            </div>
             <div class="rc-sub" title="{{ r.entity or '' }}">{{ r.entity or "—" }}</div>
           </div>
           <div class="rc-cell"><div class="rc-label">Coverage</div>{{ r.product_groups | join(", ") or "—" }}</div>

@@ -224,3 +224,7 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 
 **L9** Can a tracker be created with only some sheets, or some columns?
 → **Answered 04.11.2026:** sheets yes (each report sheet can be left out), columns no (the standard trackers always have the same columns). MART 0.4.1 keeps what it has for a sheet an export leaves out, and compares only the sheets that are there.
+
+**L10** Tasks of renewals MART doesn't have (older cycles in a long Task Tracker export)?
+→ **Answered 04.11.2026:** tasks only attach to renewals MART has; the others are discarded, and the history grows from the renewals MART keeps (0.4.4).
+(a) Date Types: Renewal Date, Task Start Date, Task Due Date, Task Complete Date, Not Specified — all applied (0.4.5). (b) Implementation and contract tasks: not important, ignored; only Renewal Workspace tasks are loaded (0.4.5).

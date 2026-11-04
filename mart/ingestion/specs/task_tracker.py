@@ -85,6 +85,10 @@ COMPARED = ("task_name", "task_category", "task_type", "task_status", "country",
             "due_date", "updated_date", "completed_date", "review_approved_date",
             "review_rejected_date", "assignee", "delegated_to")
 
+# The only Task Category MART loads (Martin, 04.11.2026): the renewal's own
+# tasks. Implementation and Contract tasks are not MART's concern.
+RENEWAL_CATEGORY = "Renewal Workspace"
+
 # Every BM+ renewal runs through these stages, in this order (Task Name).
 STAGES = ("Renewal Strategy", "Proposals", "Update Policy")
 

@@ -71,6 +71,32 @@ def save(conn: sqlite3.Connection, row: dict[str, Any], client_id: int, upload_i
         [*[vals[c] for c in _COLUMNS], upload_id, int(touched), existing_id])
 
 
+def delete(conn: sqlite3.Connection, keys: list[str]) -> None:
+    """Tasks that belong to no renewal MART has (Martin, 04.11.2026: such
+    tasks are discarded). BM+ data only; nothing the user wrote."""
+    for i in range(0, len(keys), 500):
+        chunk = keys[i:i + 500]
+        conn.execute(f"DELETE FROM tasks WHERE task_key IN ({','.join('?' * len(chunk))})", chunk)
+
+
+# the task dates a Task Tracker can be filtered by -> where they are stored
+_DATE_COLUMNS = {"review_date": "review_date", "due_date": "due_date",
+                 "completed_date": "completed_date",
+                 "start_date": "json_extract(fields_json, '$.start_date')"}
+
+
+def dates(conn: sqlite3.Connection, keys: list[str], field: str) -> dict[str, str | None]:
+    """task key -> one of its dates."""
+    column = _DATE_COLUMNS[field]
+    out: dict[str, str | None] = {}
+    for i in range(0, len(keys), 500):
+        chunk = keys[i:i + 500]
+        for r in conn.execute(f"SELECT task_key, {column} AS d FROM tasks "
+                              f"WHERE task_key IN ({','.join('?' * len(chunk))})", chunk):
+            out[r["task_key"]] = r["d"]
+    return out
+
+
 def mark_left_export(conn: sqlite3.Connection, keys: list[str]) -> None:
     for i in range(0, len(keys), 500):
         chunk = keys[i:i + 500]

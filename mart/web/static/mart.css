@@ -254,6 +254,23 @@ a.rc-name:hover { color: var(--accent); text-decoration: underline; }
 .rd-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
 .rd-title .bundle-title { margin-right: auto; }
 .stage-link { display: inline-block; margin-top: 6px; font-size: 12px; }
+
+/* The "⋯" links menu (partials/links.html) */
+.menu { position: relative; display: inline-block; flex-shrink: 0; }
+.menu-btn { list-style: none; cursor: pointer; min-width: 28px; height: 28px; padding: 0 6px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--ink);
+  display: inline-flex; align-items: center; justify-content: center; font-weight: 700; line-height: 1; }
+.menu-btn::-webkit-details-marker { display: none; }
+.menu[open] > .menu-btn, .menu-btn:hover { background: var(--accent-soft); }
+.menu-list { position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; min-width: 220px; max-width: 420px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .12); padding: 4px; display: flex; flex-direction: column; }
+.menu-list a { white-space: nowrap; padding: 7px 10px; border-radius: 6px; text-decoration: none; color: var(--ink); font-size: 13px; }
+.menu-list a:hover, .menu-list a:focus { background: var(--accent-soft); }
+.menu-empty { padding: 7px 10px; font-size: 12px; color: var(--muted); }
+.rc-name-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.rc-name-row .rc-name { min-width: 0; }
+.rc-name-row .menu-list { left: 0; right: auto; }
 .rd-head .pills { margin-top: 8px; }
 .rd-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 14px; min-width: 0; }
 .rd-section h3 { font-size: 16px; margin: 0 0 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
