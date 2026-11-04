@@ -8,7 +8,7 @@ date, open a renewal, and add notes and to-dos.
 you unzip over the previous version (your data folder is never touched),
 plus a short **"what to try"** list. Your feedback steers the next day.
 
-Status: **in progress.** Day 1 done and verified on both machines (04.11.2026): MART 0.1.1 runs on the personal PC (Python 3.14) and the work laptop (Python 3.12); `make-zip.bat` builds the tested zip.
+Status: **in progress.** Day 1 done and verified on both machines (04.11.2026). Day 2 done (MART 0.2.0, 04.11.2026), tested with the real-structure demo exports of both flavours.
 
 ---
 
@@ -31,7 +31,7 @@ Status: **in progress.** Day 1 done and verified on both machines (04.11.2026): 
 | Day | Increment | What you can try |
 |---|---|---|
 | 1 ✅ | **Skeleton**: `MART.bat`, start-up check, first-run **Settings** (data folder, backup folder), empty Home, database created, automatic backup on start | unzip, double-click, choose your folders, see MART open in the browser; restart and see the backup appear |
-| 2 | **Renewal Tracker upload**: detect tracker + flavour (cross-client / per client), **preview before commit** (clients found, renewals, warnings), **"My clients"** picker so demo clients are ignored, commit | upload a cross-client Renewal Tracker, tick your clients, commit; upload it again and see "no changes" |
+| 2 ✅ | **Renewal Tracker upload**: detect tracker + flavour (cross-client / per client), **preview before commit** (clients found, renewals, warnings), **"My clients"** picker so demo clients are ignored, commit | upload a cross-client Renewal Tracker, tick your clients, commit; upload it again and see "no changes" |
 | 3 | **Clients and bundles**: client list, client page with renewals **bundled by country + renewal date**, counts and next renewal date | open each client and check the bundles look right |
 | 4 | **Task Tracker upload + renewal detail**: tasks linked to *this* cycle (stable id + per-cycle id), renewal panel with BM+ facts, the stage strip (Renewal Strategy → Proposals → Update Policy + peer review state), the dated overview timeline, the Renewal Strategy sheet's fields | open a renewal and compare it with BM+ |
 | 5 | **Notes and to-dos** on renewals and on bundles; a simple To-dos page (open / done, due date) | write notes and to-dos while working a real client |

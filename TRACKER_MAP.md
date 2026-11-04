@@ -145,9 +145,15 @@ What this means for MART:
 | Renewal Information | Renewal Unique ID · Annual Renewal/Review Date · **Date of Local Meeting** · Upcoming Renewal Strategy · Workflow Status · Plan Design Changes Considered? + Comments · **Expected Change in Premium Rate (+ %) · Recommended Proposal Change · Final Change · General Benchmarking Position + Comments · Insurer (Recommended Proposals) · Recommended Proposals · Client Approval Date · Cost Savings / Cost Avoidance / Unrealized Savings / Other (MMB + Custom)** · Renewal Overview (all) · (client ready) · **Renewal Feed** |
 
 What to watch out for in the cell contents:
-- **Overview text**: in the client-specific file it is in *Renewal Overview
-  (all) / (client ready)*. In the cross-client file those are empty and the
-  dated entries are in **Renewal Feed**. MAPT didn't know that column.
+- **Overview text** (corrected 04.11.2026, checked renewal by renewal): the
+  **cross-client export does not carry the renewal overview at all**. Its
+  *Renewal Overview (all) / (client ready)* columns are there but empty,
+  although its General Information says they are "Included". It carries the
+  **Renewal Feed** instead, which is a *different* stream (BM+ system messages
+  such as "No documents linked to renewal" and other comments), not the
+  overview. The single-client export is the opposite: overview filled, feed
+  empty. MART takes each stream only from the flavour that carries it and
+  never lets the other flavour blank it (`specs/renewal_tracker.CARRIED_STREAMS`).
 - **Values for several lines of coverage packed into one cell** as
   `LOC: value` lines (loss ratios, rate changes, benchmarking, commission),
   so they must be parsed per line of coverage.
@@ -236,6 +242,11 @@ filled?" and compare it with Proposals (closing premium vs final quote).
    Upload Local Documents, Review ROR, Local Contract Review; Implementation
    and Contract categories).
 7. **"Transitioned"** workflow statuses exist, and those rows have no ids.
+   Same-named ones can be *different* renewals (other entity, insurer,
+   currency): they must never be merged. Only exact duplicate rows are.
+7b. **Dates are midnight UTC shown in the country's local time**: 01:00
+   (Europe), 05:30 (India), 08:00 (Asia), but 19:00 / 18:30 on the *previous*
+   evening for the Americas. Round to the nearest midnight.
 8. Exports can **include completed and upcoming renewals**. MAPT assumed
    completed ones were always dropped.
 

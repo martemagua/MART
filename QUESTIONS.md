@@ -213,3 +213,10 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 
 **K7** Should the **Benefit Tracker** come into MART as well? The post-renewal checks need it (claims, headcount, financials, design).
 →
+
+---
+
+## L. From building the upload (04.11.2026)
+
+**L8 ⭐** The **cross-client** Renewal Tracker contains **no renewal overview text**: its two overview columns are empty (only the "Renewal Feed" with BM+ system messages is filled). The single-client export has it. Overview freshness (new / stale) needs that text. Is this how your real cross-client exports look too, or only the demo environment? If real: would you upload single-client exports for your main clients regularly, or is there an export setting in BM+ that fills them?
+→

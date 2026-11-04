@@ -16,7 +16,7 @@
     {% if not setup_mode %}
     <a class="nav-link {% if active == 'home' %}is-active{% endif %}" href="/">Home</a>
     <span class="nav-link is-soon" title="Coming in M1 · day 3">Clients</span>
-    <span class="nav-link is-soon" title="Coming in M1 · day 2">Uploads</span>
+    <a class="nav-link {% if active == 'uploads' %}is-active{% endif %}" href="/uploads">Uploads</a>
     <span class="nav-link is-soon" title="Coming in M3">Board</span>
     <a class="nav-link {% if active == 'settings' %}is-active{% endif %}" href="/settings">Settings</a>
     {% endif %}
@@ -29,5 +29,6 @@
     {% block content %}{% endblock %}
   </main>
 </div>
+<script src="/static/mart.js"></script>
 </body>
 </html>

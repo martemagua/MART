@@ -7,7 +7,7 @@ the next page load without restarting MART. Autoescaping is on for every
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -20,7 +20,10 @@ TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
 
 
 def dmy(value: Any, with_time: bool = False) -> str:
-    """DD.MM.YYYY on screen (ISO everywhere else). Unparseable text passes through."""
+    """DD.MM.YYYY on screen (ISO everywhere else). Unparseable text passes through.
+
+    Timestamps TEXT from the database are UTC (SQLite's datetime('now')) and are
+    shown in this computer's local time; datetime objects are already local."""
     if value in (None, ""):
         return ""
     if isinstance(value, datetime):
@@ -32,6 +35,8 @@ def dmy(value: Any, with_time: bool = False) -> str:
         parsed = datetime.fromisoformat(text)
     except ValueError:
         return text
+    if len(text) > 10 and parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=UTC).astimezone()
     return parsed.strftime("%d.%m.%Y %H:%M" if with_time and len(text) > 10 else "%d.%m.%Y")
 
 

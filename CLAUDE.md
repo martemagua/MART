@@ -33,9 +33,11 @@ the current `BUILD_PLAN_*.md` before changing anything.
 | `mart/__main__.py` | CLI: run (check → schema → backup → serve) · check · backup · restore |
 | `mart/settings.py` | settings file (`%APPDATA%\MART\settings.json`, override `MART_SETTINGS_FILE`), validation; the live DB must never sit in a synced folder |
 | `mart/startup.py` | start-up checks with plain-language messages |
-| `mart/repository/` | **all SQL**: `db.py` connections, `schema.py` append-only migrations |
-| `mart/services/` | orchestration (backups, setup, status) |
-| `mart/web/framework.py` | the small stdlib web layer: Request, Response, Router |
+| `mart/ingestion/` | reading BM+ exports: `sheet.py` (header row found by scanning, section labels, `section`/`after` to tell repeated headers apart, full row copy), `values.py` (dates rounded to the NEAREST midnight, names, keys), `ids.py` (BM+ ids from bare cells and URLs), `renewal_tracker.py` (one Overview row = one renewal; key = per-cycle id → `policy:<stable>:<date>` → `name:…`; distinct rows are NEVER merged, exact duplicates are) |
+| `mart/ingestion/specs/` | **every Excel column name**, one module per tracker; also which text stream each export flavour carries |
+| `mart/repository/` | **all SQL**: `db.py` connections, `schema.py` append-only migrations, `uploads_repo`, `clients_repo` (`is_mine`: NULL undecided / 1 / 0), `renewals_repo` |
+| `mart/services/` | orchestration: `upload_service` (stage → live preview per client → commit in one transaction → backup; renewals are never deleted, only marked "no longer in the export"; content compared flavour-neutrally), backups, setup, status |
+| `mart/web/framework.py`, `multipart.py` | the small stdlib web layer: Request (form, files), Response, Router; file uploads via the e-mail parser (no `cgi`) |
 | `mart/web/app.py` | request rules (host, origin, setup gate, error page + log), router assembly |
 | `mart/web/routes/` | thin handlers, one module per page. **Routes never write SQL.** |
 | `mart/web/templates/`, `static/` | Jinja2 pages (autoescaped, reload per request), CSS |
@@ -48,7 +50,12 @@ the current `BUILD_PLAN_*.md` before changing anything.
 - Migrations are append-only (`MIGRATIONS` in `schema.py`); never edit an applied one.
 - Dates: `DD.MM.YYYY` on screen (`| dmy`), ISO everywhere else.
 - `NULL` means "to be confirmed", not zero.
-- Uploads never delete user-written data.
+- Uploads never delete user-written data, and never delete a renewal.
+- Compare BM+ content, not spelling: ids, the Client Name column and header
+  spelling differ between export flavours (`content_hash`).
+- Test data: `tests/fixtures.py` builds exports to the real layout. Real
+  exports can be checked with `MART_REAL_EXPORTS=<folder>` (never committed).
+- Timestamps in the DB are UTC; `| dmy(True)` shows them in local time.
 - Keep files under ~400 lines; one shared helper over duplicated logic.
 
 ## Verify
