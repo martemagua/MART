@@ -477,3 +477,23 @@ textarea { font: inherit; border: 1px solid var(--border); border-radius: 8px; p
 .rc-cell .fr-badge { margin-top: 4px; }
 h3 .fr-badge { vertical-align: 2px; margin-left: 4px; }
 .pill-new { background: var(--ok-bg); color: var(--ok-ink); font-size: 11px; }
+
+/* Richer to-dos (M2 day 2): urgency, status, waiting on, subtasks, description. */
+.pill-urgent { background: var(--err-bg); color: var(--err-ink); font-size: 11px; }
+.pill-wait { background: var(--warn-bg); color: var(--warn-ink); font-size: 11px; font-weight: 600; white-space: normal; }
+.todo.urg-urgent:not(.is-done) .todo-title { font-weight: 600; }
+.todo.urg-low:not(.is-done) .todo-title { color: var(--ink-2); }
+.todo-desc { flex-basis: 100%; font-size: 13px; color: var(--ink-2); white-space: pre-line; }
+.todo-steps { flex-basis: 100%; list-style: none; margin: 2px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.todo-steps li { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.todo-steps form { margin: 0; }
+.todo-steps li.is-done span { text-decoration: line-through; color: var(--muted); }
+.check-btn.check-sm { width: 16px; height: 16px; min-height: 0; font-size: 11px; }
+.todo-edit-row { display: flex; flex-wrap: wrap; gap: 8px 12px; }
+.todo-edit-row label { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--muted); }
+.todo-edit-row select, .todo-edit-row input { min-height: 32px; font-size: 13px; }
+.todo-edit-row select { font: inherit; font-size: 13px; border: 1px solid var(--border); border-radius: 8px; padding: 0 8px;
+  background: var(--surface); color: var(--ink); }
+.todo-edit-steps { margin: 8px 0; }
+.todo-edit-steps h5 { margin: 0 0 4px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.step-del { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; margin: 0 0 2px; }

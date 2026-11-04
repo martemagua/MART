@@ -24,6 +24,7 @@ from urllib.parse import quote
 from mart.repository import bundles_repo, clients_repo, notes_repo, renewals_repo
 from mart.repository.db import connection
 from mart.services import bundles as bx
+from mart.services import todo_details as td
 
 SCOPES = ("renewal", "bundle", "client")
 NOTE_MAX = 20_000
@@ -31,8 +32,8 @@ TITLE_MAX = 300
 DONE_SHOWN_DAYS = 30
 
 
-class Invalid(ValueError):
-    """Shown to the user as is."""
+# one error type for notes and to-dos, shown to the user as is
+Invalid = td.Invalid
 
 
 # -- targets ----------------------------------------------------------------------------
@@ -99,10 +100,16 @@ def _describe(t: dict[str, Any], renewal_labels: dict[int, dict[str, Any]],
 
 
 # -- reading ----------------------------------------------------------------------------
+def _todos(conn, rows: list[dict[str, Any]], today: date) -> list[dict[str, Any]]:
+    """To-dos with their due state and subtasks (one query for all of them)."""
+    steps = notes_repo.steps_for(conn, [x["id"] for x in rows])
+    return [td.with_steps({**x, **_due(x, today)}, steps[x["id"]]) for x in rows]
+
+
 def _on(conn, scope: str, ref: str, today: date) -> dict[str, Any]:
     t = [(scope, ref)]
     return {"target": {"scope": scope, "ref": ref}, "notes": notes_repo.notes_for(conn, t),
-            "todos": [{**x, **_due(x, today)} for x in notes_repo.todos_for(conn, t)]}
+            "todos": _todos(conn, notes_repo.todos_for(conn, t), today)}
 
 
 def for_renewal(r: dict[str, Any], bundle: dict[str, Any] | None = None,
@@ -155,17 +162,17 @@ def counts(client_id: int) -> dict[str, dict[str, int]]:
 
 
 def todo_list(show_done: bool = False, today: date | None = None) -> dict[str, Any]:
-    """The To-dos page: every open to-do (overdue first, then by due date,
+    """The To-dos page: every open to-do (urgent first, then by due date,
     undated last) and those done in the last DONE_SHOWN_DAYS (or all)."""
     today = today or date.today()
     # timezone.utc, not datetime.UTC: MART still starts on Python 3.10
     now = datetime.now(timezone.utc)  # noqa: UP017
     since = None if show_done else (now - timedelta(days=DONE_SHOWN_DAYS)).strftime("%Y-%m-%d %H:%M:%S")
     with connection() as conn:
-        rows = notes_repo.all_todos(conn, since)
+        rows = _todos(conn, notes_repo.all_todos(conn, since), today)
         labels = renewals_repo.labels(conn, [int(t["ref"]) for t in rows if t["scope"] == "renewal"])
         customs = bundles_repo.all_custom(conn)
-    items = [{**t, "target": _describe(t, labels, customs), **_due(t, today)} for t in rows]
+    items = [{**t, "target": _describe(t, labels, customs)} for t in rows]
     open_ = [t for t in items if not t["done_at"]]
     return {"open": open_, "done": [t for t in items if t["done_at"]], "show_done": show_done,
             "overdue": sum(1 for t in open_ if t["overdue"]),
@@ -235,17 +242,51 @@ def delete_note(note_id: int) -> None:
         notes_repo.delete_note(conn, note_id)
 
 
-def add_todo(scope: str, ref: str, title: str | None, due: str | None) -> int:
+def add_todo(scope: str, ref: str, title: str | None, due: str | None, urgency: str | None = None) -> int:
     with connection() as conn:
         t = _target(conn, scope, ref)
         return notes_repo.add_todo(conn, t["scope"], t["ref"], t["client_id"], _clean_title(title),
-                                   _clean_due(due))
+                                   _clean_due(due), td.urgency(urgency))
 
 
-def edit_todo(todo_id: int, title: str | None, due: str | None) -> None:
+def edit_todo(todo_id: int, title: str | None, due: str | None,
+              details: dict[str, str | None] | None = None) -> None:
+    """Title and due date; with `details` (the edit form) also the M2 extras."""
     with connection() as conn:
         _own(conn, notes_repo.get_todo, todo_id)
+        extras = td.clean(details) if details is not None else None
         notes_repo.update_todo(conn, todo_id, _clean_title(title), _clean_due(due))
+        if extras is not None:
+            notes_repo.update_details(conn, todo_id, extras)
+
+
+def add_step(todo_id: int, title: str | None) -> int:
+    with connection() as conn:
+        _own(conn, notes_repo.get_todo, todo_id)
+        return notes_repo.add_step(conn, todo_id, td.step_title(title))
+
+
+def _own_step(conn, step_id: int) -> dict[str, Any]:
+    step = notes_repo.get_step(conn, step_id)
+    if step is None:
+        raise Invalid("This subtask was already deleted.")
+    _own(conn, notes_repo.get_todo, step["todo_id"])
+    return step
+
+
+def set_step_done(step_id: int, done: bool) -> int:
+    """Returns the step's to-do id (for the page anchor)."""
+    with connection() as conn:
+        step = _own_step(conn, step_id)
+        notes_repo.set_step_done(conn, step_id, done)
+        return step["todo_id"]
+
+
+def delete_step(step_id: int) -> int:
+    with connection() as conn:
+        step = _own_step(conn, step_id)
+        notes_repo.delete_step(conn, step_id)
+        return step["todo_id"]
 
 
 def set_done(todo_id: int, done: bool) -> None:

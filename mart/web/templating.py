@@ -14,6 +14,7 @@ from typing import Any
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from mart import RELEASE_LABEL, __version__
+from mart.services import todo_details
 from mart.web import colors, countries
 from mart.web.framework import Response
 
@@ -62,6 +63,8 @@ _env.filters["dmy"] = dmy
 _env.filters["filesize"] = filesize
 _env.filters["strategy_class"] = colors.strategy_class
 _env.filters["flag"] = countries.flag
+_env.globals["todo_vocab"] = {"urgencies": todo_details.URGENCIES, "statuses": todo_details.STATUSES,
+                              "kinds": todo_details.WAITING_KINDS}
 _env.globals.update(version=__version__, release=RELEASE_LABEL)
 
 
