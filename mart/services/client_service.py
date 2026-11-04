@@ -139,8 +139,9 @@ def explorer(client_id: int, bundle: str | None = None, group: str = "date",
         selected = (upcoming or ordered)[0]
     detail = None
     if selected:
-        items = sorted((_with_stages(_enrich(r, today), renewal_service.stages(linked[r["id"]], today))
-                        for r in selected["renewals"]),
+        stage_of = {r["id"]: renewal_service.stages(linked[r["id"]], today, r.get("upcoming_strategy"))
+                    for r in selected["renewals"]}
+        items = sorted((_with_stages(_enrich(r, today), stage_of[r["id"]]) for r in selected["renewals"]),
                        key=lambda r: ((r["policy_name"] or "").casefold(), r["entity"] or ""))
         detail = {
             **selected, "renewals": items,
