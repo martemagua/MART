@@ -59,6 +59,23 @@ def cmd_restore(file: str) -> int:
     return 0
 
 
+def prepare_database(s: settings_mod.Settings) -> list[str]:
+    """Before serving: a backup just before an upgrade (so it can always be
+    undone), the upgrade, compaction if much space is free, and the start
+    backup. Returns the lines to print."""
+    out, backups = [], Path(s.backup_dir)
+    if s.db_path.exists() and schema.current_version(s.db_path) < schema.LATEST_VERSION:
+        result = backup_service.make_backup(s.db_path, backups, s.backups_keep)
+        out.append(f"\n  Before the upgrade: {result.message}")
+    version = schema.ensure_schema(s.db_path)
+    out.append(f"\n  Database: {s.db_path}  (schema {version})")
+    if schema.compact_if_worth_it(s.db_path):
+        out.append("  Database compacted (free space given back).")
+    result = backup_service.make_backup(s.db_path, backups, s.backups_keep)
+    out.append(f"  Backup:   {result.message}")
+    return out
+
+
 def cmd_run(open_browser: bool) -> int:
     checks = run_checks()
     print(format_checks(checks))
@@ -80,10 +97,9 @@ def cmd_run(open_browser: bool) -> int:
     if s is None:
         print("\n  First start: the browser opens on the setup page.")
     else:
-        version = schema.ensure_schema(s.db_path)
-        print(f"\n  Database: {s.db_path}  (schema {version})")
-        result = backup_service.make_backup(s.db_path, Path(s.backup_dir), s.backups_keep)
-        print(f"  Backup:   {result.message}")
+        for line in prepare_database(s):
+            print(line)
+        backup_service.start_hourly(s.db_path, Path(s.backup_dir), s.backups_keep)
         open_browser = open_browser and s.open_browser
     serve(port, open_browser=open_browser)
     return 0

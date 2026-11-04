@@ -103,3 +103,85 @@ def test_restore_refuses_files_that_are_not_mart_backups(tmp_path):
     bogus.write_bytes(b"x")
     with pytest.raises(ValueError):
         bk.restore(bogus, tmp_path / "mart.db")
+
+
+# -- Day 7: growth and backups ----------------------------------------------------------
+def test_committed_uploads_leave_no_staged_rows(configured):
+    from mart.repository.db import connection
+    from mart.services import upload_service as us
+    from tests.fixtures import R, renewal_tracker
+    uid = us.stage("a.xlsx", renewal_tracker([R(n=1), R(n=2)]))
+    waiting = us.stage("b.xlsx", renewal_tracker([R(n=3)], report_date="04 Nov 2026"))
+    us.commit(uid, {c["key"] for c in us.preview(uid)["clients"]})
+    with connection() as conn:
+        left = {r[0] for r in conn.execute("SELECT DISTINCT upload_id FROM staging_rows")}
+    assert left == {waiting}                       # only the upload still waiting keeps its rows
+
+
+def test_migration_6_clears_old_staged_rows(tmp_path):
+    db = tmp_path / "old.db"
+    conn = sqlite3.connect(db)
+    for number, sql in schema.MIGRATIONS[:5]:      # a 0.6.0 database
+        conn.executescript(f"BEGIN;\n{sql}\nPRAGMA user_version = {number};\nCOMMIT;")
+    conn.executescript("""
+        INSERT INTO uploads (id, filename, file_sha256, file_size, tracker, status, preview_json)
+        VALUES (1, 'a.xlsx', 'x', 1, 'renewal_tracker', 'committed', '{}'),
+               (2, 'b.xlsx', 'y', 1, 'renewal_tracker', 'staged', '{}');
+        INSERT INTO staging_rows (upload_id, cycle_key, client_key, data_json)
+        VALUES (1, 'k1', 'c', '{}'), (2, 'k2', 'c', '{}');""")
+    conn.close()
+    assert schema.ensure_schema(db) == schema.LATEST_VERSION
+    conn = sqlite3.connect(db)
+    assert [r[0] for r in conn.execute("SELECT upload_id FROM staging_rows")] == [2]
+    conn.close()
+
+
+def test_compact_only_when_worth_it(tmp_path):
+    db = tmp_path / "c.db"
+    schema.ensure_schema(db)
+    assert schema.compact_if_worth_it(db) is False          # small and tidy
+    conn = sqlite3.connect(db)
+    conn.execute("CREATE TABLE junk (x TEXT)")
+    conn.executemany("INSERT INTO junk VALUES (?)", [("x" * 4000,)] * 600)
+    conn.commit()
+    conn.execute("DELETE FROM junk")
+    conn.commit()
+    conn.close()
+    before = db.stat().st_size
+    assert schema.compact_if_worth_it(db) is True
+    assert db.stat().st_size < before / 2
+
+
+def test_hourly_backups_only_write_when_something_changed(db, tmp_path):
+    import time
+    out = tmp_path / "hourly"
+    thread = bk.start_hourly(db, out, keep=10, every=0.05)
+    time.sleep(0.3)
+    assert len(bk.list_backups(out)) == 1                    # one, then "unchanged"
+    conn = sqlite3.connect(db)
+    conn.execute("CREATE TABLE note_written_today (x)")
+    conn.commit()
+    conn.close()
+    time.sleep(0.3)
+    thread.stop.set()
+    assert len(bk.list_backups(out)) == 2
+
+
+def test_newest_backup_is_the_last_written_even_within_one_second(db, tmp_path):
+    """Backup names are stamped to the second; two in the same second (an
+    upload's backup and the hourly one) must still sort by when they were
+    written, not by their content hash, or a duplicate is written next."""
+    out = tmp_path / "same-second"
+    now = datetime(2026, 11, 4, 15, 0, 0)
+    first = bk.make_backup(db, out, keep=10, now=now)
+    # change the content until its hash sorts BEFORE the first one's (the bad case)
+    for i in range(200):
+        _write(db, f"v{i}")
+        second = bk.make_backup(db, out, keep=10, now=now)
+        if second.file.name < first.file.name:
+            break
+        second.file.unlink()
+    else:
+        pytest.skip("no hash sorted lower (very unlikely)")
+    assert bk.list_backups(out)[0].path == second.file
+    assert bk.make_backup(db, out, keep=10, now=now).status == "unchanged"

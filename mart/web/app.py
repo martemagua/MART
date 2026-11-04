@@ -48,6 +48,14 @@ class App:
                 return urlsplit(value).netloc.lower() in self.allowed_hosts
         return True  # no browser headers at all: a local script, not a web page
 
+    def _back(self, request: Request) -> str | None:
+        """The MART page the request came from (to go back and try again)."""
+        ref = urlsplit(request.headers.get("referer") or "")
+        if not ref.path.startswith("/") or (self.allowed_hosts is not None
+                                            and ref.netloc.lower() not in self.allowed_hosts):
+            return None
+        return ref.path + (f"?{ref.query}" if ref.query else "")
+
     # -- dispatch ------------------------------------------------------------
     def handle(self, request: Request) -> Response:
         try:
@@ -60,13 +68,15 @@ class App:
             handler, params = self.router.match(request.method, request.path)
             return handler(request, **params)
         except HTTPError as exc:
-            return templating.render("error.html", status=exc.status,
-                                     status_code=exc.status, message=exc.message)
+            return templating.render("error.html", status=exc.status, status_code=exc.status,
+                                     message=exc.message, back=self._back(request),
+                                     configured=settings_mod.load() is not None)
         except Exception:  # noqa: BLE001  (last line of defence: show, log, carry on)
             log_file = log_error(request)
             return templating.render("error.html", status=500, status_code=500,
                                      message="Something went wrong on this page.",
-                                     log_file=log_file)
+                                     log_file=log_file, back=self._back(request),
+                                     configured=settings_mod.load() is not None)
 
 
 def log_error(request: Request) -> Path:

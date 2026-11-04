@@ -215,6 +215,14 @@ MIGRATIONS: list[tuple[int, str]] = [
         );
         CREATE INDEX ix_changes_item ON changes(item_kind, item_id);
     """),
+    (6, """
+        -- An upload's parsed rows are only needed until it is committed or
+        -- discarded; committed ones were kept by mistake and made the file
+        -- grow with every upload (0.7.0). Clear them; MART compacts the file
+        -- at the next start.
+        DELETE FROM staging_rows
+        WHERE upload_id IN (SELECT id FROM uploads WHERE status <> 'staged');
+    """),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1][0]
@@ -224,6 +232,22 @@ def current_version(path: Path | None = None) -> int:
     conn = connect(path)
     try:
         return conn.execute("PRAGMA user_version").fetchone()[0]
+    finally:
+        conn.close()
+
+
+def compact_if_worth_it(path: Path | None = None, min_free_share: float = 0.25) -> bool:
+    """SQLite never gives freed space back on its own: VACUUM when at least a
+    quarter of the file is free pages (and it is more than a little). Returns
+    True if it compacted."""
+    conn = connect(path)
+    try:
+        pages = conn.execute("PRAGMA page_count").fetchone()[0]
+        free = conn.execute("PRAGMA freelist_count").fetchone()[0]
+        if pages < 256 or free < pages * min_free_share:
+            return False
+        conn.execute("VACUUM")
+        return True
     finally:
         conn.close()
 
