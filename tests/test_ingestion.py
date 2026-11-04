@@ -29,6 +29,16 @@ def test_text_values():
     assert v.client_key("SPG GmbH & Co. KG") == v.client_key("spg gmbh and co kg")
 
 
+def test_coverage_lines_split_on_commas_outside_brackets():
+    cell = ("Healthcare - Inpatient (Hospital and Surgical), Healthcare - Maternity,"
+            " Life - Cover (Spouse, Children);Accident - AD&D\n")
+    assert v.coverage_lines(cell) == ["Healthcare - Inpatient (Hospital and Surgical)",
+                                      "Healthcare - Maternity", "Life - Cover (Spouse, Children)",
+                                      "Accident - AD&D"]
+    assert v.coverage_lines(None) == [] and v.coverage_lines(" , ") == []
+    assert v.product_groups(cell) == ["Healthcare", "Life", "Accident"]
+
+
 def test_ids_from_both_flavours():
     stable, cycle, robj, cid = hexid(1, "7"), hexid(1, "8"), hexid(1, "9"), hexid(1, "5")
     cross = renewal_tracker_ids(f"https://x/client/{cid}/policies/{cycle};{stable}",

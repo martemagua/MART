@@ -6,6 +6,32 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.7.7 — 04.11.2026 · "Everything BM+ exported" by section
+
+### Changed (Martin's note on 0.7.6)
+- **"Everything BM+ exported" is bundled under BM+'s own sections**
+  (Policy Information (Expiring Policy Period), LOC Information, Premium
+  Information, Multinational Network Information, Broking Remuneration,
+  Renewal Information), each one expandable, in the export's order, with
+  its number of fields. The headers no longer repeat the section name, and
+  dates show as DD.MM.YYYY like everywhere else.
+
+### What to try
+Open a renewal, then "Everything BM+ exported", then one of its sections.
+
+## 0.7.6 — 04.11.2026 · lines of coverage as a list
+
+### Changed (Martin's note on 0.7.5)
+- **Lines of coverage are a bulleted list** in the renewal panel, one line
+  per bullet (two columns on a wide window), on their own row under the
+  Renewal facts. BM+ joins them with commas; MART splits on commas,
+  semicolons and line breaks but never inside brackets, so "Inpatient
+  (Hospital and Surgical)" stays one line. The cards' Coverage (product
+  groups) uses the same splitting.
+
+### What to try
+Open a renewal with several lines of coverage: one per bullet.
+
 ## 0.7.5 — 04.11.2026 · renewal panel: Renewal and Strategy stacked
 
 ### Changed (Martin's note on 0.7.4)

@@ -14,6 +14,7 @@ from typing import Any
 from mart.ingestion import overview as ov
 from mart.ingestion import renewal_tracker as rt
 from mart.ingestion import task_tracker as tt
+from mart.ingestion import values
 from mart.ingestion.ids import bm_link
 from mart.ingestion.sheet import lookup, norm, section_items
 from mart.ingestion.specs import renewal_tracker as rspec
@@ -155,6 +156,7 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
     stages_ = stages(mine, today, r.get("upcoming_strategy"))
     return {
         "client": client, "renewal": r, "fields": f, "days_until": days,
+        "coverage_lines": values.coverage_lines(f.get("lines_of_coverage")),
         "stages": stages_, "has_task_data": has_task_data, "other_tasks": others,
         "strategy": _facts(strategy, rspec.STRATEGY_FIELDS),
         "last_renewal": _facts(strategy, rspec.LAST_RENEWAL_FIELDS),
@@ -165,11 +167,22 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
         "overview": ov.timeline(f.get("overview_all"), f.get("overview_client_ready"), today),
         "overview_state": ov.flag(f.get("overview_all"), f.get("overview_client_ready"))["state"],
         "feed": sorted(ov.entries(f.get("renewal_feed")), key=lambda e: e["date"], reverse=True),
-        "bm": r["bm"],
+        "bm": r["bm"], "bm_sections": bm_sections(r["bm"]),
         "older": older,
         "history": history.describe(changes, {t["id"]: t["task_name"] for t in mine}),
         "links": bm_links(f, stages_),
     }
+
+
+def bm_sections(bm: dict[str, Any] | None) -> list[dict[str, Any]]:
+    """The Overview row as BM+ exported it, bundled under its own section
+    headings ("Policy Information (Expiring Policy Period)", …), in the
+    export's order. A cell without a section goes under "Other"."""
+    sections: dict[str, list[tuple[str, Any]]] = {}
+    for key, value in (bm or {}).items():
+        section, _, header = key.rpartition(" › ")
+        sections.setdefault(section or "Other", []).append((header, value))
+    return [{"name": name, "items": items} for name, items in sections.items()]
 
 
 def policy_number(details: dict[str, Any] | None) -> str | None:
