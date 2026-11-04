@@ -13,6 +13,7 @@ from typing import Any
 
 from mart.ingestion import overview as ov
 from mart.ingestion import task_tracker as tt
+from mart.ingestion.ids import bm_link
 from mart.ingestion.sheet import lookup, norm, section_items
 from mart.ingestion.specs import renewal_tracker as rspec
 from mart.ingestion.specs import task_tracker as tspec
@@ -79,6 +80,7 @@ def stages(tasks: list[dict[str, Any]], today: date | None = None) -> list[dict[
             "due_changed_count": f.get("due_changed_count") or 0,
             "original_due_date": f.get("original_due_date"),
             "in_latest_export": t.get("in_latest_export", 1),
+            "bm_url": bm_link(f.get("task_ref")),
         })
     return out
 
@@ -114,9 +116,10 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
     others = sorted((t for t in mine if not _STAGE_KEYS.get(norm(t.get("task_name")))),
                     key=lambda t: t.get("due_date") or "")
     days = (datetime.fromisoformat(r["renewal_date"]).date() - today).days if r["renewal_date"] else None
+    stages_ = stages(mine, today)
     return {
         "client": client, "renewal": r, "fields": f, "days_until": days,
-        "stages": stages(mine, today), "has_task_data": has_task_data, "other_tasks": others,
+        "stages": stages_, "has_task_data": has_task_data, "other_tasks": others,
         "strategy": _facts(strategy, rspec.STRATEGY_FIELDS),
         "last_renewal": _facts(strategy, rspec.LAST_RENEWAL_FIELDS),
         "claims": _facts(strategy, rspec.CLAIMS_FIELDS),
@@ -128,7 +131,21 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
         "feed": sorted(ov.entries(f.get("renewal_feed")), key=lambda e: e["date"], reverse=True),
         "bm": r["bm"],
         "older": older,
+        "bm_link": _bm_link(f, stages_),
     }
+
+
+def _bm_link(fields: dict[str, Any], stage_list: list[dict[str, Any]]) -> dict[str, str] | None:
+    """Where "Open in BM+" goes: the renewal's own link (cross-client
+    exports write it), else BM+'s link to one of its stage tasks."""
+    if fields.get("bm_url"):
+        return {"url": fields["bm_url"], "label": "Open in BM+", "title": "The renewal in BM+"}
+    for s in stage_list:
+        if s.get("bm_url"):
+            return {"url": s["bm_url"], "label": f"Open in BM+ ({s['name']} task)",
+                    "title": "No link to the renewal itself yet (only the cross-client "
+                             "Renewal Tracker has it); this opens its task in BM+."}
+    return None
 
 
 def _older_sections(conn, r: dict[str, Any]) -> dict[str, str | None]:

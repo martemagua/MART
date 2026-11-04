@@ -26,6 +26,14 @@ _BARE = re.compile(rf"^\s*({_ID})\s*$")
 _POLICY_URL = re.compile(rf"/policies/({_ID}|undefined)(?:;({_ID}|undefined))?")
 _RENEWAL_URL = re.compile(rf"/renewals/(?:v2/)?({_ID})(?:/({_ID}))?")
 _CLIENT_URL = re.compile(rf"/client/({_ID})")
+_LINK = re.compile(r"^\s*(https://[^\s\"'<>]+)\s*$")
+
+
+def bm_link(cell: str | None) -> str | None:
+    """The link BM+ itself wrote in a cell, to open the item in BM+. Only a
+    plain https URL counts (never anything MART builds or guesses)."""
+    m = _LINK.match(cell or "")
+    return m.group(1) if m else None
 
 
 def _real(value: str | None) -> str | None:

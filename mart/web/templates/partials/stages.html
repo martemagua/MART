@@ -27,6 +27,7 @@
       {% if s.review_rejected_count %} · rejected {{ s.review_rejected_count }}×{% endif %}
     </div>
     {% endif %}
+    {% if s.bm_url %}<a class="stage-link" href="{{ s.bm_url }}" target="_blank" rel="noopener noreferrer" title="Open this task in BM+ (new tab)">Task in BM+ ↗</a>{% endif %}
   </li>
 {% endfor %}
 </ol>

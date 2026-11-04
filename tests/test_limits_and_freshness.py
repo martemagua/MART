@@ -84,12 +84,14 @@ def test_several_files_wait_and_commit_leads_to_the_next(configured, app):
     tasks = task_tracker([T(n=1, task_name="Proposals", status="Not Started")])
     r = app.handle(_multipart(("renewals.xlsx", renewal_tracker([R(n=1)])), ("tasks.xlsx", tasks),
                               ("notes.xlsx", b"not a workbook")))
-    assert r.status == 303 and dict(r.headers)["Location"].startswith("/uploads?done=")
-    page = get(app, dict(r.headers)["Location"]).body_bytes.decode()
-    assert "2 files ready for preview" in page and "notes.xlsx" in page and "Waiting for you" in page
     waiting = us.waiting_uploads()
     assert [w["filename"] for w in waiting] == ["renewals.xlsx", "tasks.xlsx"]
     first, second = waiting[0]["id"], waiting[1]["id"]
+    # straight to the first preview, which says what else came and what failed
+    assert r.status == 303 and dict(r.headers)["Location"].startswith(f"/uploads/{first}?")
+    page = get(app, dict(r.headers)["Location"]).body_bytes.decode()
+    assert "Which clients are yours?" in page and "2 files uploaded. Here is the first" in page
+    assert "Not uploaded: notes.xlsx" in page and "1 more upload waiting" in page
     key = us.preview(first)["clients"][0]["key"]
     r = post(app, f"/uploads/{first}/commit", {"mine": key})
     assert r.status == 303 and dict(r.headers)["Location"].startswith(f"/uploads/{second}?done=")
