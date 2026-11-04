@@ -122,6 +122,16 @@ def for_client(conn: sqlite3.Connection, client_id: int) -> list[dict[str, Any]]
     return out
 
 
+def details_of(conn: sqlite3.Connection, ids: list[int]) -> dict[int, dict[str, Any]]:
+    """renewal id -> its stored detail sheets (one query for all ids); for_client
+    leaves them out because the side panel doesn't need them."""
+    if not ids:
+        return {}
+    marks = ",".join("?" * len(ids))
+    rows = conn.execute(f"SELECT id, details_json FROM renewals WHERE id IN ({marks})", ids).fetchall()
+    return {r["id"]: json.loads(r["details_json"] or "{}") for r in rows}
+
+
 def overview_texts_for_mine(conn: sqlite3.Connection) -> list[dict[str, Any]]:
     """Per renewal of my clients still in the export: the two overview texts and
     the bundle facts, for the Clients list (one query for all clients)."""

@@ -50,6 +50,10 @@ the files are deliberately not copied here.
 | Proposals | **5** | **6** | sections + super-section |
 | Savings | **5** | **6** | sections + super-section |
 
+**Policy Number** is on the three detail sheets (Policy Information section)
+and on the Task Tracker, NOT on the Overview sheet. BM+ writes it as the
+insurer's number, or "(multiple)"; 40 of the 49 demo renewals have one.
+
 → **Header rows differ per sheet *and* per flavour.** MART must find the
 header row by scanning, never from a fixed number.
 

@@ -6,6 +6,20 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.7.3 — 04.11.2026 · renewal cards: name on top, policy number
+
+### Changed (Martin's note on 0.7.2)
+- **The policy name has the whole width of its card**, on top, with the
+  tick box and the "⋯" links beside it; it was cut off in its narrow column.
+- **The first field is the Entity, with the policy number below it** when
+  BM+ has one. The Overview sheet has no policy number: it comes from the
+  Renewal Strategy sheet (else Proposals, else Savings), as BM+ writes it
+  ("(multiple)" included). The other fields are unchanged.
+
+### What to try
+Open a bundle with long policy names: the names are whole, and the policy
+number sits under the entity.
+
 ## 0.7.2 — 04.11.2026 · date filters, one BM+ link, drag and drop
 
 ### Changed (Martin's notes on 0.7.1)
