@@ -112,3 +112,18 @@ def test_non_expiring_policies():
 def test_wrong_files_get_a_plain_message(data, message):
     with pytest.raises(rt.NotThisTracker, match=message):
         rt.parse(data)
+
+
+def test_insurer_not_found_gives_way_to_the_provider():
+    """Martin, 04.11.2026: when BM+ says "Insurer Not Found", the Provider
+    column names who it is; without one, BM+'s words stay."""
+    from mart.ingestion import renewal_tracker as rt
+    from tests.fixtures import R, renewal_tracker
+    p = rt.parse(renewal_tracker([
+        R(n=1, policy="A", insurer="Insurer Not Found", provider="Local Mutual Co.",
+          insurer_upcoming="Insurer Not Found", provider_upcoming="Local Mutual Co."),
+        R(n=2, policy="B", insurer="Insurer Not Found"),
+        R(n=3, policy="C", insurer="PZU", provider="ignored when the insurer is known")]))
+    got = {r.fields["policy_name"]: (r.fields["insurer"], r.fields["insurer_upcoming"]) for r in p.renewals}
+    assert got == {"A": ("Local Mutual Co.", "Local Mutual Co."), "B": ("Insurer Not Found", None),
+                   "C": ("PZU", None)}

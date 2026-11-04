@@ -153,3 +153,11 @@ def test_a_refused_action_explains_and_leads_back(configured, app):
     page = post(app, "/todos/add", {"scope": "nonsense", "ref": "1", "title": "x"},
                 headers={**h, "origin": "http://127.0.0.1:8070"}).body_bytes.decode()
     assert "evil.example" not in page
+
+
+def test_strategies_are_colour_coded():
+    from mart.web.colors import strategy_class
+    assert strategy_class("Remarketing") == "st-remarket"
+    assert strategy_class("incumbent  with rate guarantee") == "st-guarantee"   # spelling-proof
+    assert strategy_class("Unknown / New Policy") == "st-new"
+    assert strategy_class(None) == strategy_class("Something new") == "st-none"

@@ -98,6 +98,13 @@ def _header_key(full_key: str) -> str:
     return norm(full_key.split(" › ")[-1])
 
 
+def insurer_or_provider(insurer: str | None, provider: str | None) -> str | None:
+    """BM+'s "Insurer Not Found" gives way to the Provider column, when filled."""
+    if insurer and insurer.strip().casefold() == spec.INSURER_NOT_FOUND.casefold() and provider:
+        return provider
+    return insurer
+
+
 def _neutral(row: dict[str, Any]) -> dict[str, Any]:
     """A row without the cells that differ only by export flavour (ids, client
     name, the text streams) and with spelling-proof keys."""
@@ -288,6 +295,8 @@ def _overview_row(sheet, cells: list[Any], excel_row: int, client: str) -> Renew
             f[col.field] = v.to_int(raw)
         else:
             f[col.field] = v.clean_text(raw)
+    f["insurer"] = insurer_or_provider(f.get("insurer"), f.get("provider"))
+    f["insurer_upcoming"] = insurer_or_provider(f.get("insurer_upcoming"), f.get("provider_upcoming"))
     f["non_expiring"] = v.is_non_expiring(sheet.value(cells, "end_date"))
     f["product_groups"] = v.product_groups(f.get("lines_of_coverage"))
     f["bm_url"] = bm_link(f.get("renewal_ref"))          # cross-client exports only

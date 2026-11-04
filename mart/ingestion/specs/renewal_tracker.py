@@ -46,7 +46,9 @@ OVERVIEW: list[Col] = [
     Col("lines_of_coverage", "Line of Coverage", section="LOC Information (expiring"),
     Col("lines_upcoming", "Line of Coverage", section="LOC Information (upcoming"),
     Col("insurer", "Insurer", section="Premium Information (Expiring"),
+    Col("provider", "Provider", section="Premium Information (Expiring"),
     Col("insurer_upcoming", "Insurer", section="Premium Information (Upcoming"),
+    Col("provider_upcoming", "Provider", section="Premium Information (Upcoming"),
     Col("renewal_ref", "Renewal Unique ID*", required=True),
     Col("renewal_date", "Annual Renewal/Review Date", required=True),
     Col("local_meeting_date", "Date of Local Meeting"),
@@ -137,6 +139,11 @@ CLAIMS_FIELDS = [
     ("Actual loss ratio", "Actual Loss Ratio", "Claims"),
     ("Claims period", "Claims Experience Date Range", "Claims"),
 ]
+# BM+ writes this when the policy's insurer isn't in its insurer list; the
+# "Provider" column next to it then names who it is (Martin, 04.11.2026).
+INSURER_NOT_FOUND = "Insurer Not Found"
+PROPOSAL_PROVIDER = ("Provider", "Proposal Details")
+
 PROPOSAL_COLUMNS = [
     ("Proposal", "Proposals", None),
     ("Flags", "Recommended / Selected / Lowest Cost", None),

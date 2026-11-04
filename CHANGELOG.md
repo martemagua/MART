@@ -6,6 +6,34 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.7.1 — 04.11.2026 · lighter pages, strategy colours
+
+### Changed (Martin's notes on 0.7.0)
+- **"Insurer Not Found" gives way to the Provider.** BM+ writes it when an
+  insurer isn't in its list; the Provider column beside it then names who
+  it is, and MART shows that (expiring, upcoming and in the proposals).
+  Without a Provider, BM+'s words stay. Takes effect with the next upload.
+- **To-dos and notes take less space**: **+ To-do** and **+ Note** buttons
+  open the fields in a small box (the cursor is already in it); the lists
+  only show when there is something in them.
+- **The move bar's footnote is an ⓘ** that shows the hint on hover or tap.
+- **Naming a bundle**: a ✎ pencil right beside the bundle's name replaces
+  the "Name this bundle" button.
+
+### Added
+- **Strategy colours**: every strategy has its own colour, on the strategy
+  pills (renewal cards, bundle header, renewal panel), as the left edge of
+  each renewal card, and as small squares in the side panel showing which
+  strategies a bundle holds (round dots stay status). Remarketing purple,
+  Incumbent without RG blue, Incumbent with RG green, Non-expiring teal,
+  Unknown / New Policy rose, TBC amber, none grey. Dark mode has its own
+  shades.
+
+### What to try
+Open a bundle: spot the strategies by colour; add a to-do with **+ To-do**;
+hover the ⓘ; rename the bundle with ✎. After the next upload, check a
+renewal that showed "Insurer Not Found".
+
 ## 0.7.0 — 04.11.2026 · M1 day 7 · hardening
 
 ### Fixed

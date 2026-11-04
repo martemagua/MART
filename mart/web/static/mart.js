@@ -85,4 +85,10 @@
     target.addEventListener("change", sync);
     sync();
   });
+  // [data-focus-on-open] in a <details>: put the cursor there when it opens.
+  document.querySelectorAll("details").forEach(function (d) {
+    var field = d.querySelector("[data-focus-on-open]");
+    if (!field) return;
+    d.addEventListener("toggle", function () { if (d.open) field.focus(); });
+  });
 })();

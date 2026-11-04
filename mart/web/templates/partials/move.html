@@ -14,6 +14,6 @@
   </select>
   <input type="text" name="name" placeholder="Name of the new bundle" maxlength="120" aria-label="Name of the new bundle" data-move-name>
   <button type="submit" class="btn btn-small">Move</button>
-  <span class="hint">Only bundles of {{ s.country }}: a bundle keeps to one country.</span>
+  <span class="info" tabindex="0" role="note" aria-label="Only bundles of {{ s.country }} are offered: a bundle keeps to one country.">i<span class="tip">Only bundles of {{ s.country }} are offered: a bundle keeps to one country. Tick renewals on the cards to select them.</span></span>
 </form>
 {% endmacro %}

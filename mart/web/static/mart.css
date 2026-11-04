@@ -21,8 +21,25 @@
   --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
   color-scheme: light;
 }
+/* Strategy colours (web/colors.py): background + ink per strategy. */
+:root {
+  --st-remarket-bg: #f1e6fb; --st-remarket: #6b2fa0;
+  --st-incumbent-bg: #e4eefc; --st-incumbent: #1f4fb8;
+  --st-guarantee-bg: #e3f3e8; --st-guarantee: #1d6b3a;
+  --st-nonexpiring-bg: #e1f2f4; --st-nonexpiring: #0f6470;
+  --st-new-bg: #fce8ef; --st-new: #a3204f;
+  --st-tbc-bg: #fdf0dc; --st-tbc: #8a4f00;
+  --st-none-bg: #eef0f3; --st-none: #5b6573;
+}
 @media (prefers-color-scheme: dark) {
   :root {
+    --st-remarket-bg: #2d1f3d; --st-remarket: #cfa7f2;
+    --st-incumbent-bg: #1c2944; --st-incumbent: #9bb8f5;
+    --st-guarantee-bg: #17301f; --st-guarantee: #8fd6a7;
+    --st-nonexpiring-bg: #152e31; --st-nonexpiring: #8ad4dd;
+    --st-new-bg: #3a1a26; --st-new: #f1a3bf;
+    --st-tbc-bg: #36280f; --st-tbc: #f0c27a;
+    --st-none-bg: #262a31; --st-none: #a9b1bd;
     --bg: #111418; --surface: #1a1e24; --border: #2c323b;
     --ink: #e8eaed; --ink-2: #c4c9d1; --muted: #9aa3ae;
     --accent: #7aa2f7; --accent-ink: #0b1220; --accent-soft: #1d2a44;
@@ -297,8 +314,11 @@ a.rc-name:hover { color: var(--accent); text-decoration: underline; }
 
 /* ── What Martin writes (partials/mine.html): kept apart from BM+ data ── */
 .sec-mine { border-left: 4px solid var(--accent); }
-.mine-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
-@media (max-width: 1320px) { .mine-cols { grid-template-columns: minmax(0, 1fr); } }
+.mine-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.mine-head h3 { margin: 0; }
+.mine-actions { display: flex; gap: 8px; }
+.mine-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 12px; }
+.mine-empty { margin: 8px 0 0; }
 .mine-cols h4, .mine-also h4 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
 .todo-list, .note-list { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .todo { display: flex; align-items: flex-start; gap: 8px; }
@@ -370,6 +390,40 @@ textarea { font: inherit; border: 1px solid var(--border); border-radius: 8px; p
 .move-bar select { min-height: 32px; font: inherit; font-size: 13px; border: 1px solid var(--border); border-radius: 8px;
   padding: 0 8px; background: var(--surface); color: var(--ink); max-width: 320px; }
 .move-bar input[type=text] { width: 220px; min-height: 32px; font-size: 13px; padding: 0 10px; }
-.move-bar .hint { flex-basis: 100%; margin: 0; font-size: 12px; color: var(--muted); }
+.arrange-box .move-bar .info { align-self: flex-start; }
 .rc-pick { width: 16px; height: 16px; min-height: 0; flex-shrink: 0; margin: 0; }
 .rd-bundle { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+
+/* Strategy colour coding: a pill, a dot, and a card's left edge */
+.pill-st { border: 1px solid transparent; }
+.st-remarket { --st: var(--st-remarket); --st-bg: var(--st-remarket-bg); }
+.st-incumbent { --st: var(--st-incumbent); --st-bg: var(--st-incumbent-bg); }
+.st-guarantee { --st: var(--st-guarantee); --st-bg: var(--st-guarantee-bg); }
+.st-nonexpiring { --st: var(--st-nonexpiring); --st-bg: var(--st-nonexpiring-bg); }
+.st-new { --st: var(--st-new); --st-bg: var(--st-new-bg); }
+.st-tbc { --st: var(--st-tbc); --st-bg: var(--st-tbc-bg); }
+.st-none { --st: var(--st-none); --st-bg: var(--st-none-bg); }
+.pill-st { background: var(--st-bg); color: var(--st); }
+/* square on purpose: round dots in the side panel are status (overview, stages) */
+.st-dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--st); flex-shrink: 0; }
+.rc-cell .pill-st { white-space: normal; display: inline; line-height: 1.7; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.st-dots { display: inline-flex; gap: 3px; align-items: center; }
+.renewal-card[class*=" st-"] { border-left: 4px solid var(--st); }
+.arrange-box.arrange-right { left: auto; right: 0; }
+.arrange-box label.small { display: flex; flex-direction: column; gap: 4px; font-weight: 400; }
+/* ⓘ: a hint shown on hover / focus (tap) instead of a line of text */
+.info { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px;
+  border-radius: 10px; border: 1px solid var(--border); color: var(--muted); font-size: 12px; font-weight: 700;
+  cursor: help; background: var(--surface); flex-shrink: 0; }
+.info:hover, .info:focus { color: var(--accent); border-color: var(--accent); outline: none; }
+.info .tip { display: none; position: absolute; z-index: 30; top: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  width: max-content; max-width: 280px; padding: 8px 10px; border-radius: 8px; background: var(--ink); color: var(--surface);
+  font-size: 12px; font-weight: 400; line-height: 1.4; white-space: normal; box-shadow: 0 4px 14px rgba(0, 0, 0, .2); }
+.info:hover .tip, .info:focus .tip { display: block; }
+/* ✎ next to a title */
+.title-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px;
+  border: 1px solid transparent; background: none; color: var(--muted); cursor: pointer; list-style: none; padding: 0; }
+.icon-btn::-webkit-details-marker { display: none; }
+.icon-btn:hover, .arrange[open] > .icon-btn { color: var(--accent); background: var(--accent-soft); }
+.icon-btn svg { width: 16px; height: 16px; }

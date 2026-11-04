@@ -37,6 +37,8 @@ class R:
     strategy: str = "TBC"
     insurer: str = "Meridian Health"
     insurer_upcoming: str | None = None
+    provider: str | None = None           # "Provider" beside "Insurer" (BM+ fills it rarely)
+    provider_upcoming: str | None = None
     loc: str = "Healthcare - Medical"
     owner: str = "Ann Lee Ann Lee"
     owner_email: str = "ann@example.com"
@@ -68,8 +70,10 @@ OVERVIEW = [
     ("LOC Information (expiring Policy)", "Line of Coverage"),
     ("LOC Information (upcoming Policy)", "Line of Coverage"),
     ("Premium Information (Expiring Policy Period)", "Insurer"),
+    ("Premium Information (Expiring Policy Period)", "Provider"),
     ("Premium Information (Expiring Policy Period)", "Annual Premium_x000D_ (reporting currency)"),
     ("Premium Information (Upcoming Policy Period)", "Insurer"),
+    ("Premium Information (Upcoming Policy Period)", "Provider"),
     (" Renewal Information", "Renewal Unique ID*"),
     (" Renewal Information", "Annual Renewal/Review Date"),
     (" Renewal Information", "Upcoming Renewal Strategy"),
@@ -107,7 +111,8 @@ def _overview_values(r: R, flavour: str, cross_overview: bool = False) -> list:
     return [
         "Sales", "EMEA", r.country, r.entity, _policy_cell(r, flavour), r.policy, 1,
         datetime(2026, 1, 1), r.end_date, "Unknown / New Policy", r.owner, r.owner_email,
-        r.analyst, r.analyst_email, r.loc, r.loc, r.insurer, 1000, r.insurer_upcoming,
+        r.analyst, r.analyst_email, r.loc, r.loc, r.insurer, r.provider, 1000, r.insurer_upcoming,
+        r.provider_upcoming,
         _renewal_cell(r, flavour), r.renewal_date, r.strategy, r.status,
         r.overview if has_ov else None,
         cr if has_ov else None,

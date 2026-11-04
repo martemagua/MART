@@ -48,6 +48,7 @@
           </span>
           <span class="bundle-meta">
             {% if b.flags.no_cr or b.flags.gaps %}<span class="dot dot-warn" title="Overview: client-ready version missing or incomplete"></span>{% endif %}
+            <span class="st-dots">{% for st in b.renewals | map(attribute="upcoming_strategy") | unique %}<span class="st-dot {{ st | strategy_class }}" title="{{ st or 'no strategy' }}"></span>{% endfor %}</span>
             <span class="count">{{ b.renewals | length }}</span>
           </span>
           <span class="visually-hidden">{{ b.country }} {{ b.search | join(" ") }}</span>
@@ -71,11 +72,22 @@
     {% set s = selected %}
     <header class="bundle-head">
       <div>
+        <div class="title-row">
         {% if s.custom_id %}
         <h2 class="bundle-title">{{ s.country }} · <span class="title-extra">{{ s.extra }}</span></h2>
         {% else %}
         <h2 class="bundle-title">{{ s.country }} · {{ s.renewal_date | dmy or "no renewal date" }}{% if s.extra %} · <span class="title-extra">{{ s.extra }}</span>{% endif %}</h2>
         {% endif %}
+        <details class="arrange">
+          <summary class="icon-btn" title="{{ 'Rename this bundle' if s.extra else 'Name this bundle' }}" aria-label="{{ 'Rename this bundle' if s.extra else 'Name this bundle' }}"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M11.7 1.3a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4l-8.6 8.6-3.4.8.8-3.4 8.2-8.6zM3.6 11l-.4 1.8 1.8-.4L12.6 4.8 11.2 3.4 3.6 11z"/></svg></summary>
+          <form method="post" action="{{ base }}/bundles/rename" class="arrange-box stack-form">
+            <input type="hidden" name="key" value="{{ s.key }}"><input type="hidden" name="group" value="{{ group }}">
+            <input type="text" name="name" value="{{ s.extra }}" maxlength="120" aria-label="Bundle name" data-focus-on-open {% if s.custom_id %}required{% endif %} placeholder="e.g. Broker A, or the BM+ policy it belongs to">
+            {% if not s.custom_id %}<p class="hint">Leave empty to show it as {{ s.country }} · {{ s.renewal_date | dmy or "no date" }} again.</p>{% endif %}
+            <div class="actions"><button type="submit" class="btn btn-small">Save name</button></div>
+          </form>
+        </details>
+        </div>
         <p class="muted">
           {% if s.custom_id and s.last_date and s.last_date != s.renewal_date %}renewals {{ s.renewal_date | dmy }} – {{ s.last_date | dmy }} · {% elif s.custom_id %}renews {{ s.renewal_date | dmy or "—" }} · {% endif %}
           {% if s.days_until is not none %}{% if s.days_until >= 0 %}{{ "first " if s.custom_id and s.last_date != s.renewal_date }}renews in <strong>{{ s.days_until }} days</strong>{% else %}renewal date {{ -s.days_until }} days ago{% endif %} · {% endif %}
@@ -84,18 +96,9 @@
           {% if s.insurers %} · {{ s.insurers | join(", ") }}{% endif %}
         </p>
       </div>
-      <details class="arrange">
-        <summary class="btn btn-small">{{ "Rename" if s.extra else "Name this bundle" }}</summary>
-        <form method="post" action="{{ base }}/bundles/rename" class="arrange-box stack-form">
-          <input type="hidden" name="key" value="{{ s.key }}"><input type="hidden" name="group" value="{{ group }}">
-          <input type="text" name="name" value="{{ s.extra }}" maxlength="120" aria-label="Bundle name" {% if s.custom_id %}required{% endif %} placeholder="e.g. Broker A, or the BM+ policy it belongs to">
-          {% if not s.custom_id %}<p class="hint">Leave empty to show it as {{ s.country }} · {{ s.renewal_date | dmy or "no date" }} again.</p>{% endif %}
-          <div class="actions"><button type="submit" class="btn btn-small">Save name</button></div>
-        </form>
-      </details>
       {% if s.renewals %}
       <dl class="mix">
-        <div><dt>Strategy</dt><dd>{% for k, n in s.strategies.most_common() %}<span class="pill pill-soft">{{ k }}{% if n > 1 %} ×{{ n }}{% endif %}</span>{% endfor %}</dd></div>
+        <div><dt>Strategy</dt><dd>{% for k, n in s.strategies.most_common() %}<span class="pill pill-st {{ k | strategy_class }}">{{ k }}{% if n > 1 %} ×{{ n }}{% endif %}</span>{% endfor %}</dd></div>
         <div><dt>BM+ workflow</dt><dd>{% for k, n in s.statuses.most_common() %}<span class="pill pill-soft">{{ k }}{% if n > 1 %} ×{{ n }}{% endif %}</span>{% endfor %}</dd></div>
       </dl>
       {% endif %}
@@ -112,7 +115,7 @@
 
     <div class="renewal-list">
       {% for r in s.renewals %}
-      <article class="renewal-card {% if not r.in_latest_export %}is-left{% endif %}" id="r{{ r.id }}">
+      <article class="renewal-card {{ r.upcoming_strategy | strategy_class }}{% if not r.in_latest_export %} is-left{% endif %}" id="r{{ r.id }}">
         <div class="renewal-row">
           <div class="rc-policy">
             <div class="rc-name-row">
@@ -124,7 +127,7 @@
           </div>
           <div class="rc-cell"><div class="rc-label">Coverage</div>{{ r.product_groups | join(", ") or "—" }}</div>
           <div class="rc-cell"><div class="rc-label">Insurer</div><span title="{{ r.insurer or '' }}">{{ r.insurer or "—" }}</span>{% if r.insurer_upcoming %}<div class="rc-sub">→ {{ r.insurer_upcoming }}</div>{% endif %}</div>
-          <div class="rc-cell"><div class="rc-label">Strategy</div>{{ r.upcoming_strategy or "—" }}</div>
+          <div class="rc-cell"><div class="rc-label">Strategy</div><span class="pill pill-st {{ r.upcoming_strategy | strategy_class }}">{{ r.upcoming_strategy or "—" }}</span></div>
           <div class="rc-cell"><div class="rc-label">BM+ workflow</div>{{ r.workflow_status or "—" }}
             {% if has_task_data %}<div>{{ stage_dots(r.stages) }}</div>{% endif %}</div>
           <div class="rc-cell"><div class="rc-label">Overview</div>
