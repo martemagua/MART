@@ -17,6 +17,38 @@
     input.addEventListener("keydown", function (e) { if (e.key === "Enter") e.preventDefault(); });
   });
 
+  // <input data-filter-items="#list">: hide [data-filter-item] elements that don't
+  // contain the text, and [data-filter-group] blocks left without a visible item.
+  document.querySelectorAll("[data-filter-items]").forEach(function (input) {
+    var list = document.querySelector(input.getAttribute("data-filter-items"));
+    if (!list) return;
+    input.addEventListener("input", function () {
+      var q = input.value.trim().toLowerCase();
+      list.querySelectorAll("[data-filter-item]").forEach(function (el) {
+        el.hidden = q !== "" && el.textContent.toLowerCase().indexOf(q) === -1;
+      });
+      list.querySelectorAll("[data-filter-group]").forEach(function (g) {
+        g.hidden = !g.querySelector("[data-filter-item]:not([hidden])");
+      });
+    });
+  });
+
+  // [data-keep-scroll="name"]: remember the scroll position of a side panel
+  // across page loads (clicking a bundle reloads the page). Per browser tab only.
+  document.querySelectorAll("[data-keep-scroll]").forEach(function (el) {
+    var key = "mart-scroll-" + el.getAttribute("data-keep-scroll");
+    try {
+      var y = sessionStorage.getItem(key);
+      if (y !== null) el.scrollTop = parseInt(y, 10);
+      el.addEventListener("scroll", function () { sessionStorage.setItem(key, String(el.scrollTop)); });
+    } catch (e) { /* storage blocked: nothing to remember */ }
+    var sel = el.querySelector(".is-selected");
+    if (sel) {
+      var r = sel.getBoundingClientRect(), box = el.getBoundingClientRect();
+      if (r.top < box.top || r.bottom > box.bottom) sel.scrollIntoView({ block: "center" });
+    }
+  });
+
   // <button data-check-all="name" data-value="on|off">: tick / untick the visible boxes.
   document.querySelectorAll("[data-check-all]").forEach(function (btn) {
     btn.addEventListener("click", function () {

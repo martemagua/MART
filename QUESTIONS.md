@@ -219,4 +219,4 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 ## L. From building the upload (04.11.2026)
 
 **L8 ⭐** The **cross-client** Renewal Tracker contains **no renewal overview text**: its two overview columns are empty (only the "Renewal Feed" with BM+ system messages is filled). The single-client export has it. Overview freshness (new / stale) needs that text. Is this how your real cross-client exports look too, or only the demo environment? If real: would you upload single-client exports for your main clients regularly, or is there an export setting in BM+ that fills them?
-→
+→ **Answered 04.11.2026:** in real exports the overview is usually full and very important (the empty columns were the demo environment). MART now takes a text stream from any export that fills it (`renewal_tracker.carried_streams`) and shows it like MAPT's renewals page: dated entries, newest first, with what the client-ready version is missing marked.

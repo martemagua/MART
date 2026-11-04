@@ -108,19 +108,26 @@ def content_hash(bm: dict[str, Any], details: dict[str, list[dict[str, Any]]]) -
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
 
-def text_changed(row: dict[str, Any], stored_fields: dict[str, Any], flavour: str) -> bool:
-    """Did a text stream THIS flavour carries change?"""
-    return any((row["fields"].get(f) or None) != (stored_fields.get(f) or None)
-               for f in spec.CARRIED_STREAMS[flavour])
+def carried_streams(rows: list[dict[str, Any]]) -> tuple[str, ...]:
+    """The text streams this export actually fills: those with text in at least
+    one renewal (see specs.renewal_tracker.TEXT_STREAMS)."""
+    return tuple(f for f in spec.TEXT_STREAMS
+                 if any((r["fields"].get(f) or "").strip() for r in rows))
+
+
+def text_changed(row: dict[str, Any], stored_fields: dict[str, Any],
+                 carried: tuple[str, ...]) -> bool:
+    """Did a text stream this export carries change?"""
+    return any((row["fields"].get(f) or None) != (stored_fields.get(f) or None) for f in carried)
 
 
 def keep_streams_not_carried(row: dict[str, Any], stored_fields: dict[str, Any],
-                             stored_bm: dict[str, Any], flavour: str) -> dict[str, Any]:
-    """A cross-client upload must not blank the overview a single-client upload
-    brought in (and vice versa): streams this flavour doesn't carry keep the
-    stored text, in the fields and in the full row copy."""
+                             stored_bm: dict[str, Any], carried: tuple[str, ...]) -> dict[str, Any]:
+    """An export that leaves a text stream empty everywhere must not blank the
+    text an earlier export brought in: streams it doesn't carry keep the stored
+    text, in the fields and in the full row copy."""
     for f, header in spec.TEXT_STREAMS.items():
-        if f in spec.CARRIED_STREAMS[flavour]:
+        if f in carried:
             continue
         row["fields"][f] = stored_fields.get(f)
         h = norm(header)

@@ -20,8 +20,7 @@
       {% if data.totals.left_export %}<div><div class="stat-value">{{ data.totals.left_export }}</div><div class="stat-label">no longer in the export (kept)</div></div>{% endif %}
     </div>
     {% if data.last_upload %}<p class="muted">Last upload {{ data.last_upload.committed_at | dmy(True) }}: {{ data.last_upload.filename }} (report date {{ data.last_upload.report_date | dmy }}).</p>{% endif %}
-    <p><a href="/uploads">Uploads and my clients →</a></p>
-    <p class="hint">Next (M1 · day 3): a page per client, with its renewals bundled by country and renewal date.</p>
+    <p><a href="/clients">Explore your clients →</a> · <a href="/uploads">Uploads</a></p>
   </section>
   {% else %}
   <section class="card empty">

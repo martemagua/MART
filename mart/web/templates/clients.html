@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Clients{% endblock %}
+{% block content %}
+<header class="page-head">
+  <h1>Clients</h1>
+  <p class="lead">Your clients. Open one to explore its renewals by bundle.</p>
+</header>
+
+{% if clients %}
+<section class="card">
+  <div class="table-scroll">
+    <table class="table">
+      <thead><tr>
+        <th scope="col">Client</th>
+        <th scope="col" class="num">Renewals</th>
+        <th scope="col" class="num">Bundles</th>
+        <th scope="col" class="nowrap">Next renewal</th>
+        <th scope="col">Overview</th>
+      </tr></thead>
+      <tbody>
+      {% for c in clients %}
+        <tr>
+          <td class="col-policy"><a href="/clients/{{ c.id }}">{{ c.name }}</a></td>
+          <td class="num">{{ c.renewals }}</td>
+          <td class="num">{{ c.bundles }}</td>
+          <td class="nowrap">{% if c.next_renewal %}{{ c.next_renewal | dmy }} <span class="muted">· in {{ c.days_until }} days</span>{% else %}<span class="muted">—</span>{% endif %}</td>
+          <td class="pills">
+            {% if c.flags.no_cr %}<span class="pill pill-warn">{{ c.flags.no_cr }} without client-ready</span>{% endif %}
+            {% if c.flags.gaps %}<span class="pill pill-warn">{{ c.flags.gaps }} with gaps</span>{% endif %}
+            {% if c.flags.empty %}<span class="pill pill-soft">{{ c.flags.empty }} without overview</span>{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% else %}
+<section class="card empty">
+  <h2>No clients yet</h2>
+  <p>Upload a Renewal Tracker and tick your clients in the preview.</p>
+  <p><a class="btn btn-primary" href="/uploads">Upload a tracker</a></p>
+</section>
+{% endif %}
+{% endblock %}

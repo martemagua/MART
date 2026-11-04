@@ -145,15 +145,19 @@ What this means for MART:
 | Renewal Information | Renewal Unique ID · Annual Renewal/Review Date · **Date of Local Meeting** · Upcoming Renewal Strategy · Workflow Status · Plan Design Changes Considered? + Comments · **Expected Change in Premium Rate (+ %) · Recommended Proposal Change · Final Change · General Benchmarking Position + Comments · Insurer (Recommended Proposals) · Recommended Proposals · Client Approval Date · Cost Savings / Cost Avoidance / Unrealized Savings / Other (MMB + Custom)** · Renewal Overview (all) · (client ready) · **Renewal Feed** |
 
 What to watch out for in the cell contents:
-- **Overview text** (corrected 04.11.2026, checked renewal by renewal): the
-  **cross-client export does not carry the renewal overview at all**. Its
-  *Renewal Overview (all) / (client ready)* columns are there but empty,
-  although its General Information says they are "Included". It carries the
-  **Renewal Feed** instead, which is a *different* stream (BM+ system messages
-  such as "No documents linked to renewal" and other comments), not the
-  overview. The single-client export is the opposite: overview filled, feed
-  empty. MART takes each stream only from the flavour that carries it and
-  never lets the other flavour blank it (`specs/renewal_tracker.CARRIED_STREAMS`).
+- **Overview text** (corrected twice, 04.11.2026): in Martin's **real**
+  exports the overview (all + client ready) is usually full, in both
+  flavours. Only the *demo environment's* cross-client export left both
+  overview columns empty and filled just the **Renewal Feed**, a different
+  stream (BM+ system messages such as "No documents linked to renewal" and
+  other comments), not the overview. So MART decides from the DATA which
+  streams an export carries: a stream with text in at least one renewal is
+  carried; one the whole export leaves empty keeps the stored text
+  (`renewal_tracker.carried_streams`).
+- **Overview entries** start with `DD MMM YYYY:` **at the start of a line**;
+  a date followed by a colon inside a sentence ("quotes by 15 Nov 2026: three
+  insurers") is not a new entry. BM+ marks some entries "(not client
+  ready)" in their header. Entries are not in date order.
 - **Values for several lines of coverage packed into one cell** as
   `LOC: value` lines (loss ratios, rate changes, benchmarking, commission),
   so they must be parsed per line of coverage.

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% from "partials/overview.html" import overview_timeline, overview_pill %}
+{% block title %}{{ client.name }}{% endblock %}
+{% block content_class %}content-explorer{% endblock %}
+{% block content %}
+{% set base = "/clients/" ~ client.id %}
+{% set q_all = "&all=1" if show_all else "" %}
+<div class="explorer">
+
+  {# ── left: the bundles ───────────────────────────────────────────── #}
+  <aside class="bundle-nav" aria-label="Bundles" data-keep-scroll="bundle-nav-{{ client.id }}">
+    <p class="crumbs"><a href="/clients">Clients</a></p>
+    <h1 class="nav-title">{{ client.name }}</h1>
+    <p class="muted small">{{ renewal_count }} renewals in {{ bundle_count }} bundles</p>
+
+    <div class="seg" role="group" aria-label="Group bundles by">
+      <a class="seg-btn {% if group == 'date' %}is-on{% endif %}" href="{{ base }}?group=date{{ q_all }}{% if selected %}&bundle={{ selected.key | urlencode }}{% endif %}">By date</a>
+      <a class="seg-btn {% if group == 'country' %}is-on{% endif %}" href="{{ base }}?group=country{{ q_all }}{% if selected %}&bundle={{ selected.key | urlencode }}{% endif %}">By country</a>
+    </div>
+    <input type="search" class="nav-filter" placeholder="Filter: country, policy, entity, insurer…" aria-label="Filter bundles" data-filter-items="#bundle-list">
+    {% if left_count %}
+    <a class="small nav-toggle" href="{{ base }}?group={{ group }}{% if not show_all %}&all=1{% endif %}">
+      {% if show_all %}Hide{% else %}Show{% endif %} {{ left_count }} renewal{{ "s" if left_count != 1 }} no longer in the export</a>
+    {% endif %}
+
+    <nav id="bundle-list" class="bundle-list">
+      {% for label, items in groups.items() %}
+      <div class="bundle-group" data-filter-group>
+        <h2 class="bundle-group-title">{{ label }}</h2>
+        {% for b in items %}
+        <a class="bundle-item {% if selected and b.key == selected.key %}is-selected{% endif %}"
+           href="{{ base }}?bundle={{ b.key | urlencode }}&group={{ group }}{{ q_all }}" data-filter-item>
+          <span class="bundle-main">
+            <span class="bundle-name">{% if group == "country" %}{{ b.renewal_date | dmy or "No date" }}{% else %}{{ b.country }}{% endif %}</span>
+            <span class="bundle-sub">{% if group == "country" %}{% if b.days_until is not none %}{{ "in " ~ b.days_until ~ " days" if b.days_until >= 0 else (-b.days_until) ~ " days ago" }}{% endif %}{% else %}{{ b.renewal_date | dmy or "no date" }}{% endif %}</span>
+          </span>
+          <span class="bundle-meta">
+            {% if b.flags.no_cr or b.flags.gaps %}<span class="dot dot-warn" title="Overview: client-ready version missing or incomplete"></span>{% endif %}
+            <span class="count">{{ b.renewals | length }}</span>
+          </span>
+          <span class="visually-hidden">{{ b.country }} {{ b.search | join(" ") }}</span>
+        </a>
+        {% endfor %}
+      </div>
+      {% endfor %}
+      {% if not groups %}<p class="muted">No renewals for this client yet.</p>{% endif %}
+    </nav>
+  </aside>
+
+  {# ── middle: the selected bundle ─────────────────────────────────────── #}
+  <section class="bundle-view" aria-live="polite">
+    {% if selected %}
+    {% set s = selected %}
+    <header class="bundle-head">
+      <div>
+        <h2 class="bundle-title">{{ s.country }} · {{ s.renewal_date | dmy or "no renewal date" }}</h2>
+        <p class="muted">
+          {% if s.days_until is not none %}{% if s.days_until >= 0 %}renews in <strong>{{ s.days_until }} days</strong>{% else %}renewal date {{ -s.days_until }} days ago{% endif %} · {% endif %}
+          {{ s.renewals | length }} renewal{{ "s" if s.renewals | length != 1 }}
+          {% if s.entities %} · {{ s.entities | length }} entit{{ "y" if s.entities | length == 1 else "ies" }}{% endif %}
+          {% if s.insurers %} · {{ s.insurers | join(", ") }}{% endif %}
+        </p>
+      </div>
+      <dl class="mix">
+        <div><dt>Strategy</dt><dd>{% for k, n in s.strategies.most_common() %}<span class="pill pill-soft">{{ k }}{% if n > 1 %} ×{{ n }}{% endif %}</span>{% endfor %}</dd></div>
+        <div><dt>BM+ workflow</dt><dd>{% for k, n in s.statuses.most_common() %}<span class="pill pill-soft">{{ k }}{% if n > 1 %} ×{{ n }}{% endif %}</span>{% endfor %}</dd></div>
+      </dl>
+    </header>
+
+    <div class="renewal-list">
+      {% for r in s.renewals %}
+      <article class="renewal-card {% if not r.in_latest_export %}is-left{% endif %}" id="r{{ r.id }}">
+        <div class="renewal-row">
+          <div class="rc-policy">
+            <div class="rc-name" title="{{ r.policy_name }}">{{ r.policy_name or "—" }}</div>
+            <div class="rc-sub" title="{{ r.entity or '' }}">{{ r.entity or "—" }}</div>
+          </div>
+          <div class="rc-cell"><div class="rc-label">Coverage</div>{{ r.product_groups | join(", ") or "—" }}</div>
+          <div class="rc-cell"><div class="rc-label">Insurer</div><span title="{{ r.insurer or '' }}">{{ r.insurer or "—" }}</span>{% if r.insurer_upcoming %}<div class="rc-sub">→ {{ r.insurer_upcoming }}</div>{% endif %}</div>
+          <div class="rc-cell"><div class="rc-label">Strategy</div>{{ r.upcoming_strategy or "—" }}</div>
+          <div class="rc-cell"><div class="rc-label">BM+ workflow</div>{{ r.workflow_status or "—" }}</div>
+          <div class="rc-cell"><div class="rc-label">Overview</div>
+            {{ overview_pill(r.overview_state, r.overview) }}
+            {% if r.overview.latest %}<div class="rc-sub">latest {{ r.overview.latest | dmy }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="rc-flags">
+          {% if not r.in_latest_export %}<span class="pill pill-soft">no longer in the export since {{ r.left_export_at | dmy }}</span>{% endif %}
+          {% if r.id_missing %}<span class="pill pill-soft" title="BM+ gave no id; recognised by client, country, entity, policy and date">no BM+ id</span>{% endif %}
+          {% if r.non_expiring %}<span class="pill pill-soft">non-expiring</span>{% endif %}
+          {% if r.benefit_owner %}<span class="muted small">Benefit owner: {{ r.benefit_owner }}</span>{% endif %}
+        </div>
+        {% if r.overview.entries %}
+        <details class="rc-overview" {% if s.renewals | length == 1 %}open{% endif %}>
+          <summary>Renewal overview</summary>
+          {{ overview_timeline(r.overview) }}
+        </details>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="card empty"><h2>No bundle selected</h2><p>This client has no renewals in the latest export.</p></div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

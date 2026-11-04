@@ -71,13 +71,13 @@ def _report_stamp(u: dict[str, Any]) -> str:
     return f"{u.get('report_date') or ''} {u.get('report_time') or ''}"
 
 
-def _outcome(row: dict[str, Any], stored: dict[str, Any] | None, flavour: str) -> str:
+def _outcome(row: dict[str, Any], stored: dict[str, Any] | None, carried: tuple[str, ...]) -> str:
     """new | returned (back in the export) | changed | unchanged."""
     if stored is None:
         return "new"
     if not stored["in_latest_export"]:
         return "returned"
-    if stored["content_hash"] != row["content_hash"] or rt.text_changed(row, stored["fields"], flavour):
+    if stored["content_hash"] != row["content_hash"] or rt.text_changed(row, stored["fields"], carried):
         return "changed"
     return "unchanged"
 
@@ -106,13 +106,14 @@ def preview(upload_id: int) -> dict[str, Any]:
             "renewals": 0, "new": 0, "changed": 0, "unchanged": 0, "no_id": 0,
             "leaving": 0,
         }
+    carried = rt.carried_streams(rows)
     seen: dict[str, set[str]] = {k: set() for k in per_client}
     for r in rows:
         pc = per_client[r["client_key"]]
         pc["renewals"] += 1
         pc["no_id"] += int(bool(r.get("id_missing")))
         seen[r["client_key"]].add(r["cycle_key"])
-        outcome = _outcome(r, existing.get(r["cycle_key"]), upload["flavour"])
+        outcome = _outcome(r, existing.get(r["cycle_key"]), carried)
         pc["changed" if outcome == "returned" else outcome] += 1
     for key, c in known.items():
         per_client[key]["leaving"] = len(in_export.get(c["id"], set()) - seen[key])
@@ -144,7 +145,7 @@ def commit(upload_id: int, mine_keys: set[str], allow_older: bool = False) -> di
     with connection() as conn:
         rows = uploads_repo.staged_rows(conn, upload_id)
         stored = renewals_repo.stored_by_key(conn, [r["cycle_key"] for r in rows])
-        flavour = upload["flavour"]
+        carried = rt.carried_streams(rows)
         by_client: dict[str, list[dict[str, Any]]] = {}
         for r in rows:
             by_client.setdefault(r["client_key"], []).append(r)
@@ -162,9 +163,9 @@ def commit(upload_id: int, mine_keys: set[str], allow_older: bool = False) -> di
             summary["clients_loaded"].append(c["name"])
             for r in client_rows:
                 e = stored.get(r["cycle_key"])
-                outcome = _outcome(r, e, flavour)
+                outcome = _outcome(r, e, carried)
                 if e is not None:
-                    rt.keep_streams_not_carried(r, e["fields"], e["bm"], flavour)
+                    rt.keep_streams_not_carried(r, e["fields"], e["bm"], carried)
                 renewals_repo.save(conn, r, client_id, upload_id,
                                    existing_id=e["id"] if e else None,
                                    touched=outcome != "unchanged")

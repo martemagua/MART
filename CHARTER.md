@@ -151,6 +151,7 @@ Martin is the only user. Colleagues see MART on his shared screen.
   asks; sensible defaults offered). The live database never runs from a
   synced folder.
 - **Time for testing: 3–4 hours a day.**
+- **Desktop only** (landscape and portrait windows); no phone layouts.
 
 ---
 
@@ -206,4 +207,5 @@ Martin is the only user. Colleagues see MART on his shared screen.
 | 03.11.2026 | Knowledge base in MART; savings still recorded in BM+ |
 | 03.11.2026 | Data and backup folders are set in MART's settings |
 | 03.11.2026 | Time for testing: 3–4 hours a day → daily increments |
+| 04.11.2026 | Desktop only (landscape and portrait); the client page is an explorer: bundles on the side, the bundle in the middle |
 | 03.11.2026 | **Charter agreed (v1.0)**, with goals G8–G10 added and the Benefit Tracker moved to v2 |

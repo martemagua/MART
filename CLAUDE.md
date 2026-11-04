@@ -49,9 +49,10 @@ before changing anything.
 | `mart/settings.py` | settings file (`%APPDATA%\MART\settings.json`, override `MART_SETTINGS_FILE`), validation; the live DB must never sit in a synced folder |
 | `mart/startup.py` | start-up checks with plain-language messages |
 | `mart/ingestion/` | reading BM+ exports: `sheet.py` (header row found by scanning, section labels, `section`/`after` to tell repeated headers apart, full row copy), `values.py` (dates rounded to the NEAREST midnight, names, keys), `ids.py` (BM+ ids from bare cells and URLs), `renewal_tracker.py` (one Overview row = one renewal; key = per-cycle id → `policy:<stable>:<date>` → `name:…`; distinct rows are NEVER merged, exact duplicates are) |
-| `mart/ingestion/specs/` | **every Excel column name**, one module per tracker; also which text stream each export flavour carries |
+| `mart/ingestion/overview.py` | the renewal overview: dated entries (header `DD MMM YYYY:` at a LINE START), newest-first timeline, line-by-line comparison with the client-ready version (spacing/case ignored; BM+'s own "(not client ready)" marker counts), list flag `empty` / `no_cr` / `gaps` / `ok` |
+| `mart/ingestion/specs/` | **every Excel column name**, one module per tracker; the three text streams (overview all / client ready / feed) |
 | `mart/repository/` | **all SQL**: `db.py` connections, `schema.py` append-only migrations, `uploads_repo`, `clients_repo` (`is_mine`: NULL undecided / 1 / 0), `renewals_repo` |
-| `mart/services/` | orchestration: `upload_service` (stage → live preview per client → commit in one transaction → backup; renewals are never deleted, only marked "no longer in the export"; content compared flavour-neutrally), backups, setup, status |
+| `mart/services/` | orchestration: `upload_service` (stage → live preview per client → commit in one transaction → backup; renewals are never deleted, only marked "no longer in the export"; content compared flavour-neutrally; a text stream is taken from an export only if it fills it somewhere), `client_service` (bundles = client + country + renewal date; the explorer's groups and selected bundle), backups, setup, status |
 | `mart/web/framework.py`, `multipart.py` | the small stdlib web layer: Request (form, files), Response, Router; file uploads via the e-mail parser (no `cgi`) |
 | `mart/web/app.py` | request rules (host, origin, setup gate, error page + log), router assembly |
 | `mart/web/routes/` | thin handlers, one module per page. **Routes never write SQL.** |
@@ -71,6 +72,8 @@ before changing anything.
 - Test data: `tests/fixtures.py` builds exports to the real layout. Real
   exports can be checked with `MART_REAL_EXPORTS=<folder>` (never committed).
 - Timestamps in the DB are UTC; `| dmy(True)` shows them in local time.
+- **Desktop only** (landscape and portrait windows). Explorer pages: side panel scrolls on its own (`.bundle-nav`), content in the middle.
+- CSS: `[hidden]` always wins (`display: none !important`), so filters work on flex/grid items.
 - Keep files under ~400 lines; one shared helper over duplicated logic.
 
 ## Verify

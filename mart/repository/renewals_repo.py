@@ -100,3 +100,33 @@ def totals(conn: sqlite3.Connection) -> dict[str, int]:
                   COUNT(DISTINCT r.client_id) AS clients
            FROM renewals r JOIN clients c ON c.id = r.client_id WHERE c.is_mine = 1""").fetchone()
     return dict(row)
+
+
+def for_client(conn: sqlite3.Connection, client_id: int) -> list[dict[str, Any]]:
+    """Every renewal MART has for a client (in the export or not), fields parsed."""
+    rows = conn.execute(
+        """SELECT id, cycle_key, expiring_policy_id, country, entity, policy_name,
+                  lines_of_coverage, product_groups, insurer, start_date, end_date,
+                  non_expiring, renewal_date, kickoff_date, workflow_status,
+                  upcoming_strategy, id_missing, in_latest_export, left_export_at,
+                  fields_json
+           FROM renewals WHERE client_id = ?""", (client_id,)).fetchall()
+    out = []
+    for r in rows:
+        d = dict(r)
+        d["fields"] = json.loads(d.pop("fields_json"))
+        d["product_groups"] = json.loads(d["product_groups"] or "[]")
+        out.append(d)
+    return out
+
+
+def overview_texts_for_mine(conn: sqlite3.Connection) -> list[dict[str, Any]]:
+    """Per renewal of my clients still in the export: the two overview texts and
+    the bundle facts, for the Clients list (one query for all clients)."""
+    rows = conn.execute(
+        """SELECT r.client_id, r.country, r.renewal_date,
+                  json_extract(r.fields_json, '$.overview_all') AS overview_all,
+                  json_extract(r.fields_json, '$.overview_client_ready') AS overview_client_ready
+           FROM renewals r JOIN clients c ON c.id = r.client_id
+           WHERE c.is_mine = 1 AND r.in_latest_export = 1""").fetchall()
+    return [dict(r) for r in rows]
