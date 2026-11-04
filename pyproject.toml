@@ -12,3 +12,7 @@ extend-exclude = ["vendor"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+# Specs hold BM+'s column names verbatim; some are longer than a line.
+"mart/ingestion/specs/*.py" = ["E501"]

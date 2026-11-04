@@ -16,6 +16,7 @@
         <th scope="col" class="num">Bundles</th>
         <th scope="col" class="nowrap">Next renewal</th>
         <th scope="col">Overview</th>
+        <th scope="col" class="nowrap" title="Report date of the last export that carried the overview (single-client)">Overview data</th>
       </tr></thead>
       <tbody>
       {% for c in clients %}
@@ -24,10 +25,14 @@
           <td class="num">{{ c.renewals }}</td>
           <td class="num">{{ c.bundles }}</td>
           <td class="nowrap">{% if c.next_renewal %}{{ c.next_renewal | dmy }} <span class="muted">· in {{ c.days_until }} days</span>{% else %}<span class="muted">—</span>{% endif %}</td>
-          <td class="pills">
+          <td><div class="pills">
             {% if c.flags.no_cr %}<span class="pill pill-warn">{{ c.flags.no_cr }} without client-ready</span>{% endif %}
             {% if c.flags.gaps %}<span class="pill pill-warn">{{ c.flags.gaps }} with gaps</span>{% endif %}
             {% if c.flags.empty %}<span class="pill pill-soft">{{ c.flags.empty }} without overview</span>{% endif %}
+          </div></td>
+          <td class="nowrap">{% set fr = c.freshness %}
+            {% if fr.as_of %}<span class="{% if fr.stale %}pill pill-warn{% endif %}" title="Out of date after {{ fr.limit }} days (Settings)">{{ fr.as_of | dmy }} · {{ fr.age_days }} d</span>
+            {% else %}<span class="pill pill-warn" title="Upload a single-client Renewal Tracker for this client">not loaded</span>{% endif %}
           </td>
         </tr>
       {% endfor %}

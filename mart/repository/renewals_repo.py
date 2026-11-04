@@ -105,7 +105,7 @@ def totals(conn: sqlite3.Connection) -> dict[str, int]:
 def for_client(conn: sqlite3.Connection, client_id: int) -> list[dict[str, Any]]:
     """Every renewal MART has for a client (in the export or not), fields parsed."""
     rows = conn.execute(
-        """SELECT id, cycle_key, expiring_policy_id, country, entity, policy_name,
+        """SELECT id, cycle_key, cycle_id, expiring_policy_id, country, entity, policy_name,
                   lines_of_coverage, product_groups, insurer, start_date, end_date,
                   non_expiring, renewal_date, kickoff_date, workflow_status,
                   upcoming_strategy, id_missing, in_latest_export, left_export_at,
@@ -130,3 +130,16 @@ def overview_texts_for_mine(conn: sqlite3.Connection) -> list[dict[str, Any]]:
            FROM renewals r JOIN clients c ON c.id = r.client_id
            WHERE c.is_mine = 1 AND r.in_latest_export = 1""").fetchall()
     return [dict(r) for r in rows]
+
+
+def get(conn: sqlite3.Connection, renewal_id: int) -> dict[str, Any] | None:
+    """One renewal with everything parsed: fields, the full Overview row and the
+    Strategy / Proposals / Savings rows."""
+    r = conn.execute("SELECT * FROM renewals WHERE id = ?", (renewal_id,)).fetchone()
+    if r is None:
+        return None
+    d = dict(r)
+    for col in ("fields_json", "bm_json", "details_json"):
+        d[col[:-5]] = json.loads(d.pop(col) or "{}")
+    d["product_groups"] = json.loads(d["product_groups"] or "[]")
+    return d

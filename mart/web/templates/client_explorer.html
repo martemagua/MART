@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "partials/overview.html" import overview_timeline, overview_pill %}
+{% from "partials/stages.html" import stage_dots %}
 {% block title %}{{ client.name }}{% endblock %}
 {% block content_class %}content-explorer{% endblock %}
 {% block content %}
@@ -12,6 +13,11 @@
     <p class="crumbs"><a href="/clients">Clients</a></p>
     <h1 class="nav-title">{{ client.name }}</h1>
     <p class="muted small">{{ renewal_count }} renewals in {{ bundle_count }} bundles</p>
+    {% set fr = freshness %}
+    <p class="small freshness {% if fr.stale %}is-stale{% endif %}" title="The overview comes from single-client Renewal Tracker exports. Limit: {{ fr.limit }} days (Settings → Time limits).">
+      {% if fr.as_of %}Overview as of {{ fr.as_of | dmy }} ({{ fr.age_days }} day{{ "s" if fr.age_days != 1 }}){% if fr.stale %}: upload a fresh single-client export{% endif %}
+      {% else %}No overview loaded yet: upload a single-client Renewal Tracker{% endif %}
+    </p>
 
     <div class="seg" role="group" aria-label="Group bundles by">
       <a class="seg-btn {% if group == 'date' %}is-on{% endif %}" href="{{ base }}?group=date{{ q_all }}{% if selected %}&bundle={{ selected.key | urlencode }}{% endif %}">By date</a>
@@ -49,7 +55,9 @@
 
   {# ── middle: the selected bundle ─────────────────────────────────────── #}
   <section class="bundle-view" aria-live="polite">
-    {% if selected %}
+    {% if detail %}
+    {% include "partials/renewal_detail.html" %}
+    {% elif selected %}
     {% set s = selected %}
     <header class="bundle-head">
       <div>
@@ -72,13 +80,14 @@
       <article class="renewal-card {% if not r.in_latest_export %}is-left{% endif %}" id="r{{ r.id }}">
         <div class="renewal-row">
           <div class="rc-policy">
-            <div class="rc-name" title="{{ r.policy_name }}">{{ r.policy_name or "—" }}</div>
+            <a class="rc-name" href="/clients/{{ client.id }}/renewals/{{ r.id }}?group={{ group }}{{ q_all }}" title="Open the renewal: {{ r.policy_name }}">{{ r.policy_name or "—" }}</a>
             <div class="rc-sub" title="{{ r.entity or '' }}">{{ r.entity or "—" }}</div>
           </div>
           <div class="rc-cell"><div class="rc-label">Coverage</div>{{ r.product_groups | join(", ") or "—" }}</div>
           <div class="rc-cell"><div class="rc-label">Insurer</div><span title="{{ r.insurer or '' }}">{{ r.insurer or "—" }}</span>{% if r.insurer_upcoming %}<div class="rc-sub">→ {{ r.insurer_upcoming }}</div>{% endif %}</div>
           <div class="rc-cell"><div class="rc-label">Strategy</div>{{ r.upcoming_strategy or "—" }}</div>
-          <div class="rc-cell"><div class="rc-label">BM+ workflow</div>{{ r.workflow_status or "—" }}</div>
+          <div class="rc-cell"><div class="rc-label">BM+ workflow</div>{{ r.workflow_status or "—" }}
+            {% if has_task_data %}<div>{{ stage_dots(r.stages) }}</div>{% endif %}</div>
           <div class="rc-cell"><div class="rc-label">Overview</div>
             {{ overview_pill(r.overview_state, r.overview) }}
             {% if r.overview.latest %}<div class="rc-sub">latest {{ r.overview.latest | dmy }}</div>{% endif %}

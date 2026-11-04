@@ -34,7 +34,7 @@ def upsert(conn: sqlite3.Connection, key: str, name: str, bm_client_id: str | No
 def mine_summary(conn: sqlite3.Connection) -> list[dict[str, Any]]:
     """My clients with their renewal counts (renewals still in the export)."""
     rows = conn.execute(
-        """SELECT c.id, c.name,
+        """SELECT c.id, c.name, c.overview_as_of,
                   COUNT(r.id) FILTER (WHERE r.in_latest_export = 1) AS renewals,
                   MIN(r.renewal_date) FILTER (WHERE r.in_latest_export = 1
                                               AND r.renewal_date >= date('now')) AS next_renewal
@@ -47,3 +47,10 @@ def mine_summary(conn: sqlite3.Connection) -> list[dict[str, Any]]:
 def get(conn: sqlite3.Connection, client_id: int) -> dict[str, Any] | None:
     row = conn.execute("SELECT * FROM clients WHERE id = ?", (client_id,)).fetchone()
     return dict(row) if row else None
+
+
+def set_overview_as_of(conn: sqlite3.Connection, client_id: int, report_date: str | None,
+                       upload_id: int) -> None:
+    conn.execute("""UPDATE clients SET overview_as_of = COALESCE(?, date('now')),
+                                       overview_upload_id = ? WHERE id = ?""",
+                 (report_date, upload_id, client_id))

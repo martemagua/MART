@@ -105,7 +105,13 @@ Mercedes-Benz Group AG
 - **New** = an overview entry dated after the last time I marked it seen
   (or after a reference point such as the last meeting).
 - **Stale** = no overview entry for N days. N could tighten as the renewal
-  date approaches (see Q-C1).
+  date approaches (see Q-C1). N lives under Settings → Time limits (from
+  0.4.0; the first one there is the age of the overview *data* itself, 7
+  days).
+- **An expected date defers the clock** (Martin, 04.11.2026): when a broker
+  says "terms expected late November", nagging weekly until then makes no
+  sense. A renewal with a broker deadline in the future is not stale; the
+  clock starts again on that date (M2, with broker deadlines).
 - MAPT already parses dated `DD MMM YYYY:` entries out of the overview and
   stores `latest_overview_date`. This can be reused directly.
 

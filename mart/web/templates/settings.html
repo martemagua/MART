@@ -18,6 +18,27 @@
     {% include "_folders_form.html" %}
   </section>
 
+  <section class="card" aria-labelledby="limits-h">
+    <h2 id="limits-h">Time limits</h2>
+    <p class="muted">When MART calls something out of date. Saved with your data, so they are in the backups.</p>
+    {% if pref_errors %}
+    <div class="notice notice-error" role="alert"><ul>{% for e in pref_errors %}<li>{{ e }}</li>{% endfor %}</ul></div>
+    {% endif %}
+    <form method="post" action="/settings/limits" class="form">
+      {% for name, p in prefs.items() %}
+      <div class="field">
+        <label for="pref-{{ name }}">{{ p.label }}</label>
+        <div class="input-unit">
+          <input id="pref-{{ name }}" name="{{ name }}" value="{{ pref_values[name] }}" inputmode="numeric">
+          <span class="muted">{{ p.unit }}</span>
+        </div>
+        <p class="hint">{{ p.help }} Default {{ p.default }}.</p>
+      </div>
+      {% endfor %}
+      <div class="actions"><button type="submit" class="btn btn-primary">Save time limits</button></div>
+    </form>
+  </section>
+
   {% set st = status_info %}
   <section class="card" aria-labelledby="backups-h">
     <div class="card-head">

@@ -102,6 +102,44 @@ MIGRATIONS: list[tuple[int, str]] = [
         CREATE INDEX ix_renewals_client ON renewals(client_id);
         CREATE INDEX ix_renewals_expiring ON renewals(expiring_policy_id);
     """),
+    (3, """
+        -- The report date of the last export that brought this client's
+        -- renewal overview (in practice a single-client export: the
+        -- cross-client one leaves the overview empty).
+        ALTER TABLE clients ADD COLUMN overview_as_of TEXT;
+        ALTER TABLE clients ADD COLUMN overview_upload_id INTEGER REFERENCES uploads(id);
+
+        -- BM+ tasks (Task Tracker). Like renewals: never deleted by an upload.
+        CREATE TABLE tasks (
+            id                  INTEGER PRIMARY KEY,
+            task_key            TEXT NOT NULL UNIQUE,   -- BM+ task id
+            client_id           INTEGER NOT NULL REFERENCES clients(id),
+            policy_id           TEXT,      -- per-cycle id = renewals.cycle_id
+            expiring_policy_id  TEXT,      -- stable id = renewals.expiring_policy_id
+            bm_renewal_id       TEXT,
+            task_name           TEXT,
+            task_category       TEXT,
+            task_status         TEXT,
+            country             TEXT,
+            policy_name         TEXT,
+            review_date         TEXT,      -- Policy Renewal/Review Date
+            assignee            TEXT,
+            due_date            TEXT,
+            completed_date      TEXT,
+            fields_json         TEXT NOT NULL,
+            bm_json             TEXT NOT NULL,
+            content_hash        TEXT NOT NULL,
+            first_upload_id     INTEGER REFERENCES uploads(id),
+            last_upload_id      INTEGER REFERENCES uploads(id),
+            in_latest_export    INTEGER NOT NULL DEFAULT 1,
+            left_export_at      TEXT,
+            created_at          TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at          TEXT
+        );
+        CREATE INDEX ix_tasks_client ON tasks(client_id);
+        CREATE INDEX ix_tasks_policy ON tasks(policy_id);
+        CREATE INDEX ix_tasks_expiring ON tasks(expiring_policy_id, review_date);
+    """),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1][0]

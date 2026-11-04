@@ -48,15 +48,15 @@ before changing anything.
 | `mart/__main__.py` | CLI: run (check → schema → backup → serve) · check · backup · restore |
 | `mart/settings.py` | settings file (`%APPDATA%\MART\settings.json`, override `MART_SETTINGS_FILE`), validation; the live DB must never sit in a synced folder |
 | `mart/startup.py` | start-up checks with plain-language messages |
-| `mart/ingestion/` | reading BM+ exports: `sheet.py` (header row found by scanning, section labels, `section`/`after` to tell repeated headers apart, full row copy), `values.py` (dates rounded to the NEAREST midnight, names, keys), `ids.py` (BM+ ids from bare cells and URLs), `renewal_tracker.py` (one Overview row = one renewal; key = per-cycle id → `policy:<stable>:<date>` → `name:…`; distinct rows are NEVER merged, exact duplicates are) |
+| `mart/ingestion/` | reading BM+ exports: `sheet.py` (header row found by scanning, section labels, `section`/`after` to tell repeated headers apart, `Col.aliases` for names that differ by flavour, full row copy, `lookup`/`section_items` to read that copy back), `values.py` (a time exactly on the hour/half hour with no seconds is BM+'s midnight-UTC artefact and rounds to the NEAREST midnight; a real timestamp keeps its own date; names, keys, leading numbers like "12 day(s)"), `ids.py` (BM+ ids from bare cells and URLs), `renewal_tracker.py` (one Overview row = one renewal; key = per-cycle id → `policy:<stable>:<date>` → `name:…`; distinct rows are NEVER merged, exact duplicates are), `task_tracker.py` (one row = one task, key = the `taskId` — 24-hex or UUID; content compared on `specs.task_tracker.COMPARED` only, because the flavours differ in columns and in how they name people; `stage_state` trusts BM+'s status, incl. "Past Due") |
 | `mart/ingestion/overview.py` | the renewal overview: dated entries (header `DD MMM YYYY:` at a LINE START), newest-first timeline, line-by-line comparison with the client-ready version (spacing/case ignored; BM+'s own "(not client ready)" marker counts), list flag `empty` / `no_cr` / `gaps` / `ok` |
 | `mart/ingestion/specs/` | **every Excel column name**, one module per tracker; the three text streams (overview all / client ready / feed) |
-| `mart/repository/` | **all SQL**: `db.py` connections, `schema.py` append-only migrations, `uploads_repo`, `clients_repo` (`is_mine`: NULL undecided / 1 / 0), `renewals_repo` |
-| `mart/services/` | orchestration: `upload_service` (stage → live preview per client → commit in one transaction → backup; renewals are never deleted, only marked "no longer in the export"; content compared flavour-neutrally; a text stream is taken from an export only if it fills it somewhere), `client_service` (bundles = client + country + renewal date; the explorer's groups and selected bundle), backups, setup, status |
+| `mart/repository/` | **all SQL**: `db.py` connections, `schema.py` append-only migrations, `uploads_repo`, `clients_repo` (`is_mine`: NULL undecided / 1 / 0; `overview_as_of`), `renewals_repo`, `tasks_repo` (an update keeps the stored value of every field the export has no column for), `state_repo` (the `user_state` key/value table) |
+| `mart/services/` | orchestration: `trackers` (one ADAPTER per tracker — recognise, parse, stored/in-export lookups, outcome, save, after-client hook; a new tracker is one adapter, the upload pipeline never learns what is inside), `upload_service` (stage → live preview per client → commit in one transaction → backup; several files = several staged uploads, the next opens after a commit/discard; items are never deleted, only marked "no longer in the export"; content compared flavour-neutrally; a text stream is taken from an export only if it fills it somewhere; `overview_as_of` is set only by an export that carries the overview), `client_service` (bundles = client + country + renewal date; the explorer's groups and selected bundle; overview freshness), `renewal_service` (the renewal panel; tasks linked to THIS cycle by `Policy ID` = per-cycle id, else stable id + review date; the three BM+ stages), `preferences` (Settings → Time limits: each one declared once in `PREFS`, stored as `pref:<name>` in `user_state`), backups, setup, status |
 | `mart/web/framework.py`, `multipart.py` | the small stdlib web layer: Request (form, files), Response, Router; file uploads via the e-mail parser (no `cgi`) |
 | `mart/web/app.py` | request rules (host, origin, setup gate, error page + log), router assembly |
 | `mart/web/routes/` | thin handlers, one module per page. **Routes never write SQL.** |
-| `mart/web/templates/`, `static/` | Jinja2 pages (autoescaped, reload per request), CSS |
+| `mart/web/templates/`, `static/` | Jinja2 pages (autoescaped, reload per request), CSS; `partials/` holds the shared pieces: `overview.html` (timeline + pill), `stages.html` (`stage_dots` on cards, `stage_strip` in the panel), `renewal_detail.html` (the renewal panel, shown in the explorer's middle at `/clients/<id>/renewals/<id>`) |
 | `vendor/` | Jinja2 + MarkupSafe (pure Python) |
 | `tools/build_zip.py` | builds `dist/MART-<version>.zip` (+ `BUILD-INFO.txt`); `--verify` unpacks and runs `mart check` from the zip |
 | `tests/` | pytest; every test gets its own settings file and folders (`conftest.py`) |
@@ -65,6 +65,11 @@ before changing anything.
 
 - Migrations are append-only (`MIGRATIONS` in `schema.py`); never edit an applied one.
 - Dates: `DD.MM.YYYY` on screen (`| dmy`), ISO everywhere else.
+- Jinja: never `x.items` / `x.keys` / `x.values` on a dict — that is the
+  dict METHOD; write `x["items"]`.
+- The renewal panel keeps a FIXED section order (glance → stages → facts +
+  strategy → proposals → savings → overview → the rest), so each section is
+  always in the same place. Everything in it is BM+ data, read-only.
 - `NULL` means "to be confirmed", not zero.
 - Uploads never delete user-written data, and never delete a renewal.
 - Compare BM+ content, not spelling: ids, the Client Name column and header

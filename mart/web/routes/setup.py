@@ -6,7 +6,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 from mart import settings as settings_mod
-from mart.services import backup_service, setup_service, status_service
+from mart.services import backup_service, preferences, setup_service, status_service
 from mart.web.framework import Request, Response, Router
 from mart.web.templating import render
 
@@ -53,11 +53,13 @@ def setup_save(request: Request) -> Response:
 # Settings page
 # ---------------------------------------------------------------------------
 def _settings_page(values: dict[str, str], errors: list[str], notes: list[str],
-                   status: int = 200) -> Response:
+                   status: int = 200, pref_errors: list[str] | None = None,
+                   pref_values: dict[str, str] | None = None) -> Response:
     s = settings_mod.load()
     return render("settings.html", status=status, values=values, errors=errors,
                   notes=notes, status_info=status_service.system_status(s),
-                  active="settings")
+                  prefs=preferences.PREFS, pref_values=pref_values or preferences.all_values(),
+                  pref_errors=pref_errors or [], active="settings")
 
 
 @router.route("/settings")
@@ -69,6 +71,8 @@ def settings_form(request: Request) -> Response:
     msg = request.arg("backup")
     if msg:
         notes.append(msg)
+    if request.arg("limits"):
+        notes.append("Time limits saved.")
     return _settings_page(_values_of(s), [], notes)
 
 
@@ -91,3 +95,13 @@ def backup_now(request: Request) -> Response:
     s = settings_mod.load()
     result = backup_service.make_backup(s.db_path, Path(s.backup_dir), s.backups_keep)
     return Response.redirect("/settings?backup=" + quote(result.message))
+
+
+@router.route("/settings/limits", methods=("POST",))
+def limits_save(request: Request) -> Response:
+    values = {name: request.arg(name, "") or "" for name in preferences.PREFS}
+    errors = preferences.save(values)
+    if errors:
+        s = settings_mod.load()
+        return _settings_page(_values_of(s), [], [], status=400, pref_errors=errors, pref_values=values)
+    return Response.redirect("/settings?limits=1")

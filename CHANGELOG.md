@@ -6,6 +6,63 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.4.0 — 04.11.2026 · M1 day 4 · tasks and the renewal panel
+
+### Added
+- **Task Tracker upload**, both flavours, through the same preview →
+  commit as the Renewal Tracker (MART recognises the tracker). Tasks are
+  linked to *this* renewal cycle: the Task Tracker's `Policy ID` is the
+  Renewal Tracker's per-cycle id; failing that, the stable policy id + the
+  review date. Last year's tasks of the same policy never show as this
+  year's. Like renewals, tasks are never deleted, only marked "no longer in
+  the export".
+- **Renewal panel**: click a renewal's name. Always in the same order: the
+  glance (strategy, workflow, coverage) → the **BM+ stages** (Renewal
+  Strategy → Proposals → Update Policy: status, due date, assignee,
+  delegate, completed by, **peer review** approved / pending N days /
+  rejected N times, due date moved N times) → the renewal facts and the
+  **Renewal Strategy** sheet (incl. last renewal, claims, client-specific
+  questions) side by side → **Proposals** (first and final quote per
+  insurer) → **Savings** → the **renewal overview** → other BM+ tasks
+  (implementation etc.) → the renewal feed and every field BM+ exported,
+  folded away.
+- **Stage dots** on every renewal card in the bundle view (one per stage,
+  coloured by state, red ring = past due).
+- **Several files in one upload** (e.g. all your single-client exports):
+  each gets its own preview; after you commit or discard one, MART opens the
+  next. One bad file doesn't stop the others.
+- **"Overview as of"** per client: the report date of the last export that
+  carried the overview (in practice the single-client export). Shown in the
+  explorer's side panel and as a column on Clients, highlighted when out of
+  date.
+- **Settings → Time limits**: "Overview data out of date after" (7 days by
+  default, 1–90). Stored with your data, so it is in the backups.
+
+### Fixed / learned from the real exports
+- Real cross-client Renewal Trackers have **no overview** either (0.3.0's
+  note said they did): the overview comes from single-client exports.
+- The two Task Tracker flavours name people differently (e-mail vs name),
+  carry different columns and write dates as timestamps or dates; MART
+  compares only the workflow facts both carry, so loading one flavour after
+  the other shows "unchanged", and it keeps what the other flavour had for
+  columns the current one lacks.
+- BM+ task dates are real timestamps: MART now only rounds a time that is
+  exactly on the hour or half hour (BM+'s midnight-UTC artefact), so a task
+  completed at 14:32 keeps its own date.
+- Implementation tasks (Appointment, Upload Local Documents, …) have UUID
+  ids; they were skipped as "no id" before.
+
+### What to try
+1. Upload, in one go, the cross-client Renewal Tracker, a single-client
+   Renewal Tracker and both Task Trackers. Walk through the previews.
+2. Open a client: check "Overview as of" in the side panel and the stage
+   dots on the cards.
+3. Open a renewal you know well and compare the panel with BM+: stages,
+   peer review, strategy, proposals, savings. Tell me what is missing, wrong
+   or in the wrong place.
+4. Settings → Time limits: set the limit to 1 day and watch the overview
+   date turn orange on Clients.
+
 ## 0.3.0 — 04.11.2026 · M1 day 3 · client explorer
 
 ### Added
