@@ -6,6 +6,23 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.7.4 — 04.11.2026 · moving renewals in an edit mode
+
+### Changed (Martin's note on 0.7.3)
+- **The tick boxes and the move bar only appear while moving.** A bundle
+  shows its renewals plainly, with a **Move renewals…** button beside its
+  name. That opens the edit mode: a tick box on each card, ticked cards
+  outlined, and a bar that stays at the top while you scroll, with
+  "N selected", **Select all** / **None**, the bundle to move to, and
+  **Done** to leave without moving. **Move** only works once something is
+  ticked; after moving you land on the target bundle, out of edit mode.
+- Moving a single renewal from its own panel is unchanged.
+
+### What to try
+Open a bundle (no tick boxes), click **Move renewals…**, tick two, move
+them into a new bundle; click **Done** in another bundle to leave without
+moving.
+
 ## 0.7.3 — 04.11.2026 · renewal cards: name on top, policy number
 
 ### Changed (Martin's note on 0.7.2)

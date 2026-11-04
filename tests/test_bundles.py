@@ -69,7 +69,11 @@ def test_move_into_a_new_bundle_then_more_then_back(book, app):
     assert _bundles(cid)[key] == ["Dental", "Medical"] and "Poland|2027-03-01" not in _bundles(cid)
     page = get(app, f"/clients/{cid}?bundle=custom%7C{custom}").body_bytes.decode()
     assert "PZU programme" in page and "renewals 01.01.2027 – 01.03.2027" in page
-    assert "their own bundle" in page and 'name="renewal"' in page
+    # tick boxes and the move bar only in edit mode (Martin, 04.11.2026)
+    assert 'name="renewal"' not in page and "data-move-form" not in page and "Move renewals…" in page
+    page = get(app, f"/clients/{cid}?bundle=custom%7C{custom}&edit=1").body_bytes.decode()
+    assert "their own bundle" in page and page.count('name="renewal"') == 2 and "Move renewals…" not in page
+    assert f'class="btn btn-small move-done" href="/clients/{cid}?bundle=custom%7C{custom}"' in page
     # the renewal panel shows its bundle and where it can move
     panel = get(app, f"/clients/{cid}/renewals/{med}").body_bytes.decode()
     assert "Bundle:" in panel and "PZU programme" in panel and "Move to another bundle" in panel

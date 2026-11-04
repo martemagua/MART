@@ -1,9 +1,19 @@
-{# Moving renewals between bundles (bundle_service.move). The checkboxes that
-   choose renewals sit in the renewal cards with form="<form_id>", so the
-   form wraps nothing and the cards keep their own controls. With `one`, the
-   form moves just that renewal (renewal panel). #}
-{% macro move_form(base, s, form_id, back, one=none) %}
-<form method="post" action="{{ base }}/bundles/move" id="{{ form_id }}" class="move-bar" data-move-form>
+{# Moving renewals between bundles (bundle_service.move). In the bundle view
+   this is the EDIT MODE bar (Martin, 04.11.2026: tick boxes only while
+   moving): the checkboxes that choose renewals sit in the renewal cards with
+   form="<form_id>", so the form wraps nothing; `done` leaves edit mode. With
+   `one`, the form moves just that renewal (renewal panel). #}
+{% macro move_form(base, s, form_id, back, one=none, done=none) %}
+<form method="post" action="{{ base }}/bundles/move" id="{{ form_id }}" class="move-bar{% if done %} is-editing{% endif %}" data-move-form>
+  {% if done %}
+  <div class="move-pick">
+    <strong>Move renewals</strong>
+    <span class="muted small" data-pick-count>Tick the renewals to move.</span>
+    <button type="button" class="link-btn small" data-check-all="renewal" data-value="on">Select all</button>
+    <button type="button" class="link-btn small" data-check-all="renewal" data-value="off">None</button>
+    <a class="btn btn-small move-done" href="{{ done }}">Done</a>
+  </div>
+  {% endif %}
   {% if one %}<input type="hidden" name="renewal" value="{{ one }}">{% endif %}
   <span class="move-label">{% if one %}Move this renewal to{% else %}Move the selected renewals to{% endif %}</span>
   <select name="target" aria-label="Bundle to move to" data-move-target>
@@ -12,7 +22,7 @@
     {% if s.custom_id %}<option value="default">their own bundle (country + date)</option>{% endif %}
   </select>
   <input type="text" name="name" placeholder="Name of the new bundle" maxlength="120" aria-label="Name of the new bundle" data-move-name>
-  <button type="submit" class="btn btn-small">Move</button>
-  <span class="info" tabindex="0" role="note" aria-label="Only bundles of {{ s.country }} are offered: a bundle keeps to one country.">i<span class="tip">Only bundles of {{ s.country }} are offered: a bundle keeps to one country. Tick renewals on the cards to select them.</span></span>
+  <button type="submit" class="btn btn-small{% if done %} btn-primary{% endif %}"{% if done %} data-pick-submit{% endif %}>Move</button>
+  <span class="info" tabindex="0" role="note" aria-label="Only bundles of {{ s.country }} are offered: a bundle keeps to one country.">i<span class="tip">Only bundles of {{ s.country }} are offered: a bundle keeps to one country.{% if done %} Tick renewals on the cards to select them.{% endif %}</span></span>
 </form>
 {% endmacro %}

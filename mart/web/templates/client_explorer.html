@@ -101,6 +101,9 @@
             <div class="actions"><button type="submit" class="btn btn-small">Save name</button></div>
           </form>
         </details>
+        {% if s.renewals and not editing %}
+        <a class="btn btn-small title-action" href="{{ base }}?bundle={{ s.key | urlencode }}{{ q_all }}&edit=1" title="Select renewals and move them to another bundle">Move renewals…</a>
+        {% endif %}
         </div>
         <p class="muted">
           {% if s.custom_id and s.last_date and s.last_date != s.renewal_date %}renewals {{ s.renewal_date | dmy }} – {{ s.last_date | dmy }} · {% elif s.custom_id %}renews {{ s.renewal_date | dmy or "—" }} · {% endif %}
@@ -122,16 +125,16 @@
 
     {% if not s.renewals %}
     <div class="card empty"><p>No renewals left in this bundle: they were moved to other bundles. Its notes and to-dos stay here.</p></div>
-    {% else %}
+    {% elif editing %}
     {% from "partials/move.html" import move_form %}
-    {{ move_form(base, s, "move-form", here) }}
+    {{ move_form(base, s, "move-form", here, done=base ~ "?bundle=" ~ (s.key | urlencode) ~ q_all) }}
     {% endif %}
 
     <div class="renewal-list">
       {% for r in s.renewals %}
-      <article class="renewal-card {{ r.upcoming_strategy | strategy_class }}{% if not r.in_latest_export %} is-left{% endif %}" id="r{{ r.id }}">
+      <article class="renewal-card {{ r.upcoming_strategy | strategy_class }}{% if not r.in_latest_export %} is-left{% endif %}{% if editing %} is-picking{% endif %}" id="r{{ r.id }}">
         <div class="rc-name-row">
-          <input type="checkbox" name="renewal" value="{{ r.id }}" form="move-form" class="rc-pick" aria-label="Select {{ r.policy_name }} to move" title="Select to move to another bundle">
+          {% if editing %}<input type="checkbox" name="renewal" value="{{ r.id }}" form="move-form" class="rc-pick" aria-label="Select {{ r.policy_name }} to move" title="Select to move to another bundle">{% endif %}
           <a class="rc-name" href="/clients/{{ client.id }}/renewals/{{ r.id }}{{ q_all1 }}" title="Open the renewal: {{ r.policy_name }}">{{ r.policy_name or "—" }}</a>
           {{ links_menu(r.links, "Links for " ~ (r.policy_name or "this renewal")) }}
         </div>
