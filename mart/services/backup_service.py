@@ -12,6 +12,10 @@ changing anything leaves one backup, not ten. Only the newest
 
 The file is first written as `.part` and renamed when complete, so a sync
 client (OneDrive) never uploads half a backup.
+
+Backups are made on start (and just before a database upgrade), after every
+upload, and every hour while MART runs, so notes and to-dos written during
+the day are covered too (unchanged content writes nothing).
 """
 
 from __future__ import annotations
@@ -22,6 +26,7 @@ import os
 import re
 import shutil
 import sqlite3
+import threading
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -77,8 +82,34 @@ def _hash_file(path: Path) -> str:
     return h.hexdigest()[:12]
 
 
+HOURLY_SECONDS = 3600
+_lock = threading.Lock()      # one backup at a time (they share the snapshot file)
+
+
+def start_hourly(db_path: Path, backup_dir: Path, keep: int,
+                 every: float = HOURLY_SECONDS) -> threading.Thread:
+    """Back up every `every` seconds while MART runs (a daemon thread: it ends
+    with MART). A failed backup is logged to the console and retried later."""
+    def loop() -> None:
+        while not stop.wait(every):
+            try:
+                make_backup(db_path, backup_dir, keep)
+            except Exception as exc:  # noqa: BLE001  (never take MART down for a backup)
+                print(f"  Backup failed, will retry: {exc}")
+    stop = threading.Event()
+    thread = threading.Thread(target=loop, name="mart-hourly-backup", daemon=True)
+    thread.stop = stop  # type: ignore[attr-defined]
+    thread.start()
+    return thread
+
+
 def make_backup(db_path: Path, backup_dir: Path, keep: int,
                 now: datetime | None = None) -> BackupResult:
+    with _lock:
+        return _make_backup(db_path, backup_dir, keep, now)
+
+
+def _make_backup(db_path: Path, backup_dir: Path, keep: int, now: datetime | None) -> BackupResult:
     if not db_path.is_file():
         return BackupResult("skipped", None, "No database yet, nothing to back up.")
     backup_dir.mkdir(parents=True, exist_ok=True)

@@ -6,6 +6,32 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.7.0 — 04.11.2026 · M1 day 7 · hardening
+
+### Fixed
+- **The database no longer grows with every upload.** The rows an upload
+  was read into were kept after the commit although nothing needs them;
+  they are now removed at commit, old ones are cleared (schema 6), and MART
+  compacts the file at start when a quarter of it is free space. On the
+  demo data: 7.5 MB → 1.1 MB, backups 405 KB → 73 KB.
+- **What you write during the day is backed up**: every hour while MART
+  runs (only when something changed; "Backups to keep" in Settings sets how
+  many), besides the start and every upload.
+- **A backup just before a database upgrade**, so an upgrade can always be
+  undone with `MART.bat restore`.
+- **A refused action explains itself and leads back**: "That didn't work",
+  the reason, "Nothing was changed.", and a button back to the page you were
+  on (the menu stays). Unexpected errors still name the log file.
+
+### Checked (no change needed)
+- A single-client upload only ever touches that client (test since 0.2.0).
+- Renewals without BM+ ids ("Transitioned") are recognised by client,
+  country, entity, policy and date, and marked "no BM+ id".
+
+### What to try
+Use MART for a full day of real work, then go through the **M1 review**
+list in `BUILD_PLAN_M1.md`.
+
 ## 0.6.0 — 04.11.2026 · M1 day 6 · move renewals between bundles, history
 
 ### Added

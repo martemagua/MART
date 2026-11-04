@@ -104,3 +104,24 @@ def test_cli_restore(configured, tmp_path, capsys):
     file = backup_service.list_backups(Path(configured.backup_dir))[0].path
     assert main(["restore", str(file)]) == 0
     assert "Restored" in capsys.readouterr().out
+
+
+def test_start_backs_up_before_an_upgrade(configured):
+    import sqlite3
+
+    from mart.__main__ import prepare_database
+    from mart.repository import schema
+    from mart.services import backup_service as bk
+    db = configured.db_path
+    db.unlink(missing_ok=True)
+    conn = sqlite3.connect(db)                      # a database one version behind
+    for number, sql in schema.MIGRATIONS[:-1]:
+        conn.executescript(f"BEGIN;\n{sql}\nPRAGMA user_version = {number};\nCOMMIT;")
+    conn.close()
+    lines = prepare_database(configured)
+    assert any("Before the upgrade: Backup written" in x for x in lines)
+    assert schema.current_version(db) == schema.LATEST_VERSION
+    backups = bk.list_backups(Path(configured.backup_dir))
+    assert len(backups) == 2                        # before (old schema) + after
+    # nothing to upgrade the next time: only the start backup (unchanged)
+    assert not any("Before the upgrade" in x for x in prepare_database(configured))

@@ -75,6 +75,8 @@ def mark_committed(conn: sqlite3.Connection, upload_id: int, summary: dict[str, 
         """UPDATE uploads SET status = 'committed', committed_at = datetime('now'),
                               summary_json = ? WHERE id = ?""",
         (json.dumps(summary, default=str), upload_id))
+    # the rows are in MART now; their staged copy is no longer needed
+    conn.execute("DELETE FROM staging_rows WHERE upload_id = ?", (upload_id,))
 
 
 def mark_discarded(conn: sqlite3.Connection, upload_id: int) -> None:

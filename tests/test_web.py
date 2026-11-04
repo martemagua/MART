@@ -139,3 +139,17 @@ def test_database_timestamps_are_shown_in_local_time(monkeypatch):
     finally:
         monkeypatch.delenv("TZ")
         time.tzset()
+
+
+def test_a_refused_action_explains_and_leads_back(configured, app):
+    from tests.conftest import post
+    h = {"host": "127.0.0.1:8070", "referer": "http://127.0.0.1:8070/clients/1?bundle=x"}
+    r = post(app, "/todos/add", {"scope": "nonsense", "ref": "1", "title": "x"}, headers=h)
+    page = r.body_bytes.decode()
+    assert r.status == 400 and "That didn't work" in page and "Nothing was changed." in page
+    assert 'href="/clients/1?bundle=x"' in page and 'class="sidebar"' in page
+    # a referer from another site is never offered as the way back
+    h["referer"] = "https://evil.example/x"
+    page = post(app, "/todos/add", {"scope": "nonsense", "ref": "1", "title": "x"},
+                headers={**h, "origin": "http://127.0.0.1:8070"}).body_bytes.decode()
+    assert "evil.example" not in page

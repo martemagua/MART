@@ -1,13 +1,14 @@
 {% extends "base.html" %}
-{% set setup_mode = True %}
+{% set setup_mode = not configured %}
 {% block title %}{{ status_code }}{% endblock %}
 {% block content %}
 <header class="page-head">
-  <h1>{% if status_code == 404 %}Page not found{% elif status_code == 403 %}Not allowed{% else %}Something went wrong{% endif %}</h1>
+  <h1>{% if status_code == 404 %}Page not found{% elif status_code == 403 %}Not allowed{% elif status_code == 400 %}That didn't work{% else %}Something went wrong{% endif %}</h1>
   <p class="lead">{{ message }}</p>
 </header>
 <section class="card narrow">
-  {% if log_file %}<p>The details were written to <code>{{ log_file }}</code>.</p>{% endif %}
-  <p><a href="/">← Back to Home</a></p>
+  {% if status_code == 400 %}<p class="muted">Nothing was changed.</p>{% endif %}
+  {% if log_file %}<p>The details were written to <code>{{ log_file }}</code>. If it happens again, send me that file.</p>{% endif %}
+  <p>{% if back %}<a class="btn btn-primary" href="{{ back }}">← Back to the page</a> {% endif %}<a href="/">Home</a></p>
 </section>
 {% endblock %}
