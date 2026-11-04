@@ -6,6 +6,37 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.3.0 — 04.11.2026 · M1 day 3 · client explorer
+
+### Added
+- **Clients** page: your clients with renewals, bundles, next renewal date,
+  and how many renewals have no client-ready overview, gaps, or no overview.
+- **Client explorer**: the client's bundles (same country + renewal date) in
+  a side panel, grouped **by date** (month) or **by country**, with a filter
+  (country, policy, entity, insurer). The selected bundle in the middle:
+  renewal date and countdown, entities, insurers, the strategy and BM+
+  workflow mix, and every renewal with coverage, insurer (→ upcoming
+  insurer), strategy, workflow status and overview state. Opens on the next
+  bundle to renew; the side panel keeps its scroll position.
+- **Renewal overview** per renewal, like MAPT's renewals page: dated entries,
+  newest first, with every line missing from the client-ready version
+  marked, entries BM+ marked "(not client ready)" flagged, and older entries
+  folded away.
+- "Show / hide renewals no longer in the export".
+
+### Fixed
+- **Real cross-client exports carry the overview**: MART now takes a text
+  stream from any export that fills it (the 0.2.0 rule, built on the demo
+  files, would have ignored the overview of every cross-client upload).
+- Overview entries only start at a line start: a date with a colon inside a
+  sentence no longer splits an entry.
+- Filters hide items reliably (`hidden` wins over layout rules).
+
+### What to try
+Open **Clients**, then one of your clients. Walk the bundles by date and by
+country, filter for a country or an insurer, open a renewal's overview and
+check the "not client-ready" marks against BM+.
+
 ## 0.2.0 — 04.11.2026 · M1 day 2 · Renewal Tracker upload
 
 ### Added

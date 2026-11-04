@@ -45,8 +45,9 @@ class R:
     end_date: object = datetime(2026, 12, 31)
     proposals: list[tuple[str, float, float]] = field(default_factory=list)
     final_terms_date: datetime | None = None
-    overview: str | None = None      # only the single-client export carries it (as in BM+)
-    feed: str | None = None          # only the cross-client export carries it
+    overview: str | None = None      # "Renewal Overview (all)"
+    overview_cr: str | None = "same"  # "(client ready)"; "same" = as overview
+    feed: str | None = None          # "Renewal Feed"
 
     def ids(self) -> tuple[str | None, str | None, str]:
         stable = hexid(self.n, "7") if self.stable == "auto" else self.stable
@@ -98,14 +99,18 @@ def _renewal_cell(r: R, flavour: str) -> str | None:
     return f"https://bm.example/client/{CLIENT_ID}/renewals/{robj}/{cycle}"
 
 
-def _overview_values(r: R, flavour: str) -> list:
+def _overview_values(r: R, flavour: str, cross_overview: bool = False) -> list:
+    # The demo environment's cross-client export left the overview empty and
+    # filled only the feed; real cross-client exports carry the overview too.
+    has_ov = flavour == CLIENT or cross_overview
+    cr = r.overview if r.overview_cr == "same" else r.overview_cr
     return [
         "Sales", "EMEA", r.country, r.entity, _policy_cell(r, flavour), r.policy, 1,
         datetime(2026, 1, 1), r.end_date, "Unknown / New Policy", r.owner, r.owner_email,
         r.analyst, r.analyst_email, r.loc, r.loc, r.insurer, 1000, r.insurer_upcoming,
         _renewal_cell(r, flavour), r.renewal_date, r.strategy, r.status,
-        r.overview if flavour == CLIENT else None,          # cross-client: left empty by BM+
-        r.overview if flavour == CLIENT else None,
+        r.overview if has_ov else None,
+        cr if has_ov else None,
         r.feed if flavour == CROSS else None,               # single-client: left empty by BM+
     ]
 
@@ -138,7 +143,8 @@ def _write_table(ws, flavour: str, header_row: int, columns: list[tuple[str, str
 
 def renewal_tracker(renewals: list[R], flavour: str = CROSS, report_date: str = "03 Nov 2026",
                     report_time: str = "16:13:55", completed: str = "Excluded",
-                    task_tracker: bool = False, missing_rows: list[list] | None = None) -> bytes:
+                    task_tracker: bool = False, missing_rows: list[list] | None = None,
+                    cross_overview: bool = False) -> bytes:
     wb = openpyxl.Workbook()
     gi = wb.active
     gi.title = "General Information"
@@ -178,7 +184,7 @@ def renewal_tracker(renewals: list[R], flavour: str = CROSS, report_date: str = 
             last = section
         ov.cell(5, i, header)
     for r in renewals:
-        cells = ([r.client] if flavour == CROSS else []) + _overview_values(r, flavour)
+        cells = ([r.client] if flavour == CROSS else []) + _overview_values(r, flavour, cross_overview)
         for i, value in enumerate(cells, start=1):
             if value is not None:
                 ov.cell(6 + rows_written, i, value)

@@ -1,0 +1,124 @@
+import json
+from datetime import date, datetime
+
+import pytest
+
+from mart.repository.db import connection
+from mart.services import client_service as cs
+from mart.services import upload_service as us
+from tests.conftest import get
+from tests.fixtures import CLIENT, CROSS, R, renewal_tracker
+
+pytestmark = pytest.mark.usefixtures("configured")
+
+TODAY = date(2026, 11, 4)
+OV = "14 Oct 2026:\nQuotes expected by 15 Nov.\nInternal: budget tight.\n\n20 Aug 2026:\nKick-off held."
+OV_CR = "14 Oct 2026:\nQuotes expected by 15 Nov.\n\n20 Aug 2026:\nKick-off held."
+
+
+def _book():
+    jan = datetime(2027, 1, 1, 1, 0)
+    return [
+        R(n=1, policy="Medical", country="Poland", entity="Acme PL", renewal_date=jan,
+          overview=OV, overview_cr=OV_CR),
+        R(n=2, policy="Life", country="Poland", entity="Acme PL", renewal_date=jan, overview=OV,
+          overview_cr=None),
+        R(n=3, policy="Disability", country="Poland", entity="Acme PL Services", renewal_date=jan),
+        R(n=4, policy="Medical", country="Spain", entity="Acme ES", renewal_date=datetime(2027, 2, 1)),
+        R(n=5, policy="Life", country="Brazil", entity="Acme BR", renewal_date=datetime(2026, 7, 1)),
+    ]
+
+
+def _load(renewals, flavour=CROSS, **kw) -> int:
+    uid = us.stage("rt.xlsx", renewal_tracker(renewals, flavour, **kw))
+    us.commit(uid, {c["key"] for c in us.preview(uid)["clients"]})
+    with connection() as conn:
+        return conn.execute("SELECT id FROM clients WHERE name = 'Acme Group'").fetchone()["id"]
+
+
+def test_bundles_are_country_plus_renewal_date():
+    cid = _load(_book(), cross_overview=True)
+    v = cs.explorer(cid, today=TODAY)
+    assert v["bundle_count"] == 3 and v["renewal_count"] == 5
+    assert list(v["groups"]) == ["July 2026", "January 2027", "February 2027"]
+    # the default selection is the next bundle to renew, not one in the past
+    s = v["selected"]
+    assert (s["country"], s["renewal_date"], len(s["renewals"])) == ("Poland", "2027-01-01", 3)
+    assert s["days_until"] == 58 and s["entities"] == ["Acme PL", "Acme PL Services"]
+
+
+def test_grouping_by_country_and_choosing_a_bundle():
+    cid = _load(_book())
+    v = cs.explorer(cid, group="country", bundle=cs.bundle_key("Spain", "2027-02-01"), today=TODAY)
+    assert list(v["groups"]) == ["Brazil", "Poland", "Spain"]
+    assert v["selected"]["country"] == "Spain"
+
+
+def test_overview_states_in_the_bundle():
+    cid = _load(_book(), cross_overview=True)
+    s = cs.explorer(cid, today=TODAY)["selected"]
+    states = {r["policy_name"]: r["overview_state"] for r in s["renewals"]}
+    assert states == {"Medical": "gaps", "Life": "no_cr", "Disability": "empty"}
+    med = next(r for r in s["renewals"] if r["policy_name"] == "Medical")
+    assert med["overview"]["internal_entries"] == 1
+
+
+def test_real_cross_client_exports_bring_their_overview_in():
+    """Martin's real cross-client exports carry a full overview (unlike the demo):
+    it must be loaded, not ignored."""
+    cid = _load(_book(), cross_overview=True)
+    with connection() as conn:
+        f = json.loads(conn.execute("SELECT fields_json FROM renewals WHERE client_id = ? AND "
+                                    "policy_name = 'Medical' AND country = 'Poland'", (cid,))
+                       .fetchone()[0])
+    assert f["overview_all"] == OV and f["overview_client_ready"] == OV_CR
+
+
+def test_renewals_no_longer_in_the_export_are_hidden_unless_asked():
+    cid = _load(_book())
+    _load([r for r in _book() if r.country != "Brazil"], report_date="10 Nov 2026")
+    v = cs.explorer(cid, today=TODAY)
+    assert v["left_count"] == 1 and v["bundle_count"] == 2
+    assert cs.explorer(cid, show_all=True, today=TODAY)["bundle_count"] == 3
+
+
+def test_clients_overview_counts():
+    _load(_book(), cross_overview=True)
+    row = next(c for c in cs.clients_overview(TODAY) if c["name"] == "Acme Group")
+    assert row["renewals"] == 5 and row["bundles"] == 3
+    assert row["flags"] == {"gaps": 1, "no_cr": 1, "empty": 3}
+
+
+def test_only_my_clients_can_be_opened():
+    uid = us.stage("rt.xlsx", renewal_tracker([R(client="Globex")]))
+    us.commit(uid, set())
+    with connection() as conn:
+        gid = conn.execute("SELECT id FROM clients WHERE name = 'Globex'").fetchone()["id"]
+    with pytest.raises(cs.NotFound):
+        cs.explorer(gid)
+
+
+# -- the pages ------------------------------------------------------------------------
+def test_clients_and_explorer_pages(app):
+    cid = _load(_book(), cross_overview=True)
+    html = get(app, "/clients").body_bytes.decode()
+    assert f'href="/clients/{cid}"' in html and "1 with gaps" in html
+    page = get(app, f"/clients/{cid}").body_bytes.decode()
+    assert "Poland · 01.01.2027" in page and "By country" in page
+    assert "not in client-ready" in page and "no client-ready" in page
+    assert "Internal: budget tight." in page
+    spain = get(app, f"/clients/{cid}?bundle=Spain%7C2027-02-01").body_bytes.decode()
+    assert "Spain · 01.02.2027" in spain
+
+
+def test_unknown_client_is_a_404(app):
+    assert get(app, "/clients/999").status == 404
+
+
+def test_single_client_upload_after_cross_keeps_overview_when_cross_has_none():
+    """The demo environment's cross-client export has no overview: loading it
+    after a single-client one must not blank the overview."""
+    cid = _load(_book(), CLIENT)
+    _load(_book(), CROSS, report_date="10 Nov 2026")          # no overview in this one
+    s = cs.explorer(cid, today=TODAY)["selected"]
+    assert any(r["overview"]["entries"] for r in s["renewals"])

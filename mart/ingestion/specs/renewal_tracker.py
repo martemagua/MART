@@ -82,20 +82,18 @@ DETAIL_SHEETS: dict[str, tuple[str, list[Col]]] = {
 # so they never count as a change.
 IDENTITY_HEADERS = ("Client Name", "Policy Unique ID*", "Renewal Unique ID*")
 
-# The three text streams, and which export flavour actually FILLS which
-# (checked on real exports, 03.11.2026): the cross-client export leaves both
-# overview columns empty and carries only the Renewal Feed (BM+ system
-# messages and other comments, NOT the overview); the single-client export
-# carries the overview and leaves the feed empty. A stream is only taken from
-# the flavour that carries it; otherwise the stored text is kept.
+# The three text streams. Which ones an export CARRIES is decided from the
+# data, not from the flavour: a stream is carried when at least one renewal in
+# the export has text in it (renewal_tracker.carried_streams). A stream the
+# whole export leaves empty is not carried, and the stored text is kept.
+# Why: in the demo environment the cross-client export left both overview
+# columns empty (and filled only the Renewal Feed, which holds BM+ system
+# messages, not the overview), while Martin's REAL cross-client exports carry
+# a full overview. A per-flavour rule would have thrown that away.
 TEXT_STREAMS = {
     "overview_all": "Renewal Overview (all)",
     "overview_client_ready": "Renewal Overview (client ready)",
     "renewal_feed": "Renewal Feed",
-}
-CARRIED_STREAMS = {
-    "cross_client": ("renewal_feed",),
-    "client": ("overview_all", "overview_client_ready"),
 }
 
 DATE_FIELDS = {"start_date", "end_date", "rate_guarantee_end", "kickoff_date",

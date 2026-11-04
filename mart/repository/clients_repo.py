@@ -42,3 +42,8 @@ def mine_summary(conn: sqlite3.Connection) -> list[dict[str, Any]]:
            WHERE c.is_mine = 1
            GROUP BY c.id ORDER BY c.name COLLATE NOCASE""").fetchall()
     return [dict(r) for r in rows]
+
+
+def get(conn: sqlite3.Connection, client_id: int) -> dict[str, Any] | None:
+    row = conn.execute("SELECT * FROM clients WHERE id = ?", (client_id,)).fetchone()
+    return dict(row) if row else None

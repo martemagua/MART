@@ -1,0 +1,34 @@
+{# The renewal overview as a timeline, newest first, with what the client-ready
+   overview is missing marked (ingestion/overview.timeline). Read-only: BM+'s text. #}
+{% macro overview_timeline(t, keep=4) %}
+{% if t.entries %}
+<p class="ov-legend">
+  {{ t.entries | length }} entr{{ "y" if t.entries | length == 1 else "ies" }} · latest {{ t.latest | dmy }}{% if t.age_days is not none %} ({{ t.age_days }} day{{ "s" if t.age_days != 1 }} ago){% endif %}
+  {% if t.has_all and not t.has_client_ready %} · <span class="ov-swatch" aria-hidden="true"></span> <strong>no client-ready version</strong>
+  {% elif t.internal_entries %} · <span class="ov-swatch" aria-hidden="true"></span> {{ t.internal_entries }} not (fully) client-ready{% endif %}
+</p>
+{% if t.preamble %}<div class="ov-pre" title="Text before the first dated entry">{{ t.preamble }}</div>{% endif %}
+{% for e in t.entries %}
+{% if loop.index == keep + 1 %}<details class="ov-older"><summary>{{ t.entries | length - keep }} older entr{{ "y" if t.entries | length - keep == 1 else "ies" }}</summary>{% endif %}
+<article class="ov-entry {% if e.internal_only %}is-internal{% endif %}">
+  <header class="ov-head">
+    <span class="ov-date">{{ e.date | dmy }}</span>
+    {% if e.internal_only %}<span class="pill pill-warn">{% if e.marked_not_ready %}marked not client-ready{% else %}not in client-ready{% endif %}</span>{% endif %}
+  </header>
+  <div class="ov-body">
+    {% for l in e.body %}<p class="{% if l.internal %}ov-line-internal{% endif %}">{{ l.text }}</p>{% endfor %}
+  </div>
+</article>
+{% if loop.last and loop.length > keep %}</details>{% endif %}
+{% endfor %}
+{% else %}
+<p class="muted">No dated overview entries in BM+ yet.</p>
+{% endif %}
+{% endmacro %}
+
+{% macro overview_pill(state, t) %}
+{% if state == "empty" %}<span class="pill pill-soft" title="No overview in BM+">no overview</span>
+{% elif state == "no_cr" %}<span class="pill pill-warn" title="A full overview, but no client-ready version">no client-ready</span>
+{% elif state == "gaps" %}<span class="pill pill-warn" title="Entries missing from the client-ready overview">{{ t.internal_entries }} not client-ready</span>
+{% else %}<span class="pill pill-ok" title="Everything is client-ready">client-ready</span>{% endif %}
+{% endmacro %}
