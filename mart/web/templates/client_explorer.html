@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "partials/overview.html" import overview_timeline, overview_pill %}
+{% from "partials/overview.html" import overview_timeline, overview_pill, fresh_badge %}
 {% from "partials/stages.html" import stage_dots %}
 {% from "partials/links.html" import links_menu %}
 {% from "partials/mine.html" import mine_section, mine_badges %}
@@ -64,6 +64,7 @@
             {% if b.extra %}<span class="bundle-extra" title="Your bundle: {{ b.extra }}">{{ b.extra }}</span>{% endif %}
           </span>
           <span class="bundle-meta">
+            {{ fresh_badge(b.freshness, short=true) }}
             {% if b.flags.no_cr or b.flags.gaps %}<span class="dot dot-warn" title="Overview: client-ready version missing or incomplete"></span>{% endif %}
             <span class="st-dots">{% for st in b.renewals | map(attribute="upcoming_strategy") | unique %}<span class="st-dot {{ st | strategy_class }}" title="{{ st or 'no strategy' }}"></span>{% endfor %}</span>
             <span class="count">{{ b.renewals | length }}</span>
@@ -152,6 +153,7 @@
           <div class="rc-cell"><div class="rc-label">Overview</div>
             {{ overview_pill(r.overview_state, r.overview) }}
             {% if r.overview.latest %}<div class="rc-sub">latest {{ r.overview.latest | dmy }}</div>{% endif %}
+            <div>{{ fresh_badge(r.freshness) }}</div>
           </div>
         </div>
         <div class="rc-flags">
@@ -164,7 +166,7 @@
         {% if r.overview.entries %}
         <details class="rc-overview" {% if s.renewals | length == 1 %}open{% endif %}>
           <summary>Renewal overview</summary>
-          {{ overview_timeline(r.overview) }}
+          {{ overview_timeline(r.overview, new_since=fresh_limits.new_since) }}
         </details>
         {% endif %}
       </article>

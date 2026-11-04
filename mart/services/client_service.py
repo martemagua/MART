@@ -18,7 +18,7 @@ from mart.ingestion import overview as ov
 from mart.repository import bundles_repo, clients_repo, notes_repo, renewals_repo, tasks_repo
 from mart.repository.db import connection
 from mart.services import bundles as bx
-from mart.services import preferences, renewal_service
+from mart.services import freshness, preferences, renewal_service
 
 NO_DATE = "none"
 _MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August",
@@ -114,7 +114,7 @@ def _new_bundle(key: str, country: str, today: date, custom: dict[str, Any] | No
     return {"key": key, "country": country, "renewal_date": None, "last_date": None, "days_until": None,
             "extra": custom["name"] if custom else (name or ""),
             "custom_id": custom["id"] if custom else None,
-            "renewals": [], "flags": Counter(), "left": 0, "search": []}
+            "renewals": [], "flags": Counter(), "left": 0, "search": [], "fresh_items": []}
 
 
 def explorer(client_id: int, bundle: str | None = None,
@@ -134,6 +134,8 @@ def explorer(client_id: int, bundle: str | None = None,
         names = bundles_repo.names(conn, client_id)
         with_notes = notes_repo.bundle_keys_with_content(conn, client_id)
 
+    lim = freshness.limits(today)
+    fresh_of = {r["id"]: freshness.of(freshness.latest(r["fields"]), lim) for r in renewals}
     left_count = sum(1 for r in renewals if not r["in_latest_export"])
     shown = [r for r in renewals if show_all or r["in_latest_export"]]
     linked = renewal_service.link_tasks(shown, tasks)
@@ -155,6 +157,7 @@ def explorer(client_id: int, bundle: str | None = None,
         f = r["fields"]
         b["flags"][ov.flag(f.get("overview_all"), f.get("overview_client_ready"))["state"]] += 1
         b["left"] += int(not r["in_latest_export"])
+        b["fresh_items"].append(fresh_of[r["id"]])
         b["search"] += [r["policy_name"] or "", r["entity"] or "", r["insurer"] or "", b["extra"]]
     # a bundle all of whose renewals moved away stays while it carries notes
     # or open to-dos, so nothing written is lost
@@ -167,6 +170,7 @@ def explorer(client_id: int, bundle: str | None = None,
             bundles[key] = {**_new_bundle(key, country, today, None, names.get(key)), "renewal_date": rdate}
     for b in bundles.values():
         b["days_until"] = _days_until(b["renewal_date"], today)
+        b["freshness"] = freshness.worst(b.pop("fresh_items", []))
     ordered = sorted(bundles.values(), key=lambda b: (b["renewal_date"] or "9999", b["country"], b["extra"]))
 
     groups: dict[str, list[dict[str, Any]]] = {}
@@ -183,7 +187,8 @@ def explorer(client_id: int, bundle: str | None = None,
                     for r in selected["renewals"]}
         with connection() as conn:          # the detail sheets: only for the bundle shown
             details = renewals_repo.details_of(conn, [r["id"] for r in selected["renewals"]])
-        items = sorted((_with_stages(_enrich({**r, "details": details.get(r["id"])}, today),
+        items = sorted((_with_stages(_enrich({**r, "details": details.get(r["id"]),
+                                              "freshness": fresh_of[r["id"]]}, today),
                                      stage_of[r["id"]]) for r in selected["renewals"]),
                        key=lambda r: ((r["policy_name"] or "").casefold(), r["entity"] or ""))
         detail = {
@@ -199,7 +204,7 @@ def explorer(client_id: int, bundle: str | None = None,
         "renewal_count": len(shown), "left_count": left_count, "show_all": show_all,
         "selected": detail, "has_task_data": bool(tasks),
         "freshness": overview_freshness(client.get("overview_as_of"), today),
-        "where": where, "filters": panel_filters(ordered, shown),
+        "where": where, "filters": panel_filters(ordered, shown), "fresh_limits": lim,
     }
 
 
