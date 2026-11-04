@@ -2,6 +2,7 @@
    notes → facts → proposals → savings → overview → the rest), so each section
    is always in the same place. Everything but "yours" is BM+ data, read-only. #}
 {% from "partials/overview.html" import overview_timeline, overview_pill, fresh_badge %}
+{% from "partials/deadline.html" import deadline_line %}
 {% from "partials/stages.html" import stage_strip %}
 {% from "partials/links.html" import links_menu %}
 {% from "partials/mine.html" import mine_section %}
@@ -41,6 +42,7 @@
       <div class="arrange-box">{{ move_form(base, selected, "move-one", here, one=r.id) }}</div>
     </details>
   </div>
+  {{ deadline_line(base, selected, here) }}
 </header>
 
 <section class="rd-section" aria-labelledby="st-h">

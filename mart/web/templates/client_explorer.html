@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "partials/overview.html" import overview_timeline, overview_pill, fresh_badge %}
+{% from "partials/deadline.html" import deadline_line, deadline_badge %}
 {% from "partials/stages.html" import stage_dots %}
 {% from "partials/links.html" import links_menu %}
 {% from "partials/mine.html" import mine_section, mine_badges %}
@@ -64,7 +65,7 @@
             {% if b.extra %}<span class="bundle-extra" title="Your bundle: {{ b.extra }}">{{ b.extra }}</span>{% endif %}
           </span>
           <span class="bundle-meta">
-            {{ fresh_badge(b.freshness, short=true) }}
+            {{ deadline_badge(b.deadline) }}{{ fresh_badge(b.freshness, short=true) }}
             {% if b.flags.no_cr or b.flags.gaps %}<span class="dot dot-warn" title="Overview: client-ready version missing or incomplete"></span>{% endif %}
             <span class="st-dots">{% for st in b.renewals | map(attribute="upcoming_strategy") | unique %}<span class="st-dot {{ st | strategy_class }}" title="{{ st or 'no strategy' }}"></span>{% endfor %}</span>
             <span class="count">{{ b.renewals | length }}</span>
@@ -124,6 +125,8 @@
       </dl>
       {% endif %}
     </header>
+
+    {{ deadline_line(base, s, here) }}
 
     {{ mine_section(bundle_mine, here, heading="To-dos and notes on this bundle") }}
 

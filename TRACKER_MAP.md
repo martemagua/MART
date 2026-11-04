@@ -55,6 +55,11 @@ the files are deliberately not copied here.
 each line is "<product group> - <line>". No comma inside brackets in the
 demo exports, but MART doesn't split there anyway.
 
+**Expected date to receive the final renewal terms** (Renewal Strategy
+sheet) is an ISO date when filled; 11 of the 47 demo renewals with a
+strategy row have one. MART prefills a bundle's broker deadline from the
+earliest of its renewals' dates (M2 day 3).
+
 **Policy Number** is on the three detail sheets (Policy Information section)
 and on the Task Tracker, NOT on the Overview sheet. BM+ writes it as the
 insurer's number, or "(multiple)"; 40 of the 49 demo renewals have one.

@@ -15,10 +15,10 @@ from datetime import date, datetime
 from typing import Any
 
 from mart.ingestion import overview as ov
-from mart.repository import bundles_repo, clients_repo, notes_repo, renewals_repo, tasks_repo
+from mart.repository import bundles_repo, clients_repo, deadlines_repo, notes_repo, renewals_repo, tasks_repo
 from mart.repository.db import connection
 from mart.services import bundles as bx
-from mart.services import freshness, preferences, renewal_service
+from mart.services import deadlines, freshness, preferences, renewal_service
 
 NO_DATE = "none"
 _MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August",
@@ -114,7 +114,7 @@ def _new_bundle(key: str, country: str, today: date, custom: dict[str, Any] | No
     return {"key": key, "country": country, "renewal_date": None, "last_date": None, "days_until": None,
             "extra": custom["name"] if custom else (name or ""),
             "custom_id": custom["id"] if custom else None,
-            "renewals": [], "flags": Counter(), "left": 0, "search": [], "fresh_items": []}
+            "renewals": [], "flags": Counter(), "left": 0, "search": []}
 
 
 def explorer(client_id: int, bundle: str | None = None,
@@ -132,7 +132,11 @@ def explorer(client_id: int, bundle: str | None = None,
         customs = bundles_repo.custom_bundles(conn, client_id)
         placed = bundles_repo.placements(conn, client_id)
         names = bundles_repo.names(conn, client_id)
-        with_notes = notes_repo.bundle_keys_with_content(conn, client_id)
+        # a bundle all of whose renewals moved away stays while it carries
+        # notes, open to-dos or an open broker deadline
+        with_notes = notes_repo.bundle_keys_with_content(conn, client_id) | \
+            deadlines_repo.open_bundle_keys(conn, client_id)
+        details = renewals_repo.details_of(conn, [r["id"] for r in renewals])
 
     lim = freshness.limits(today)
     fresh_of = {r["id"]: freshness.of(freshness.latest(r["fields"]), lim) for r in renewals}
@@ -157,7 +161,6 @@ def explorer(client_id: int, bundle: str | None = None,
         f = r["fields"]
         b["flags"][ov.flag(f.get("overview_all"), f.get("overview_client_ready"))["state"]] += 1
         b["left"] += int(not r["in_latest_export"])
-        b["fresh_items"].append(fresh_of[r["id"]])
         b["search"] += [r["policy_name"] or "", r["entity"] or "", r["insurer"] or "", b["extra"]]
     # a bundle all of whose renewals moved away stays while it carries notes
     # or open to-dos, so nothing written is lost
@@ -168,9 +171,17 @@ def explorer(client_id: int, bundle: str | None = None,
         elif bx.is_default_key(key):
             country, rdate = bx.split_default(key)
             bundles[key] = {**_new_bundle(key, country, today, None, names.get(key)), "renewal_date": rdate}
-    for b in bundles.values():
+    # broker deadlines (BM+ prefill from the expected-terms date); one that is
+    # still ahead pauses the stale clock of the bundle's renewals
+    dl = deadlines.for_bundles(client_id, bundles, {i: deadlines.bm_date(d) for i, d in details.items()},
+                               {i: f["latest"] for i, f in fresh_of.items()}, today)
+    for key, b in bundles.items():
         b["days_until"] = _days_until(b["renewal_date"], today)
-        b["freshness"] = freshness.worst(b.pop("fresh_items", []))
+        b["deadline"] = dl[key]["current"]
+        b["deadline_history"] = dl[key]["history"]
+        for r in b["renewals"]:
+            fresh_of[r["id"]] = freshness.pause(fresh_of[r["id"]], b["deadline"])
+        b["freshness"] = freshness.worst([fresh_of[r["id"]] for r in b["renewals"]])
     ordered = sorted(bundles.values(), key=lambda b: (b["renewal_date"] or "9999", b["country"], b["extra"]))
 
     groups: dict[str, list[dict[str, Any]]] = {}
@@ -185,8 +196,6 @@ def explorer(client_id: int, bundle: str | None = None,
     if selected:
         stage_of = {r["id"]: renewal_service.stages(linked[r["id"]], today, r.get("upcoming_strategy"))
                     for r in selected["renewals"]}
-        with connection() as conn:          # the detail sheets: only for the bundle shown
-            details = renewals_repo.details_of(conn, [r["id"] for r in selected["renewals"]])
         items = sorted((_with_stages(_enrich({**r, "details": details.get(r["id"]),
                                               "freshness": fresh_of[r["id"]]}, today),
                                      stage_of[r["id"]]) for r in selected["renewals"]),

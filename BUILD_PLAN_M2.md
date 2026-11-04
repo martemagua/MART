@@ -8,7 +8,7 @@ to-dos the detail real work needs, and open Home on what is due today.
 a zip and a short **"what to try"** list. Every change goes through a pull
 request with its docs.
 
-Status: **in progress.** Day 1 done (MART 0.8.0, 04.11.2026). Day 2 done (MART 0.8.1, 04.11.2026). The foundations of M1
+Status: **in progress.** Day 1 done (MART 0.8.0, 04.11.2026). Day 2 done (MART 0.8.1, 04.11.2026). Day 3 done (MART 0.8.2, 04.11.2026). The foundations of M1
 (`BUILD_PLAN_M1.md`) hold unchanged: nothing installed, all SQL in
 `repository/`, append-only migrations, uploads never delete what you wrote.
 
@@ -36,7 +36,7 @@ Status: **in progress.** Day 1 done (MART 0.8.0, 04.11.2026). Day 2 done (MART 0
 |---|---|---|
 | 1 ✅ | **Overview freshness.** Each renewal gets the date of its newest overview entry and a state: fresh / amber (≥ 7 days) / red (≥ 14). Entries dated within the last N days are marked **new**. Shown on the renewal cards, rolled up per bundle in the side panel (the worst one wins) and in the renewal panel's overview. The two limits and N in Settings → Time limits | open a client: spot the quiet bundles in the side panel, and the new entries in a renewal's overview |
 | 2 ✅ | **Richer to-dos** (your own tasks). A to-do gets a **description**, **subtasks** (tick them one by one; "2 of 3" on the to-do), **urgency** (urgent / normal / low) and **delegated / waiting on** (whom: you, broker, insurer, client, colleague; since when). Status: open → in progress → waiting → done. Existing to-dos keep everything they have | turn one real to-do into a checklist, hand one to a broker, mark one urgent |
-| 3 | **Broker deadlines on bundles.** A bundle gets an **expected update date** ("terms by 15.11", who promised it, an optional note), set from the bundle header with a ✎ like its name. Prefilled from BM+'s expected-terms date of its renewals (see below), shown as "from BM+", yours to keep, change or drop. While the date is ahead, the bundle's renewals are **not stale**; once it has passed, the bundle turns red until you confirm the update arrived (or set a new date). MART points out a new overview entry dated on or after the promise. The date shows in the side panel, on Home and on each renewal of the bundle | set "terms by 15.11" on a bundle from a broker mail; see a prefilled one; confirm one |
+| 3 ✅ | **Broker deadlines on bundles.** A bundle gets an **expected update date** ("terms by 15.11", who promised it, an optional note), set from the bundle header with a ✎ like its name. Prefilled from BM+'s expected-terms date of its renewals (see below), shown as "from BM+", yours to keep, change or drop. While the date is ahead, the bundle's renewals are **not stale**; once it has passed, the bundle turns red until you confirm the update arrived (or set a new date). MART points out a new overview entry dated on or after the promise. The date shows in the side panel, on Home and on each renewal of the bundle | set "terms by 15.11" on a bundle from a broker mail; see a prefilled one; confirm one |
 | 4 | **Home: "Today".** One list of what needs you: deadlines due or passed, to-dos due or overdue (urgent first), renewals gone red, new overview entries since yesterday. Below it, a simple card per client (renewals in flight, next renewal date, counts of the above). Adjusted from your use | start a day from Home; tell me what is missing or in the way |
 | 5 | **Hardening + M2 review.** Speed on a full book, upload edge cases found on the way, wording; a day of real work | use M2 for a full day; list what's missing |
 

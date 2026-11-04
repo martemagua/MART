@@ -6,6 +6,34 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.8.2 — 04.11.2026 · M2 day 3 · broker deadlines on bundles
+
+### Added (QUESTIONS M2b, E4, K4)
+- **Expected update** on every bundle: the date you expect an update on
+  its renewals, who promised it, an optional note. Set it with
+  **+ Expected update** in the bundle (or the renewal panel), change it
+  with ✎, close it with **✓ Update arrived**, or drop it with ×.
+- **From BM+**: without a date of yours, a bundle takes the earliest
+  "Expected date to receive the final renewal terms" of its renewals,
+  marked "from BM+". If you set your own, BM+'s date shows beside it
+  ("BM+ says …") and never moves yours. A BM+ date no later than one you
+  already closed isn't offered again.
+- **While the date is ahead**, the bundle's renewals don't go amber or red
+  (the stale clock is paused); the side panel shows ⏳ and the date.
+  **Once it has passed** it turns red (⏰) until you confirm it.
+- **A hint, never an automatic close**: when an overview entry dated on or
+  after the day you set the date arrives, the line asks "did the update
+  arrive?"; you confirm it yourself.
+- **Earlier deadlines** (arrived, dropped, changed) stay in the bundle's
+  history. A deadline stays with its bundle, like its notes; an emptied
+  bundle with an open deadline stays visible.
+- Database schema 8 (`deadlines`).
+
+### What to try
+Open a bundle whose renewals have a BM+ expected-terms date: see it
+prefilled. Set your own date from a broker mail, watch the stale badge
+pause, then click ✓ Update arrived.
+
 ## 0.8.1 — 04.11.2026 · M2 day 2 · richer to-dos
 
 ### Added (QUESTIONS M2a)
