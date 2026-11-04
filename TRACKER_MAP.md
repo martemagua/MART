@@ -58,7 +58,9 @@ writes the renewal (`…/client/<c>/renewals/<renewal>/<cycle>`) and the
 expiring policy (`…/policies/<cycle>;<stable>`) as full links; the
 single-client one only bare ids. Every Task Tracker row links to its task
 (`…/renewals/v2/<renewal>/<workspace>?taskId=…`, same `<renewal>` id;
-implementation tasks `…/implementation/<id>?taskId=<uuid>`). MART shows
+implementation tasks `…/implementation/<id>?taskId=<uuid>`). All of a renewal's
+task links open the SAME page in BM+, the renewal's workspace (Martin,
+04.11.2026), so MART offers one of them as "Renewal in BM+". MART shows
 these links as they are and never builds one. **The renewal link does not
 open in BM+** (Martin, 04.11.2026); the policy link does. MART stores the
 renewal link but doesn't offer it.

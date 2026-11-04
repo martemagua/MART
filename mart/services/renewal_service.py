@@ -176,16 +176,17 @@ def bm_links(fields: dict[str, Any], stage_list: list[dict[str, Any]]) -> list[d
     """The renewal's links to BM+ for its "⋯" menu, best first. Only links BM+
     wrote in the exports. The renewal link the cross-client Renewal Tracker
     writes (`fields.bm_url`) does not open in BM+ (Martin, 04.11.2026), so it is
-    kept but not offered. The policy link opens; the task links are BM+'s own
-    links to each task."""
+    kept but not offered. The policy link opens. The Task Tracker's task links
+    all open the same page, the renewal's workspace in BM+, so ONE of them is
+    offered as the renewal's link (Martin, 04.11.2026): the first stage's."""
     out = []
     if fields.get("bm_policy_url"):
         out.append({"label": "Policy in BM+", "url": fields["bm_policy_url"],
                     "title": "The expiring policy in BM+"})
-    for s in stage_list:
-        if s.get("bm_url"):
-            out.append({"label": f"{s['name']} task in BM+", "url": s["bm_url"],
-                        "title": f"The {s['name']} task of this renewal in BM+"})
+    task_url = next((s["bm_url"] for s in stage_list if s.get("bm_url")), None)
+    if task_url:
+        out.append({"label": "Renewal in BM+", "url": task_url,
+                    "title": "The renewal's workspace in BM+ (its tasks)"})
     return out
 
 

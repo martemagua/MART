@@ -6,6 +6,32 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.7.2 — 04.11.2026 · date filters, one BM+ link, drag and drop
+
+### Changed (Martin's notes on 0.7.1)
+- **No more "By date / By country" toggle**: the country and date filters
+  replace it. Bundles are listed by renewal month, each with its flag,
+  country and date.
+- **From / Until are dates with a calendar** instead of month dropdowns.
+  The calendar opens on the client's own renewal dates, and the date shows
+  the way Windows is set up (DD.MM.YYYY on a Swiss or German setup).
+- **One BM+ link for the renewal.** The links to the individual tasks all
+  opened the same page in BM+ (the renewal's workspace), so the "⋯" menu
+  now offers the policy and one **Renewal in BM+** link, and the stage strip
+  no longer repeats "Task in BM+" under each stage.
+
+### Added
+- **Drag and drop on the Uploads page**: drop one or several tracker files
+  on the upload card and they go straight to the preview, as if chosen and
+  sent. Only `.xlsx` files are taken (anything else is left out, and said
+  so if nothing is left); a file dropped beside the card is ignored instead
+  of the browser opening it. Choosing files still works.
+
+### What to try
+Open a client: no toggle; set From / Until with the calendar. Open a
+renewal's "⋯": Policy and Renewal in BM+. Drag two trackers from Explorer
+onto the upload card.
+
 ## 0.7.1 — 04.11.2026 · lighter pages, strategy colours, flags, filters
 
 ### Changed (Martin's notes on 0.7.0)

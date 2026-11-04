@@ -8,6 +8,7 @@
 {% block content %}
 {% set base = "/clients/" ~ client.id %}
 {% set q_all = "&all=1" if show_all else "" %}
+{% set q_all1 = "?all=1" if show_all else "" %}
 <div class="explorer">
 
   {# ── left: the bundles ───────────────────────────────────────────── #}
@@ -21,13 +22,9 @@
       {% else %}No overview loaded yet: upload a single-client Renewal Tracker{% endif %}
     </p>
 
-    <a class="client-notes-link {% if client_mine %}is-selected{% endif %}" href="{{ base }}/notes?group={{ group }}{{ q_all }}">
+    <a class="client-notes-link {% if client_mine %}is-selected{% endif %}" href="{{ base }}/notes{{ q_all1 }}">
       <span>Client notes &amp; to-dos</span>{{ mine_badges(client_counts) }}</a>
 
-    <div class="seg" role="group" aria-label="Group bundles by">
-      <a class="seg-btn {% if group == 'date' %}is-on{% endif %}" href="{{ base }}?group=date{{ q_all }}{% if selected %}&bundle={{ selected.key | urlencode }}{% endif %}">By date</a>
-      <a class="seg-btn {% if group == 'country' %}is-on{% endif %}" href="{{ base }}?group=country{{ q_all }}{% if selected %}&bundle={{ selected.key | urlencode }}{% endif %}">By country</a>
-    </div>
     <div class="nav-filters" data-bundle-filters="{{ client.id }}" data-list="#bundle-list"{% if fresh %} data-fresh{% endif %}>
       <input type="search" class="nav-filter" placeholder="Filter: policy, entity, insurer…" aria-label="Filter bundles" data-f="text">
       {% set f = filters %}
@@ -37,36 +34,30 @@
         {% for c in f.countries %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
       </select>
       {% endif %}
-      {% if f.months | length > 1 %}
+      {% if f.first and f.first != f.last %}
       <div class="nav-range">
-        <select data-f="from" aria-label="Renewing from">
-          <option value="">From: any</option>
-          {% for m, label in f.months %}<option value="{{ m }}">From {{ label }}</option>{% endfor %}
-        </select>
-        <select data-f="until" aria-label="Renewing until">
-          <option value="">Until: any</option>
-          {% for m, label in f.months %}<option value="{{ m }}">Until {{ label }}</option>{% endfor %}
-        </select>
+        <label>From<input type="date" data-f="from" min="{{ f.first }}" max="{{ f.last }}" aria-label="Renewing from"></label>
+        <label>Until<input type="date" data-f="until" min="{{ f.first }}" max="{{ f.last }}" aria-label="Renewing until"></label>
       </div>
       {% endif %}
       <p class="small nav-filter-summary" data-f-summary hidden><span data-f-count></span> · <button type="button" class="link-btn" data-f-clear>Clear filters</button></p>
     </div>
     {% if left_count %}
-    <a class="small nav-toggle" href="{{ base }}?group={{ group }}{% if not show_all %}&all=1{% endif %}{% if selected %}&bundle={{ selected.key | urlencode }}{% endif %}">
+    <a class="small nav-toggle" href="{{ base }}?{% if not show_all %}all=1&{% endif %}{% if selected %}bundle={{ selected.key | urlencode }}{% endif %}">
       {% if show_all %}Hide{% else %}Show{% endif %} {{ left_count }} renewal{{ "s" if left_count != 1 }} no longer in the export</a>
     {% endif %}
 
     <nav id="bundle-list" class="bundle-list">
       {% for label, items in groups.items() %}
       <div class="bundle-group" data-filter-group>
-        <h2 class="bundle-group-title">{% if group == "country" %}{{ label | flag }}{% endif %}{{ label }}</h2>
+        <h2 class="bundle-group-title">{{ label }}</h2>
         {% for b in items %}
         <a class="bundle-item {% if selected and b.key == selected.key and not client_mine %}is-selected{% endif %}"
-           href="{{ base }}?bundle={{ b.key | urlencode }}&group={{ group }}{{ q_all }}" data-filter-item
-           data-country="{{ b.country }}" data-first="{{ (b.renewal_date or '')[:7] }}" data-last="{{ (b.last_date or b.renewal_date or '')[:7] }}">
+           href="{{ base }}?bundle={{ b.key | urlencode }}{{ q_all }}" data-filter-item
+           data-country="{{ b.country }}" data-first="{{ b.renewal_date or '' }}" data-last="{{ b.last_date or b.renewal_date or '' }}">
           <span class="bundle-main">
-            <span class="bundle-name">{% if group == "country" %}{{ b.renewal_date | dmy or "No date" }}{% else %}{{ b.country | flag }}{{ b.country }}{% endif %}</span>
-            <span class="bundle-sub">{% if group == "country" %}{% if b.days_until is not none %}{{ "in " ~ b.days_until ~ " days" if b.days_until >= 0 else (-b.days_until) ~ " days ago" }}{% endif %}{% else %}{{ b.renewal_date | dmy or "no date" }}{% endif %}</span>
+            <span class="bundle-name">{{ b.country | flag }}{{ b.country }}</span>
+            <span class="bundle-sub">{{ b.renewal_date | dmy or "no date" }}</span>
             {% if b.extra %}<span class="bundle-extra" title="Your bundle: {{ b.extra }}">{{ b.extra }}</span>{% endif %}
           </span>
           <span class="bundle-meta">
@@ -104,7 +95,7 @@
         <details class="arrange">
           <summary class="icon-btn" title="{{ 'Rename this bundle' if s.extra else 'Name this bundle' }}" aria-label="{{ 'Rename this bundle' if s.extra else 'Name this bundle' }}"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M11.7 1.3a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4l-8.6 8.6-3.4.8.8-3.4 8.2-8.6zM3.6 11l-.4 1.8 1.8-.4L12.6 4.8 11.2 3.4 3.6 11z"/></svg></summary>
           <form method="post" action="{{ base }}/bundles/rename" class="arrange-box stack-form">
-            <input type="hidden" name="key" value="{{ s.key }}"><input type="hidden" name="group" value="{{ group }}">
+            <input type="hidden" name="key" value="{{ s.key }}">
             <input type="text" name="name" value="{{ s.extra }}" maxlength="120" aria-label="Bundle name" data-focus-on-open {% if s.custom_id %}required{% endif %} placeholder="e.g. Broker A, or the BM+ policy it belongs to">
             {% if not s.custom_id %}<p class="hint">Leave empty to show it as {{ s.country }} · {{ s.renewal_date | dmy or "no date" }} again.</p>{% endif %}
             <div class="actions"><button type="submit" class="btn btn-small">Save name</button></div>
@@ -133,7 +124,7 @@
     <div class="card empty"><p>No renewals left in this bundle: they were moved to other bundles. Its notes and to-dos stay here.</p></div>
     {% else %}
     {% from "partials/move.html" import move_form %}
-    {{ move_form(base, group, s, "move-form", here) }}
+    {{ move_form(base, s, "move-form", here) }}
     {% endif %}
 
     <div class="renewal-list">
@@ -143,7 +134,7 @@
           <div class="rc-policy">
             <div class="rc-name-row">
               <input type="checkbox" name="renewal" value="{{ r.id }}" form="move-form" class="rc-pick" aria-label="Select {{ r.policy_name }} to move" title="Select to move to another bundle">
-              <a class="rc-name" href="/clients/{{ client.id }}/renewals/{{ r.id }}?group={{ group }}{{ q_all }}" title="Open the renewal: {{ r.policy_name }}">{{ r.policy_name or "—" }}</a>
+              <a class="rc-name" href="/clients/{{ client.id }}/renewals/{{ r.id }}{{ q_all1 }}" title="Open the renewal: {{ r.policy_name }}">{{ r.policy_name or "—" }}</a>
               {{ links_menu(r.links, "Links for " ~ (r.policy_name or "this renewal")) }}
             </div>
             <div class="rc-sub" title="{{ r.entity or '' }}">{{ r.entity or "—" }}</div>

@@ -100,3 +100,12 @@ def test_several_files_wait_and_commit_leads_to_the_next(configured, app):
     assert "1 task for 1 client" in html
     assert "built-in method" not in html
     assert [w["id"] for w in us.waiting_uploads()] == [second]
+
+
+def test_the_upload_card_takes_dropped_files(configured, app):
+    """Dropped files go into the same file input and form (mart.js), so the
+    server sees an ordinary upload of several files."""
+    page = get(app, "/uploads").body_bytes.decode()
+    assert 'enctype="multipart/form-data" class="form" data-dropzone>' in page
+    assert "Drop tracker files here" in page and 'data-drop-area' in page
+    assert 'name="file" type="file" accept=".xlsx" multiple' in page

@@ -43,17 +43,19 @@ def test_the_policy_link_survives_a_single_client_export(configured, app):
     assert 'class="menu"' in page
 
 
-def test_without_a_policy_link_the_task_links_stand_in(configured, app):
+def test_the_task_links_give_one_renewal_link(configured, app):
+    """Every task link opens the same BM+ page (the renewal's workspace), so
+    only one is offered, as the renewal's link (Martin, 04.11.2026)."""
     _load(renewal_tracker([R(n=1, policy="Medical")], CLIENT))
     cid, rid = _medical()
     assert rs.detail(cid, rid)["links"] == []
     assert "No BM+ links yet" in get(app, f"/clients/{cid}/renewals/{rid}").body_bytes.decode()
     _load(task_tracker([T(n=1, task_name="Renewal Strategy"), T(n=1, task_name="Proposals")]))
     links = rs.detail(cid, rid)["links"]
-    assert [lk["label"] for lk in links] == ["Renewal Strategy task in BM+", "Proposals task in BM+"]
-    assert all(lk["url"].startswith("https://bm.example/") and "taskId=" in lk["url"] for lk in links)
+    assert [lk["label"] for lk in links] == ["Renewal in BM+"]
+    assert links[0]["url"].startswith("https://bm.example/") and "taskId=" in links[0]["url"]
     page = get(app, f"/clients/{cid}/renewals/{rid}").body_bytes.decode()
-    assert page.count("Task in BM+ ↗") == 2              # the two stages that have a task
+    assert "Task in BM+" not in page and page.count("Renewal in BM+ ↗") == 2   # header button + menu
 
 
 def test_bundle_cards_carry_the_links_menu(configured, app):

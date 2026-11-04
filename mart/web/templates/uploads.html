@@ -12,11 +12,15 @@
 <div class="grid">
   <section class="card" aria-labelledby="up-h">
     <h2 id="up-h">Upload a tracker</h2>
-    <form method="post" action="/uploads" enctype="multipart/form-data" class="form">
+    <form method="post" action="/uploads" enctype="multipart/form-data" class="form" data-dropzone>
       <div class="field">
         <label for="file">Renewal Tracker or Task Tracker exports (.xlsx)</label>
-        <input id="file" name="file" type="file" accept=".xlsx" multiple required>
-        <p class="hint">Select one file or several at once (e.g. all your single-client exports). Cross-client and single-client exports both work; MART recognises the tracker. The files themselves are not kept, only what MART reads from them.</p>
+        <div class="dropzone" data-drop-area>
+          <p class="dropzone-text"><strong>Drop tracker files here</strong> or choose them:</p>
+          <input id="file" name="file" type="file" accept=".xlsx" multiple required>
+          <p class="dropzone-status small" data-drop-status role="status" hidden></p>
+        </div>
+        <p class="hint">Drop or select one file or several at once (e.g. all your single-client exports). Cross-client and single-client exports both work; MART recognises the tracker. The files themselves are not kept, only what MART reads from them.</p>
       </div>
       <div class="actions"><button type="submit" class="btn btn-primary">Upload and preview</button></div>
     </form>
