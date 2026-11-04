@@ -8,7 +8,7 @@ date, open a renewal, and add notes and to-dos.
 you unzip over the previous version (your data folder is never touched),
 plus a short **"what to try"** list. Your feedback steers the next day.
 
-Status: **in progress.** Day 1 done and verified on both machines (04.11.2026). Day 2 done (MART 0.2.0) and verified on the laptop with real exports of both flavours (04.11.2026). Day 3 done (MART 0.3.0) and verified on the laptop (04.11.2026). Day 4 done (MART 0.4.0–0.4.6) and verified on the laptop (04.11.2026). Day 5 done (MART 0.5.0, 04.11.2026).
+Status: **in progress.** Day 1 done and verified on both machines (04.11.2026). Day 2 done (MART 0.2.0) and verified on the laptop with real exports of both flavours (04.11.2026). Day 3 done (MART 0.3.0) and verified on the laptop (04.11.2026). Day 4 done (MART 0.4.0–0.4.6) and verified on the laptop (04.11.2026). Day 5 done (MART 0.5.0–0.5.1, 04.11.2026). Day 6 done (MART 0.6.0, 04.11.2026).
 
 ---
 
@@ -35,7 +35,7 @@ Status: **in progress.** Day 1 done and verified on both machines (04.11.2026). 
 | 3 ✅ | **Clients and bundles**: client list; the client **explorer** (Martin, 04.11.2026): bundles (country + renewal date) in a side panel, grouped by month or by country, with a filter; the selected bundle's renewals in the middle, each with its **renewal overview** compared against the client-ready one (MAPT's approach) | open each client, walk its bundles, check the overview marks |
 | 4 ✅ | **Task Tracker upload + renewal detail**: tasks linked to *this* cycle (stable id + per-cycle id), renewal panel with BM+ facts, the stage strip (Renewal Strategy → Proposals → Update Policy + peer review state), the dated overview timeline, the Renewal Strategy sheet's fields, proposals and savings. Also: **several files in one upload**, **"overview as of"** per client and **Settings → Time limits** (Martin, 04.11.2026) | open a renewal and compare it with BM+; upload several single-client exports at once |
 | 5 ✅ | **Notes and to-dos** on renewals and on bundles; a simple To-dos page (open / done, due date) | write notes and to-dos while working a real client |
-| 6 | **Split and join bundles** (by entity, policy number, insurer; per client) + **history**: re-uploads keep completed renewals and record what changed | split a bundle, re-upload a newer export, check nothing you wrote was lost |
+| 6 ✅ | **Split and join bundles** (by entity, policy number, insurer; per client) + **history**: re-uploads keep completed renewals and record what changed | split a bundle, re-upload a newer export, check nothing you wrote was lost |
 | 7 | **Hardening**: per-client uploads that replace only that client, renewals without ids ("Transitioned") identified and flagged, clear error messages, first M1 review | use M1 for a full day of real work; list what's missing |
 
 After day 7 we review M1 together, adjust the plan, and move to **M2**

@@ -67,16 +67,16 @@ def _values(row: dict[str, Any], client_id: int) -> dict[str, Any]:
 
 
 def save(conn: sqlite3.Connection, row: dict[str, Any], client_id: int, upload_id: int,
-         existing_id: int | None, touched: bool) -> None:
+         existing_id: int | None, touched: bool) -> int:
     """Insert a new renewal, or update an existing one from a staged row.
     `touched` (decided by the service) sets updated_at."""
     vals = _values(row, client_id)
     if existing_id is None:
         cols = ", ".join(("cycle_key",) + _COLUMNS + ("first_upload_id", "last_upload_id"))
         marks = ", ".join("?" * (len(_COLUMNS) + 3))
-        conn.execute(f"INSERT INTO renewals ({cols}) VALUES ({marks})",
-                     [row["cycle_key"], *[vals[c] for c in _COLUMNS], upload_id, upload_id])
-        return
+        cur = conn.execute(f"INSERT INTO renewals ({cols}) VALUES ({marks})",
+                           [row["cycle_key"], *[vals[c] for c in _COLUMNS], upload_id, upload_id])
+        return int(cur.lastrowid)
     sets = ", ".join(f"{c} = ?" for c in _COLUMNS)
     conn.execute(
         f"""UPDATE renewals SET {sets}, last_upload_id = ?, in_latest_export = 1,
@@ -84,6 +84,7 @@ def save(conn: sqlite3.Connection, row: dict[str, Any], client_id: int, upload_i
                 updated_at = CASE WHEN ? THEN datetime('now') ELSE updated_at END
             WHERE id = ?""",
         [*[vals[c] for c in _COLUMNS], upload_id, int(touched), existing_id])
+    return existing_id
 
 
 def mark_left_export(conn: sqlite3.Connection, keys: list[str]) -> None:
@@ -125,10 +126,11 @@ def overview_texts_for_mine(conn: sqlite3.Connection) -> list[dict[str, Any]]:
     """Per renewal of my clients still in the export: the two overview texts and
     the bundle facts, for the Clients list (one query for all clients)."""
     rows = conn.execute(
-        """SELECT r.client_id, r.country, r.renewal_date,
+        """SELECT r.client_id, r.country, r.renewal_date, rb.bundle_id AS custom_bundle_id,
                   json_extract(r.fields_json, '$.overview_all') AS overview_all,
                   json_extract(r.fields_json, '$.overview_client_ready') AS overview_client_ready
            FROM renewals r JOIN clients c ON c.id = r.client_id
+           LEFT JOIN renewal_bundles rb ON rb.renewal_id = r.id
            WHERE c.is_mine = 1 AND r.in_latest_export = 1""").fetchall()
     return [dict(r) for r in rows]
 

@@ -1,10 +1,11 @@
 """Clients and their renewals, bundled for the client explorer.
 
-A **bundle** is the renewals of one client that renew together: same
-country, same renewal date (BUILD_PLAN_M1 day 3; splitting and joining
-bundles comes on day 6). The explorer shows the bundles in a side panel,
-grouped by renewal month or by country, and the selected bundle's renewals
-in the middle, each with its overview compared against the client-ready one.
+A **bundle** is the renewals of one client that renew together: by default
+the same country and renewal date; Martin can move renewals into named
+custom bundles of the same country (services/bundles.py, bundle_service).
+The explorer shows the bundles in a side panel, grouped by renewal month
+or by country, and the selected bundle's renewals in the middle, each with
+its overview compared against the client-ready one.
 """
 
 from __future__ import annotations
@@ -14,8 +15,9 @@ from datetime import date, datetime
 from typing import Any
 
 from mart.ingestion import overview as ov
-from mart.repository import clients_repo, renewals_repo, tasks_repo
+from mart.repository import bundles_repo, clients_repo, notes_repo, renewals_repo, tasks_repo
 from mart.repository.db import connection
+from mart.services import bundles as bx
 from mart.services import preferences, renewal_service
 
 GROUPINGS = ("date", "country")
@@ -65,7 +67,8 @@ def clients_overview(today: date | None = None) -> list[dict[str, Any]]:
         s = stats.get(t["client_id"])
         if s is None:
             continue
-        s["bundles"].add(bundle_key(t["country"], t["renewal_date"]))
+        s["bundles"].add(bx.custom_key(t["custom_bundle_id"]) if t["custom_bundle_id"]
+                         else bundle_key(t["country"], t["renewal_date"]))
         s["flags"][ov.flag(t["overview_all"], t["overview_client_ready"])["state"]] += 1
     out = []
     for c in mine:
@@ -97,43 +100,83 @@ def _with_stages(r: dict[str, Any], stage_list: list[dict[str, Any]]) -> dict[st
     return {**r, "stages": stage_list, "links": renewal_service.bm_links(r["fields"], stage_list)}
 
 
+def _mine(conn, client_id: int) -> dict[str, Any]:
+    client = clients_repo.get(conn, client_id)
+    if client is None or client["is_mine"] != 1:
+        raise NotFound("This client is not one of yours (or doesn't exist).")
+    return client
+
+
+def _new_bundle(key: str, country: str, today: date, custom: dict[str, Any] | None = None,
+                name: str | None = None) -> dict[str, Any]:
+    """`extra` = the bundle's name: a custom bundle's own, or the one Martin
+    gave a default bundle."""
+    return {"key": key, "country": country, "renewal_date": None, "last_date": None, "days_until": None,
+            "extra": custom["name"] if custom else (name or ""),
+            "custom_id": custom["id"] if custom else None,
+            "renewals": [], "flags": Counter(), "left": 0, "search": []}
+
+
 def explorer(client_id: int, bundle: str | None = None, group: str = "date",
-             show_all: bool = False, today: date | None = None) -> dict[str, Any]:
+             show_all: bool = False, today: date | None = None,
+             renewal_id: int | None = None) -> dict[str, Any]:
+    """The explorer's side panel (bundles, grouped) and the selected bundle:
+    the one asked for, else the one holding `renewal_id`, else the next to
+    renew. A renewal is in its default bundle (country + date) unless Martin
+    moved it into a custom bundle (services/bundles.py)."""
     today = today or date.today()
     group = group if group in GROUPINGS else "date"
     with connection() as conn:
-        client = clients_repo.get(conn, client_id)
-        if client is None or client["is_mine"] != 1:
-            raise NotFound("This client is not one of yours (or doesn't exist).")
+        client = _mine(conn, client_id)
         renewals = renewals_repo.for_client(conn, client_id)
         tasks = tasks_repo.for_client(conn, client_id)
+        customs = bundles_repo.custom_bundles(conn, client_id)
+        placed = bundles_repo.placements(conn, client_id)
+        names = bundles_repo.names(conn, client_id)
+        with_notes = notes_repo.bundle_keys_with_content(conn, client_id)
 
     left_count = sum(1 for r in renewals if not r["in_latest_export"])
     shown = [r for r in renewals if show_all or r["in_latest_export"]]
+    linked = renewal_service.link_tasks(shown, tasks)
 
     bundles: dict[str, dict[str, Any]] = {}
+    where: dict[int, str] = {}
     for r in shown:
-        key = bundle_key(r["country"], r["renewal_date"])
-        b = bundles.setdefault(key, {
-            "key": key, "country": r["country"] or "—", "renewal_date": r["renewal_date"],
-            "days_until": _days_until(r["renewal_date"], today), "renewals": [],
-            "flags": Counter(), "left": 0, "search": [],
-        })
+        custom = customs.get(placed.get(r["id"]))
+        key = bx.custom_key(custom["id"]) if custom else bx.default_key(r["country"], r["renewal_date"])
+        where[r["id"]] = key
+        b = bundles.setdefault(key, _new_bundle(key, (custom or r)["country"] or "—", today, custom,
+                                                names.get(key)))
+        rd = r["renewal_date"]
+        if rd and (b["renewal_date"] is None or rd < b["renewal_date"]):
+            b["renewal_date"] = rd
+        if rd and (b["last_date"] is None or rd > b["last_date"]):
+            b["last_date"] = rd
         b["renewals"].append(r)
         f = r["fields"]
         b["flags"][ov.flag(f.get("overview_all"), f.get("overview_client_ready"))["state"]] += 1
         b["left"] += int(not r["in_latest_export"])
-        b["search"] += [r["policy_name"] or "", r["entity"] or "", r["insurer"] or ""]
-    ordered = sorted(bundles.values(), key=lambda b: (b["renewal_date"] or "9999", b["country"]))
+        b["search"] += [r["policy_name"] or "", r["entity"] or "", r["insurer"] or "", b["extra"]]
+    # a bundle all of whose renewals moved away stays while it carries notes
+    # or open to-dos, so nothing written is lost
+    for key in sorted(with_notes - set(bundles)):
+        custom = customs.get(bx.custom_id(key)) if bx.custom_id(key) is not None else None
+        if custom:
+            bundles[key] = _new_bundle(key, custom["country"], today, custom)
+        elif bx.is_default_key(key):
+            country, rdate = bx.split_default(key)
+            bundles[key] = {**_new_bundle(key, country, today, None, names.get(key)), "renewal_date": rdate}
+    for b in bundles.values():
+        b["days_until"] = _days_until(b["renewal_date"], today)
+    ordered = sorted(bundles.values(), key=lambda b: (b["renewal_date"] or "9999", b["country"], b["extra"]))
 
     groups: dict[str, list[dict[str, Any]]] = {}
-    for b in sorted(ordered, key=lambda b: (b["country"], b["renewal_date"] or "9999")) \
+    for b in sorted(ordered, key=lambda b: (b["country"], b["renewal_date"] or "9999", b["extra"])) \
             if group == "country" else ordered:
         label = b["country"] if group == "country" else _month_label(b["renewal_date"])
         groups.setdefault(label, []).append(b)
 
-    linked = renewal_service.link_tasks(shown, tasks)
-    selected = bundles.get(bundle or "")
+    selected = bundles.get(where.get(renewal_id) if renewal_id else (bundle or ""))
     if selected is None and ordered:
         upcoming = [b for b in ordered if b["days_until"] is not None and b["days_until"] >= 0]
         selected = (upcoming or ordered)[0]
@@ -149,10 +192,21 @@ def explorer(client_id: int, bundle: str | None = None, group: str = "date",
             "insurers": sorted({r["insurer"] for r in items if r["insurer"]}),
             "strategies": Counter(r["upcoming_strategy"] or "—" for r in items),
             "statuses": Counter(r["workflow_status"] or "—" for r in items),
+            "move_targets": move_targets(customs, bundles, selected["country"], selected["custom_id"]),
         }
     return {
         "client": client, "groups": groups, "bundle_count": len(ordered),
         "renewal_count": len(shown), "left_count": left_count, "show_all": show_all,
         "group": group, "selected": detail, "has_task_data": bool(tasks),
         "freshness": overview_freshness(client.get("overview_as_of"), today),
+        "where": where,
     }
+
+
+def move_targets(customs: dict[int, dict[str, Any]], bundles: dict[str, dict[str, Any]],
+                 country: str, current: int | None) -> list[dict[str, Any]]:
+    """The custom bundles of this country a renewal can be moved into (an
+    empty one too: it is kept for reuse), with how many renewals each holds."""
+    return [{"id": c["id"], "name": c["name"],
+             "count": len(bundles.get(bx.custom_key(c["id"]), {}).get("renewals", []))}
+            for c in customs.values() if c["country"] == country and c["id"] != current]

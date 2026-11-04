@@ -24,7 +24,7 @@ def book(configured):
         rows = {r["policy_name"]: dict(r) for r in conn.execute("SELECT * FROM renewals")}
     med = rows["Medical"]
     return {"cid": med["client_id"], "med": med["id"], "life": rows["Life"]["id"],
-            "bundle": ns.bundle_ref(med["client_id"], med["country"], med["renewal_date"])}
+            "bundle": ns.bundle_ref(med["client_id"], "Poland|2027-01-01")}
 
 
 def _page(app, url: str) -> str:

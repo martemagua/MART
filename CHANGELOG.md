@@ -6,6 +6,45 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.6.0 — 04.11.2026 · M1 day 6 · move renewals between bundles, history
+
+### Added
+- **Move renewals into your own bundles** (Martin, 04.11.2026: a policy BM+
+  split into several renewals, product groups handled by different brokers,
+  entities with their own policies). Bundles are still country + renewal
+  date by default. On a bundle, tick one or several renewals and **Move the
+  selected renewals to** an existing custom bundle of the same country, or
+  to **a new bundle…** you name. On a renewal panel, **Move to another
+  bundle** does the same for that one renewal. A custom bundle's renewals
+  may have different dates (its header shows the range); **Rename** it from
+  its header; "their own bundle (country + date)" moves renewals back. A
+  bundle never mixes countries. An emptied custom bundle is kept and offered
+  again. Placements are yours and survive every upload.
+- **Name any bundle**: Rename / "Name this bundle" on the bundle header. A
+  default bundle then reads "Poland · 01.01.2027 · *your name*"; clear the
+  name to go back to country + date.
+- **A bundle whose renewals all moved away stays** while it carries notes or
+  open to-dos (0 renewals, "No renewals left in this bundle…"), so nothing
+  you wrote is lost; without any, it simply goes.
+- Custom bundles work like the others: notes and to-dos on them, on the To-dos
+  page as "bundle “name”", counted on the Clients list.
+- **History** on the renewal panel (folded, after the overview): every
+  upload records what it changed: workflow status, strategy, insurer,
+  upcoming insurer, renewal / kick-off / local meeting / client approval
+  dates, expected rate change, benefit owner, local analyst, a new overview
+  entry, and for its BM+ stage tasks status, due date, assignee, delegate,
+  completion and peer-review approval; plus first seen / no longer in the
+  export / back in the export. Each is dated by the export it came from
+  ("Export of 10.11.2026"): BM+ does not say when something changed.
+
+### What to try
+1. In a bundle, tick two renewals and move them to a new bundle with a name;
+   from another renewal's panel, move it into that bundle; rename it; move
+   one back. Write a note on the custom bundle.
+2. Upload a newer Renewal Tracker and Task Tracker, then open a renewal's
+   **History**. (History starts with this version: earlier uploads were not
+   recorded.)
+
 ## 0.5.1 — 04.11.2026 · client notes; notes from earlier renewals
 
 ### Added

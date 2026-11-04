@@ -109,3 +109,13 @@ def client_target_counts(conn: sqlite3.Connection) -> dict[int, dict[str, int]]:
                              WHERE scope = 'client' AND done_at IS NULL GROUP BY client_id"""):
         out.setdefault(r["client_id"], {"notes": 0, "todos": 0})["todos"] = r["n"]
     return out
+
+
+
+def bundle_keys_with_content(conn: sqlite3.Connection, client_id: int) -> set[str]:
+    """Bundle keys of one client that carry notes or open to-dos."""
+    rows = conn.execute(
+        """SELECT ref FROM notes WHERE client_id = ? AND scope = 'bundle'
+           UNION SELECT ref FROM todos WHERE client_id = ? AND scope = 'bundle' AND done_at IS NULL""",
+        (client_id, client_id))
+    return {r["ref"].split("|", 1)[1] for r in rows if "|" in r["ref"]}

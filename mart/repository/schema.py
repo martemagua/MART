@@ -172,6 +172,49 @@ MIGRATIONS: list[tuple[int, str]] = [
         CREATE INDEX ix_todos_target ON todos(scope, ref);
         CREATE INDEX ix_todos_open ON todos(done_at, due_date);
     """),
+    (5, """
+        -- Custom bundles (USER data): Martin moves renewals out of their
+        -- default bundle (country + renewal date) into a named bundle of the
+        -- same country, e.g. a policy BM+ split into several renewals, or
+        -- the product groups one broker handles.
+        CREATE TABLE custom_bundles (
+            id          INTEGER PRIMARY KEY,
+            client_id   INTEGER NOT NULL REFERENCES clients(id),
+            country     TEXT NOT NULL,
+            name        TEXT NOT NULL,
+            created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at  TEXT
+        );
+        CREATE INDEX ix_custom_bundles_client ON custom_bundles(client_id);
+        -- A name Martin gives a DEFAULT bundle (custom bundles carry their own).
+        CREATE TABLE bundle_names (
+            client_id   INTEGER NOT NULL REFERENCES clients(id),
+            bundle_key  TEXT NOT NULL,          -- "<country>|<renewal date>"
+            name        TEXT NOT NULL,
+            PRIMARY KEY (client_id, bundle_key)
+        );
+        -- Which renewal sits in which custom bundle (none = its default one).
+        CREATE TABLE renewal_bundles (
+            renewal_id  INTEGER PRIMARY KEY REFERENCES renewals(id),
+            bundle_id   INTEGER NOT NULL REFERENCES custom_bundles(id),
+            moved_at    TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        -- What each upload changed (append-only). BM+ doesn't say WHEN
+        -- something changed, so an entry is dated by the upload (its export's
+        -- report date): "first seen in the export of …".
+        CREATE TABLE changes (
+            id          INTEGER PRIMARY KEY,
+            item_kind   TEXT NOT NULL,          -- renewal | task
+            item_id     INTEGER NOT NULL,       -- renewals.id / tasks.id
+            upload_id   INTEGER NOT NULL REFERENCES uploads(id),
+            field       TEXT NOT NULL,          -- a field name, or an event: _seen _left _back
+            old_value   TEXT,
+            new_value   TEXT,
+            created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX ix_changes_item ON changes(item_kind, item_id);
+    """),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1][0]
