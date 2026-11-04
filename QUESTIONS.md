@@ -232,3 +232,10 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 
 **L11** Notes and to-dos (0.5.0) hang on a renewal cycle or a bundle. Should notes about a *policy* also carry over to its next renewal cycle (e.g. "HR always wants the renewal before October")? And should a client have its own notes (Home: "my clients with their notes")?
 → **Answered 04.11.2026:** see the notes of past renewals; yes, a space for client notes. Both in 0.5.1: a renewal shows its policy's notes from earlier cycles (read-only); clients have their own notes and to-dos.
+
+---
+
+## M. For milestone M2 (04.11.2026)
+
+**M2a ⭐** **Richer to-dos** (to discuss when M2 starts). They already hang on a renewal, a bundle or a client and have a due date. Martin's starting points, from Microsoft To Do / Planner and Google Tasks: **subtasks**, **notes** on the to-do, **urgency**, **delegation** (who it was handed to / who we are waiting on). Open: which of these, what a status set looks like (e.g. open / in progress / waiting / done), and how broker deadlines and Home's "Today" use them.
+→ Agreed 04.11.2026: designed in M2 together with broker deadlines and Home; a **to-do board** (cards = to-dos, columns = status) comes in M3, built on the same board code as the renewal Kanban.
