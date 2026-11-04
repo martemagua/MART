@@ -28,26 +28,36 @@ def test_only_plain_https_links_count():
         assert bm_link(bad) is None, bad
 
 
-def test_the_renewal_link_survives_a_single_client_export(configured, app):
-    url = f"https://bm.example/client/{CLIENT_ID}/renewals/{hexid(1, '9')}/{hexid(1, '8')}"
+def test_the_policy_link_survives_a_single_client_export(configured, app):
+    policy = f"https://bm.example/client/{CLIENT_ID}/policies/{hexid(1, '8')};{hexid(1, '7')}"
+    renewal = f"https://bm.example/client/{CLIENT_ID}/renewals/{hexid(1, '9')}/{hexid(1, '8')}"
     _load(renewal_tracker([R(n=1, policy="Medical")], CROSS, report_date="03 Nov 2026"))
     cid, rid = _medical()
-    assert rs.detail(cid, rid)["bm_link"]["url"] == url
     _load(renewal_tracker([R(n=1, policy="Medical")], CLIENT, report_date="04 Nov 2026"))
     d = rs.detail(cid, rid)
-    assert d["bm_link"] == {"url": url, "label": "Open in BM+", "title": "The renewal in BM+"}
+    assert d["links"] == [{"label": "Policy in BM+", "url": policy, "title": "The expiring policy in BM+"}]
+    assert d["renewal"]["fields"]["bm_url"] == renewal  # kept, but BM+'s renewal link doesn't open
     page = get(app, f"/clients/{cid}/renewals/{rid}").body_bytes.decode()
-    assert f'href="{url}" target="_blank" rel="noopener noreferrer"' in page and "policy ↗" in page
+    assert f'href="{policy}" target="_blank" rel="noopener noreferrer"' in page
+    assert renewal not in page.split("Everything BM+ exported")[0]   # not offered as a link
+    assert 'class="menu"' in page
 
 
-def test_without_the_renewal_link_a_task_link_stands_in(configured, app):
+def test_without_a_policy_link_the_task_links_stand_in(configured, app):
     _load(renewal_tracker([R(n=1, policy="Medical")], CLIENT))
     cid, rid = _medical()
-    assert rs.detail(cid, rid)["bm_link"] is None
-    assert "no BM+ link yet" in get(app, f"/clients/{cid}/renewals/{rid}").body_bytes.decode()
+    assert rs.detail(cid, rid)["links"] == []
+    assert "No BM+ links yet" in get(app, f"/clients/{cid}/renewals/{rid}").body_bytes.decode()
     _load(task_tracker([T(n=1, task_name="Renewal Strategy"), T(n=1, task_name="Proposals")]))
-    d = rs.detail(cid, rid)
-    assert d["bm_link"]["label"] == "Open in BM+ (Renewal Strategy task)"
-    assert d["bm_link"]["url"].startswith("https://bm.example/") and "taskId=" in d["bm_link"]["url"]
+    links = rs.detail(cid, rid)["links"]
+    assert [lk["label"] for lk in links] == ["Renewal Strategy task in BM+", "Proposals task in BM+"]
+    assert all(lk["url"].startswith("https://bm.example/") and "taskId=" in lk["url"] for lk in links)
     page = get(app, f"/clients/{cid}/renewals/{rid}").body_bytes.decode()
     assert page.count("Task in BM+ ↗") == 2              # the two stages that have a task
+
+
+def test_bundle_cards_carry_the_links_menu(configured, app):
+    _load(renewal_tracker([R(n=1, policy="Medical"), R(n=2, policy="Life")], CROSS))
+    cid, _ = _medical()
+    page = get(app, f"/clients/{cid}").body_bytes.decode()
+    assert page.count('<details class="menu">') == 2 and page.count("Policy in BM+ ↗") == 2

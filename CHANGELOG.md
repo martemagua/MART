@@ -6,6 +6,24 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.4.3 — 04.11.2026 · a links menu on every renewal
+
+### Changed
+- **BM+'s renewal link is no longer offered:** the link the cross-client
+  Renewal Tracker writes for the renewal doesn't open in BM+ (Martin,
+  04.11.2026; the policy link does). MART keeps it, but doesn't show it.
+- The renewal panel's main button is now **Policy in BM+**.
+
+### Added
+- A **"⋯" menu** on every renewal card in the bundle view and next to the
+  renewal panel's title, with all the renewal's links: the policy in BM+ and
+  each stage task in BM+. One open at a time; an outside click or Esc closes
+  it. More kinds of links can join the same menu later.
+
+### What to try
+In a bundle, click "⋯" on a renewal card and open the policy and a task.
+Tell me which task links work, and what other links you want in the menu.
+
 ## 0.4.2 — 04.11.2026 · straight to the preview, links to BM+
 
 ### Changed

@@ -131,21 +131,25 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
         "feed": sorted(ov.entries(f.get("renewal_feed")), key=lambda e: e["date"], reverse=True),
         "bm": r["bm"],
         "older": older,
-        "bm_link": _bm_link(f, stages_),
+        "links": bm_links(f, stages_),
     }
 
 
-def _bm_link(fields: dict[str, Any], stage_list: list[dict[str, Any]]) -> dict[str, str] | None:
-    """Where "Open in BM+" goes: the renewal's own link (cross-client
-    exports write it), else BM+'s link to one of its stage tasks."""
-    if fields.get("bm_url"):
-        return {"url": fields["bm_url"], "label": "Open in BM+", "title": "The renewal in BM+"}
+def bm_links(fields: dict[str, Any], stage_list: list[dict[str, Any]]) -> list[dict[str, str]]:
+    """The renewal's links to BM+ for its "⋯" menu, best first. Only links BM+
+    wrote in the exports. The renewal link the cross-client Renewal Tracker
+    writes (`fields.bm_url`) does not open in BM+ (Martin, 04.11.2026), so it is
+    kept but not offered. The policy link opens; the task links are BM+'s own
+    links to each task."""
+    out = []
+    if fields.get("bm_policy_url"):
+        out.append({"label": "Policy in BM+", "url": fields["bm_policy_url"],
+                    "title": "The expiring policy in BM+"})
     for s in stage_list:
         if s.get("bm_url"):
-            return {"url": s["bm_url"], "label": f"Open in BM+ ({s['name']} task)",
-                    "title": "No link to the renewal itself yet (only the cross-client "
-                             "Renewal Tracker has it); this opens its task in BM+."}
-    return None
+            out.append({"label": f"{s['name']} task in BM+", "url": s["bm_url"],
+                        "title": f"The {s['name']} task of this renewal in BM+"})
+    return out
 
 
 def _older_sections(conn, r: dict[str, Any]) -> dict[str, str | None]:

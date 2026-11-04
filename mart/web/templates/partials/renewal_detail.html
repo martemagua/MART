@@ -3,6 +3,7 @@
    each section is always in the same place. All of it is BM+ data, read-only. #}
 {% from "partials/overview.html" import overview_timeline, overview_pill %}
 {% from "partials/stages.html" import stage_strip %}
+{% from "partials/links.html" import links_menu %}
 {% set r = detail.renewal %}
 {% set f = detail.fields %}
 
@@ -16,9 +17,9 @@
   <p class="crumbs"><a href="/clients/{{ client.id }}?bundle={{ selected.key | urlencode }}&group={{ group }}">← {{ selected.country }} · {{ selected.renewal_date | dmy or "no date" }}</a></p>
   <div class="rd-title">
     <h2 class="bundle-title">{{ r.policy_name or "—" }}</h2>
-    {% if detail.bm_link %}<a class="btn btn-small" href="{{ detail.bm_link.url }}" target="_blank" rel="noopener noreferrer" title="{{ detail.bm_link.title }} (new tab)">{{ detail.bm_link.label }} ↗</a>
-    {% else %}<span class="muted small" title="Only the cross-client Renewal Tracker and the Task Tracker carry BM+ links">no BM+ link yet</span>{% endif %}
-    {% if f.bm_policy_url %}<a class="small" href="{{ f.bm_policy_url }}" target="_blank" rel="noopener noreferrer" title="The expiring policy in BM+ (new tab)">policy ↗</a>{% endif %}
+    {% set main = detail.links[0] if detail.links else none %}
+    {% if main %}<a class="btn btn-small" href="{{ main.url }}" target="_blank" rel="noopener noreferrer" title="{{ main.title }} (new tab)">{{ main.label }} ↗</a>{% endif %}
+    {{ links_menu(detail.links, "Links for this renewal") }}
   </div>
   <p class="muted">
     {{ r.country }}{% if r.entity %} · {{ r.entity }}{% endif %}

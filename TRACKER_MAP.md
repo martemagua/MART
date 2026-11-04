@@ -59,7 +59,9 @@ expiring policy (`…/policies/<cycle>;<stable>`) as full links; the
 single-client one only bare ids. Every Task Tracker row links to its task
 (`…/renewals/v2/<renewal>/<workspace>?taskId=…`, same `<renewal>` id;
 implementation tasks `…/implementation/<id>?taskId=<uuid>`). MART shows
-these links as they are and never builds one.
+these links as they are and never builds one. **The renewal link does not
+open in BM+** (Martin, 04.11.2026); the policy link does. MART stores the
+renewal link but doesn't offer it.
 
 **Sheets are optional, columns are not** (Martin, 04.11.2026): when a
 tracker is created in BM+, each report sheet can be left out (General

@@ -60,4 +60,14 @@
       });
     });
   });
+  // <details class="menu">: one open at a time; an outside click or Esc closes it.
+  function closeMenus(except) {
+    document.querySelectorAll("details.menu[open]").forEach(function (m) {
+      if (m !== except) m.removeAttribute("open");
+    });
+  }
+  document.addEventListener("click", function (e) {
+    closeMenus(e.target.closest ? e.target.closest("details.menu") : null);
+  });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeMenus(null); });
 })();

@@ -93,6 +93,10 @@ def _enrich(r: dict[str, Any], today: date) -> dict[str, Any]:
     }
 
 
+def _with_stages(r: dict[str, Any], stage_list: list[dict[str, Any]]) -> dict[str, Any]:
+    return {**r, "stages": stage_list, "links": renewal_service.bm_links(r["fields"], stage_list)}
+
+
 def explorer(client_id: int, bundle: str | None = None, group: str = "date",
              show_all: bool = False, today: date | None = None) -> dict[str, Any]:
     today = today or date.today()
@@ -135,7 +139,7 @@ def explorer(client_id: int, bundle: str | None = None, group: str = "date",
         selected = (upcoming or ordered)[0]
     detail = None
     if selected:
-        items = sorted(({**_enrich(r, today), "stages": renewal_service.stages(linked[r["id"]], today)}
+        items = sorted((_with_stages(_enrich(r, today), renewal_service.stages(linked[r["id"]], today))
                         for r in selected["renewals"]),
                        key=lambda r: ((r["policy_name"] or "").casefold(), r["entity"] or ""))
         detail = {

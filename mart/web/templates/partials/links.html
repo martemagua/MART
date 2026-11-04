@@ -1,0 +1,13 @@
+{# The "⋯" menu of links to elsewhere (BM+ today; more kinds can join the list).
+   `links` = [{label, url, title}], built by renewal_service.bm_links. A plain
+   <details>, so it works without JavaScript; mart.js only closes it on an
+   outside click or Esc. Every link opens in a new tab. #}
+{% macro links_menu(links, label="Links") %}
+<details class="menu">
+  <summary class="menu-btn" aria-label="{{ label }}" title="{{ label }}">⋯</summary>
+  <div class="menu-list" role="menu">
+    {% for l in links %}<a role="menuitem" href="{{ l.url }}" target="_blank" rel="noopener noreferrer" title="{{ l.title }} (new tab)">{{ l.label }} ↗</a>
+    {% else %}<span class="menu-empty">No BM+ links yet: the cross-client Renewal Tracker carries the policy link, the Task Tracker the task links.</span>{% endfor %}
+  </div>
+</details>
+{% endmacro %}
