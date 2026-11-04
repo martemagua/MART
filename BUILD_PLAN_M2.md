@@ -21,6 +21,7 @@ Status: **planned** (04.11.2026, after the M1 review). The foundations of M1
 | Stale overview | amber after **7 days** without a new overview entry, red after **14**; both in Settings → Time limits |
 | New overview entry | by the **date written on the entry** (its `DD MMM YYYY:` header); entries dated within the last N days are new (N in Settings, proposed 7) |
 | Which entries count | **all** of them; "client ready" is a toggle that is sometimes forgotten |
+| Broker deadline vs to-do | **two different things** (Martin, 04.11.2026): a **broker deadline belongs to a bundle**, the date you expect an update on those renewals; a **to-do** is a task of your own about renewals or countries |
 | Broker deadline fulfilled | **you confirm it**; MART only points out a new entry dated on or after the promise |
 | Prefill | from the Renewal Strategy sheet's **"Expected date to receive the final renewal terms"** when BM+ has it |
 | Reminders | **inside MART** (Home); the AI agent (M4) and an email brief later |
@@ -34,31 +35,30 @@ Status: **planned** (04.11.2026, after the M1 review). The foundations of M1
 | Day | Increment | What you can try |
 |---|---|---|
 | 1 | **Overview freshness.** Each renewal gets the date of its newest overview entry and a state: fresh / amber (≥ 7 days) / red (≥ 14). Entries dated within the last N days are marked **new**. Shown on the renewal cards, rolled up per bundle in the side panel (the worst one wins) and in the renewal panel's overview. The two limits and N in Settings → Time limits | open a client: spot the quiet bundles in the side panel, and the new entries in a renewal's overview |
-| 2 | **Richer to-dos.** A to-do gets a **description**, **subtasks** (tick them one by one; "2 of 3" on the to-do), **urgency** (urgent / normal / low) and **delegated / waiting on** (whom: you, broker, insurer, client, colleague; since when). Status: open → in progress → waiting → done. Existing to-dos keep everything they have | turn one real to-do into a checklist, hand one to a broker, mark one urgent |
-| 3 | **Broker deadlines.** A deadline is a to-do *waiting on* someone with a **promised date** (see the design note below). Prefilled from BM+'s expected-terms date when there is one (shown as "from BM+", yours to keep, change or drop). A future deadline **pauses the stale clock**; a passed one turns red until you confirm it. MART points out a new overview entry dated on or after the promise | record "terms by 15.11" from a broker mail; see a prefilled one from BM+; confirm one |
+| 2 | **Richer to-dos** (your own tasks). A to-do gets a **description**, **subtasks** (tick them one by one; "2 of 3" on the to-do), **urgency** (urgent / normal / low) and **delegated / waiting on** (whom: you, broker, insurer, client, colleague; since when). Status: open → in progress → waiting → done. Existing to-dos keep everything they have | turn one real to-do into a checklist, hand one to a broker, mark one urgent |
+| 3 | **Broker deadlines on bundles.** A bundle gets an **expected update date** ("terms by 15.11", who promised it, an optional note), set from the bundle header with a ✎ like its name. Prefilled from BM+'s expected-terms date of its renewals (see below), shown as "from BM+", yours to keep, change or drop. While the date is ahead, the bundle's renewals are **not stale**; once it has passed, the bundle turns red until you confirm the update arrived (or set a new date). MART points out a new overview entry dated on or after the promise. The date shows in the side panel, on Home and on each renewal of the bundle | set "terms by 15.11" on a bundle from a broker mail; see a prefilled one; confirm one |
 | 4 | **Home: "Today".** One list of what needs you: deadlines due or passed, to-dos due or overdue (urgent first), renewals gone red, new overview entries since yesterday. Below it, a simple card per client (renewals in flight, next renewal date, counts of the above). Adjusted from your use | start a day from Home; tell me what is missing or in the way |
 | 5 | **Hardening + M2 review.** Speed on a full book, upload edge cases found on the way, wording; a day of real work | use M2 for a full day; list what's missing |
 
 ---
 
-## Design note to confirm on day 1: one reminder system
+## Broker deadlines: decided (Martin, 04.11.2026)
 
-PLANNING §2 asks for **one reminder engine**, not to-dos + deadlines +
-chasers as separate things. With "delegated / waiting on" and a due date, a
-to-do already says *"waiting on Broker A, by 15.11"*. So M2 proposes:
+The plan first proposed one reminder system (a deadline as a to-do waiting
+on someone). Martin decided otherwise, and it fits how the work runs:
 
-- a **broker deadline is a to-do** that waits on someone and carries a
-  promised date. It shows on the to-do lists, on Home, and in the renewal
-  or bundle it belongs to, like every other to-do;
-- what makes it a deadline: it **pauses the stale clock** of its renewal or
-  bundle until the date, and on the date it turns red until you confirm it;
-- the BM+ prefill creates such a to-do once per renewal cycle, marked
-  "from BM+"; if BM+'s date changes later, MART shows the new date beside it
-  instead of moving yours.
-
-The alternative, a separate "deadlines" list next to the to-dos, is closer
-to the first PLANNING sketch but means two places to look. Decide before
-day 3.
+- a **broker deadline belongs to a bundle**: when you expect updates for
+  those renewals. One open deadline per bundle at a time; confirmed ones
+  stay in the bundle's history;
+- a **to-do** is something *you* have to get done, about renewals or
+  countries. To-dos keep their own list, with the M2 extras (day 2);
+- **BM+ prefill**: BM+ writes "Expected date to receive the final renewal
+  terms" per renewal. A bundle without a deadline of yours gets the
+  **earliest** of its renewals' dates, with each renewal's own date shown
+  beside it; if BM+'s date changes later, MART shows the new one next to
+  yours instead of moving yours;
+- the deadline hangs on the bundle like its notes do: a renewal moved to
+  another bundle follows that bundle's deadline.
 
 ---
 
@@ -69,6 +69,9 @@ day 3.
   with a draft email (later, with the chaser ladder)?
 - **F3** "Waiting on X since Y" comes with the richer to-dos; simple
   dependencies between to-dos stay out unless you miss them.
+- **M2c** To-dos "about countries": today a to-do sits on a renewal, a
+  bundle (= country + date) or the client. Is a to-do on a client's
+  *country* as a whole (all its bundles there) needed? Answer before day 2.
 
 ## M2 review (after a full day of real work)
 

@@ -117,8 +117,9 @@ Mercedes-Benz Group AG
   stores `latest_overview_date`. This can be reused directly.
 
 ### Broker deadlines ("they said they'd update by …")
-- A **deadline** = (renewal or bundle, who promised, what, expected date,
-  source note).
+- A **deadline** = (**bundle**, who promised, what, expected date, source
+  note): when Martin expects updates on those renewals. Separate from
+  to-dos, which are his own tasks (Martin, 04.11.2026).
 - **Confirmed by Martin**, never closed automatically (QUESTIONS E4); MART
   points out a new overview entry dated on or after the promise.
 - **Prefilled** from the Renewal Strategy sheet's "Expected date to receive

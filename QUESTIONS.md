@@ -240,3 +240,9 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 **M2a ⭐** **Richer to-dos** (to discuss when M2 starts). They already hang on a renewal, a bundle or a client and have a due date. Martin's starting points, from Microsoft To Do / Planner and Google Tasks: **subtasks**, **notes** on the to-do, **urgency**, **delegation** (who it was handed to / who we are waiting on). Open: which of these, what a status set looks like (e.g. open / in progress / waiting / done), and how broker deadlines and Home's "Today" use them.
 → Agreed 04.11.2026: designed in M2 together with broker deadlines and Home; a **to-do board** (cards = to-dos, columns = status) comes in M3, built on the same board code as the renewal Kanban.
 → **Answered 04.11.2026 (M1 review):** all four: **subtasks** (a checklist inside a to-do), a **description**, **urgency**, and **delegated / waiting on** (who it is with, since when). See BUILD_PLAN_M2.md.
+
+**M2b ⭐** Is a broker deadline a to-do that waits on someone (one list), or a thing of its own?
+→ **Answered 04.11.2026:** its own thing. **Broker deadlines are linked to the bundles**: when Martin expects updates for those renewals. **To-dos are other tasks** he has to get done regarding the renewals or countries. See BUILD_PLAN_M2.md.
+
+**M2c** To-dos "regarding countries": a to-do sits today on a renewal, a bundle (country + date) or the client. Should a to-do also sit on a client's *country* as a whole, across its bundles there?
+→
