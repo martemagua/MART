@@ -100,7 +100,7 @@ def test_only_my_targets_and_real_text(book, app):
         conn.execute("UPDATE clients SET is_mine = 0 WHERE name = 'Globex'")
     for data in ({"scope": "renewal", "ref": str(other), "title": "x"},          # not my client
                  {"scope": "renewal", "ref": "99999", "title": "x"},             # no such renewal
-                 {"scope": "client", "ref": "1", "title": "x"},                  # not a target
+                 {"scope": "policy", "ref": "1", "title": "x"},                  # not a target
                  {"scope": "renewal", "ref": str(book["med"]), "title": "  "},   # empty
                  {"scope": "renewal", "ref": str(book["med"]), "title": "x", "due": "31.12.2026"}):
         assert post(app, "/todos/add", data).status == 400, data
@@ -128,3 +128,45 @@ def test_uploads_never_touch_notes(book):
     m = ns.for_renewal({"id": book["life"], "client_id": book["cid"], "country": "Poland",
                         "renewal_date": "2027-01-01"})
     assert m["todos"][0]["title"] == "keep me too"
+
+
+def test_client_notes_space(book, app):
+    cid = book["cid"]
+    url = f"/clients/{cid}/notes"
+    page = _page(app, url)
+    assert "Notes and to-dos on Acme Group" in page and "Client notes &amp; to-dos" in page
+    r = post(app, "/notes/add", {"scope": "client", "ref": str(cid), "body": "HR contact changes in Jan",
+                                 "back": url})
+    assert dict(r.headers)["Location"] == url + "#mine"
+    ns.add_todo("client", str(cid), "Plan the annual review", "2026-12-01")
+    assert "HR contact changes in Jan" in _page(app, url)
+    clients = _page(app, "/clients")
+    assert f'href="/clients/{cid}/notes"' in clients and "☐ 1" in clients and "✎ 1" in clients
+    todo = next(t for t in ns.todo_list()["open"] if t["title"] == "Plan the annual review")
+    assert todo["target"] == {"kind": "client", "country": None, "renewal_date": None,
+                              "name": "client notes", "url": url}
+    assert post(app, "/notes/add", {"scope": "client", "ref": "999", "body": "x"}).status == 400
+    assert get(app, "/clients/999/notes").status == 404
+
+
+def test_notes_of_earlier_cycles_show_on_the_renewal(configured, app):
+    from datetime import datetime
+
+    from tests.fixtures import hexid
+    stable = hexid(1, "7")
+    _load(renewal_tracker([R(n=3, policy="Medical", stable=stable, renewal_date=datetime(2026, 1, 1, 1, 0))],
+                          report_date="01 Oct 2025"))
+    _load(renewal_tracker([R(n=1, policy="Medical", stable=stable), R(n=2, policy="Life")]))
+    with connection() as conn:
+        rows = {(r["policy_name"], r["renewal_date"]): dict(r)
+                for r in conn.execute("SELECT * FROM renewals")}
+    old, new = rows[("Medical", "2026-01-01")], rows[("Medical", "2027-01-01")]
+    life = rows[("Life", "2027-01-01")]
+    ns.add_note("renewal", str(old["id"]), "Last year HR wanted quotes by October")
+    ns.add_note("renewal", str(life["id"]), "a different policy")
+    earlier = ns.for_renewal(new)["earlier"]
+    assert [n["body"] for n in earlier] == ["Last year HR wanted quotes by October"]
+    assert earlier[0]["cycle"]["renewal_date"] == "2026-01-01"
+    page = _page(app, f"/clients/{new['client_id']}/renewals/{new['id']}")
+    assert "Notes from earlier renewals of this policy (1)" in page and "renewal 01.01.2026" in page
+    assert ns.for_renewal(life)["earlier"] == []

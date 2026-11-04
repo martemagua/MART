@@ -49,7 +49,7 @@
 
 {# The section: to-dos + notes on `target`, with add forms. `also` = notes
    and to-dos of the bundle, shown read-only with a link (renewal panel). #}
-{% macro mine_section(m, back, heading="Your to-dos and notes", also=none, also_url=none) %}
+{% macro mine_section(m, back, heading="Your to-dos and notes", also=none, also_url=none, earlier=none) %}
 <section class="rd-section sec-mine" id="mine" aria-labelledby="mine-h">
   <h3 id="mine-h">{{ heading }} <span class="sec-src">written in MART</span></h3>
   <div class="mine-cols">
@@ -76,6 +76,12 @@
       {% if m.notes | length > 3 %}<details class="done-fold"><summary>{{ m.notes | length - 3 }} older note{{ "s" if m.notes | length - 3 != 1 }}</summary><ul class="note-list">{% for n in m.notes[3:] %}{{ note_item(n, back) }}{% endfor %}</ul></details>{% endif %}
     </div>
   </div>
+  {% if earlier %}
+  <details class="mine-also mine-earlier">
+    <summary><h4>Notes from earlier renewals of this policy ({{ earlier | length }})</h4></summary>
+    {% for n in earlier %}<div class="note is-ro"><div class="note-head"><a href="{{ n.url }}">renewal {{ n.cycle.renewal_date | dmy or "without date" }}</a><span>· {{ n.created_at | dmy(True) }}</span></div><div class="note-body">{{ n.body }}</div></div>{% endfor %}
+  </details>
+  {% endif %}
   {% if also and (also.notes or also.todos | rejectattr("done_at") | list) %}
   <div class="mine-also">
     <h4>On the whole bundle <a class="small" href="{{ also_url }}">open the bundle →</a></h4>

@@ -6,6 +6,24 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.5.1 — 04.11.2026 · client notes; notes from earlier renewals
+
+### Added
+- **Client notes and to-dos** (Martin, 04.11.2026): a space for things about
+  the client as a whole. "Client notes & to-dos" at the top of the
+  explorer's side panel opens it in the middle; the Clients list shows its
+  counts next to the client. Client to-dos are on the To-dos page and Home
+  like the others.
+- **Notes from earlier renewals of the policy** on a renewal panel
+  (Martin: "see legacy notes from past renewals"): folded under "Notes from
+  earlier renewals of this policy", read-only, each with its renewal date
+  and a link to that renewal. Cycles are matched by BM+'s stable policy id,
+  so the history grows with every renewal MART keeps.
+
+### What to try
+Write a client note; open a renewal whose policy MART had last year (from
+next year on, as MART keeps the renewals) to see last year's notes.
+
 ## 0.5.0 — 04.11.2026 · M1 day 5 · notes and to-dos
 
 ### Added

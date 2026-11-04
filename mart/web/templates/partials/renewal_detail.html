@@ -41,7 +41,7 @@
   {% else %}<p class="muted">No Task Tracker loaded for this client yet. Upload one to see the stages, assignees and peer review.</p>{% endif %}
 </section>
 
-{{ mine_section(mine, here, also=mine.bundle, also_url="/clients/" ~ client.id ~ "?bundle=" ~ (selected.key | urlencode) ~ "&group=" ~ group ~ "#mine") }}
+{{ mine_section(mine, here, earlier=mine.earlier, also=mine.bundle, also_url="/clients/" ~ client.id ~ "?bundle=" ~ (selected.key | urlencode) ~ "&group=" ~ group ~ "#mine") }}
 
 <div class="rd-cols">
   <section class="rd-section" aria-labelledby="facts-h">
