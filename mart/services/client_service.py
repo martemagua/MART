@@ -15,7 +15,7 @@ from datetime import date, datetime
 from typing import Any
 
 from mart.ingestion import overview as ov
-from mart.repository import bundles_repo, clients_repo, renewals_repo, tasks_repo
+from mart.repository import bundles_repo, clients_repo, notes_repo, renewals_repo, tasks_repo
 from mart.repository.db import connection
 from mart.services import bundles as bx
 from mart.services import preferences, renewal_service
@@ -107,9 +107,13 @@ def _mine(conn, client_id: int) -> dict[str, Any]:
     return client
 
 
-def _new_bundle(key: str, country: str, today: date, custom: dict[str, Any] | None = None) -> dict[str, Any]:
+def _new_bundle(key: str, country: str, today: date, custom: dict[str, Any] | None = None,
+                name: str | None = None) -> dict[str, Any]:
+    """`extra` = the bundle's name: a custom bundle's own, or the one Martin
+    gave a default bundle."""
     return {"key": key, "country": country, "renewal_date": None, "last_date": None, "days_until": None,
-            "extra": custom["name"] if custom else "", "custom_id": custom["id"] if custom else None,
+            "extra": custom["name"] if custom else (name or ""),
+            "custom_id": custom["id"] if custom else None,
             "renewals": [], "flags": Counter(), "left": 0, "search": []}
 
 
@@ -128,6 +132,8 @@ def explorer(client_id: int, bundle: str | None = None, group: str = "date",
         tasks = tasks_repo.for_client(conn, client_id)
         customs = bundles_repo.custom_bundles(conn, client_id)
         placed = bundles_repo.placements(conn, client_id)
+        names = bundles_repo.names(conn, client_id)
+        with_notes = notes_repo.bundle_keys_with_content(conn, client_id)
 
     left_count = sum(1 for r in renewals if not r["in_latest_export"])
     shown = [r for r in renewals if show_all or r["in_latest_export"]]
@@ -139,7 +145,8 @@ def explorer(client_id: int, bundle: str | None = None, group: str = "date",
         custom = customs.get(placed.get(r["id"]))
         key = bx.custom_key(custom["id"]) if custom else bx.default_key(r["country"], r["renewal_date"])
         where[r["id"]] = key
-        b = bundles.setdefault(key, _new_bundle(key, (custom or r)["country"] or "—", today, custom))
+        b = bundles.setdefault(key, _new_bundle(key, (custom or r)["country"] or "—", today, custom,
+                                                names.get(key)))
         rd = r["renewal_date"]
         if rd and (b["renewal_date"] is None or rd < b["renewal_date"]):
             b["renewal_date"] = rd
@@ -150,6 +157,15 @@ def explorer(client_id: int, bundle: str | None = None, group: str = "date",
         b["flags"][ov.flag(f.get("overview_all"), f.get("overview_client_ready"))["state"]] += 1
         b["left"] += int(not r["in_latest_export"])
         b["search"] += [r["policy_name"] or "", r["entity"] or "", r["insurer"] or "", b["extra"]]
+    # a bundle all of whose renewals moved away stays while it carries notes
+    # or open to-dos, so nothing written is lost
+    for key in sorted(with_notes - set(bundles)):
+        custom = customs.get(bx.custom_id(key)) if bx.custom_id(key) is not None else None
+        if custom:
+            bundles[key] = _new_bundle(key, custom["country"], today, custom)
+        elif bx.is_default_key(key):
+            country, rdate = bx.split_default(key)
+            bundles[key] = {**_new_bundle(key, country, today, None, names.get(key)), "renewal_date": rdate}
     for b in bundles.values():
         b["days_until"] = _days_until(b["renewal_date"], today)
     ordered = sorted(bundles.values(), key=lambda b: (b["renewal_date"] or "9999", b["country"], b["extra"]))

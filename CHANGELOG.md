@@ -20,6 +20,12 @@ laptop.
   its header; "their own bundle (country + date)" moves renewals back. A
   bundle never mixes countries. An emptied custom bundle is kept and offered
   again. Placements are yours and survive every upload.
+- **Name any bundle**: Rename / "Name this bundle" on the bundle header. A
+  default bundle then reads "Poland · 01.01.2027 · *your name*"; clear the
+  name to go back to country + date.
+- **A bundle whose renewals all moved away stays** while it carries notes or
+  open to-dos (0 renewals, "No renewals left in this bundle…"), so nothing
+  you wrote is lost; without any, it simply goes.
 - Custom bundles work like the others: notes and to-dos on them, on the To-dos
   page as "bundle “name”", counted on the Clients list.
 - **History** on the renewal panel (folded, after the overview): every

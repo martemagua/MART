@@ -35,7 +35,7 @@
     {% if r.id_missing %}<span class="pill pill-soft">no BM+ id</span>{% endif %}
   </div>
   <div class="rd-bundle">
-    <span class="muted small">Bundle: <a href="/clients/{{ client.id }}?bundle={{ selected.key | urlencode }}&group={{ group }}">{% if selected.custom_id %}{{ selected.extra }}{% else %}{{ selected.country }} · {{ selected.renewal_date | dmy or "no date" }}{% endif %}</a></span>
+    <span class="muted small">Bundle: <a href="/clients/{{ client.id }}?bundle={{ selected.key | urlencode }}&group={{ group }}">{% if selected.custom_id %}{{ selected.extra }}{% else %}{{ selected.country }} · {{ selected.renewal_date | dmy or "no date" }}{% if selected.extra %} · {{ selected.extra }}{% endif %}{% endif %}</a></span>
     <details class="arrange">
       <summary class="btn btn-small">Move to another bundle</summary>
       <div class="arrange-box">{{ move_form(base, group, selected, "move-one", here, one=r.id) }}</div>

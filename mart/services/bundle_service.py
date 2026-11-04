@@ -64,9 +64,20 @@ def move(client_id: int, renewal_ids: list[int], target: str, new_name: str | No
         return bx.custom_key(bid)
 
 
-def rename(client_id: int, bundle_id: int, name: str | None) -> str:
+def rename(client_id: int, key: str, name: str | None) -> str:
+    """Name a bundle. A custom bundle must keep a name; a default bundle's
+    name can be cleared (it is then country + date again)."""
     with connection() as conn:
-        if bundle_id not in bundles_repo.custom_bundles(conn, client_id):
+        client = clients_repo.get(conn, client_id)
+        if not client or client["is_mine"] != 1:
+            raise Invalid("This client is not one of yours.")
+        bundle_id = bx.custom_id(key)
+        if bundle_id is not None:
+            if bundle_id not in bundles_repo.custom_bundles(conn, client_id):
+                raise Invalid("This bundle doesn't exist.")
+            bundles_repo.rename(conn, bundle_id, _name(name))
+        elif bx.is_default_key(key):
+            bundles_repo.set_name(conn, client_id, key, _name(name) if (name or "").strip() else None)
+        else:
             raise Invalid("This bundle doesn't exist.")
-        bundles_repo.rename(conn, bundle_id, _name(name))
-    return bx.custom_key(bundle_id)
+    return key

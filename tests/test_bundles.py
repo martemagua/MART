@@ -102,12 +102,14 @@ def test_a_bundle_keeps_to_one_country(book, app):
 def test_rename_and_survive_uploads(book):
     cid, ids = book
     key = bs.move(cid, [ids[("Medical", "Poland")], ids[("Life", "Poland")]], bs.NEW, "Acme Polska")
-    bs.rename(cid, bx.custom_id(key), "Acme Polska (one BM+ policy)")
+    bs.rename(cid, key, "Acme Polska (one BM+ policy)")
     _load(_book(report_date="10 Nov 2026", changes={1: {"status": "Completed"}}))
     b = next(b for g in cs.explorer(cid)["groups"].values() for b in g if b["key"] == key)
     assert b["extra"] == "Acme Polska (one BM+ policy)" and len(b["renewals"]) == 2
     with pytest.raises(bs.Invalid):
-        bs.rename(cid, 999, "x")
+        bs.rename(cid, "custom|999", "x")
+    with pytest.raises(bs.Invalid):
+        bs.rename(cid, key, "  ")                  # a custom bundle keeps a name
 
 
 def test_bundle_notes_on_a_custom_bundle(book, app):
@@ -153,3 +155,30 @@ def test_unchanged_upload_records_nothing(book):
     _load(_book(report_date="05 Nov 2026"))
     with connection() as conn:
         assert {r["field"] for r in conn.execute("SELECT field FROM changes")} == {"_seen"}
+
+
+def test_name_a_default_bundle(book, app):
+    cid, _ = book
+    r = post(app, f"/clients/{cid}/bundles/rename", {"key": POLAND, "name": "Acme Polska programme"})
+    assert r.status == 303
+    page = get(app, f"/clients/{cid}?bundle={POLAND}").body_bytes.decode()
+    assert "Poland · 01.01.2027 · <span class=\"title-extra\">Acme Polska programme</span>" in page
+    b = next(b for g in cs.explorer(cid)["groups"].values() for b in g if b["key"] == POLAND)
+    assert b["extra"] == "Acme Polska programme" and b["custom_id"] is None
+    bs.rename(cid, POLAND, "")                      # cleared: country + date again
+    b = next(b for g in cs.explorer(cid)["groups"].values() for b in g if b["key"] == POLAND)
+    assert b["extra"] == ""
+    assert post(app, f"/clients/{cid}/bundles/rename", {"key": "nonsense", "name": "x"}).status == 400
+
+
+def test_an_emptied_bundle_with_notes_stays(book, app):
+    cid, ids = book
+    ns.add_todo("bundle", ns.bundle_ref(cid, POLAND), "Chase the Poland broker", None)
+    bs.move(cid, [ids[("Medical", "Poland")], ids[("Life", "Poland")]], bs.NEW, "Everything Poland")
+    b = next(b for g in cs.explorer(cid)["groups"].values() for b in g if b["key"] == POLAND)
+    assert b["renewals"] == []                      # still listed, with its to-do
+    page = get(app, f"/clients/{cid}?bundle={POLAND}").body_bytes.decode()
+    assert "No renewals left in this bundle" in page and "Chase the Poland broker" in page
+    # without notes or to-dos, an emptied default bundle simply goes
+    bs.move(cid, [ids[("Dental", "Poland")]], bs.NEW, "Dental")
+    assert "Poland|2027-03-01" not in _bundles(cid)

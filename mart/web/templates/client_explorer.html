@@ -74,7 +74,7 @@
         {% if s.custom_id %}
         <h2 class="bundle-title">{{ s.country }} · <span class="title-extra">{{ s.extra }}</span></h2>
         {% else %}
-        <h2 class="bundle-title">{{ s.country }} · {{ s.renewal_date | dmy or "no renewal date" }}</h2>
+        <h2 class="bundle-title">{{ s.country }} · {{ s.renewal_date | dmy or "no renewal date" }}{% if s.extra %} · <span class="title-extra">{{ s.extra }}</span>{% endif %}</h2>
         {% endif %}
         <p class="muted">
           {% if s.custom_id and s.last_date and s.last_date != s.renewal_date %}renewals {{ s.renewal_date | dmy }} – {{ s.last_date | dmy }} · {% elif s.custom_id %}renews {{ s.renewal_date | dmy or "—" }} · {% endif %}
@@ -84,26 +84,31 @@
           {% if s.insurers %} · {{ s.insurers | join(", ") }}{% endif %}
         </p>
       </div>
-      {% if s.custom_id %}
       <details class="arrange">
-        <summary class="btn btn-small">Rename</summary>
-        <form method="post" action="{{ base }}/bundles/{{ s.custom_id }}/rename" class="arrange-box stack-form">
-          <input type="hidden" name="group" value="{{ group }}">
-          <input type="text" name="name" value="{{ s.extra }}" required maxlength="120" aria-label="Bundle name">
+        <summary class="btn btn-small">{{ "Rename" if s.extra else "Name this bundle" }}</summary>
+        <form method="post" action="{{ base }}/bundles/rename" class="arrange-box stack-form">
+          <input type="hidden" name="key" value="{{ s.key }}"><input type="hidden" name="group" value="{{ group }}">
+          <input type="text" name="name" value="{{ s.extra }}" maxlength="120" aria-label="Bundle name" {% if s.custom_id %}required{% endif %} placeholder="e.g. Broker A, or the BM+ policy it belongs to">
+          {% if not s.custom_id %}<p class="hint">Leave empty to show it as {{ s.country }} · {{ s.renewal_date | dmy or "no date" }} again.</p>{% endif %}
           <div class="actions"><button type="submit" class="btn btn-small">Save name</button></div>
         </form>
       </details>
-      {% endif %}
+      {% if s.renewals %}
       <dl class="mix">
         <div><dt>Strategy</dt><dd>{% for k, n in s.strategies.most_common() %}<span class="pill pill-soft">{{ k }}{% if n > 1 %} ×{{ n }}{% endif %}</span>{% endfor %}</dd></div>
         <div><dt>BM+ workflow</dt><dd>{% for k, n in s.statuses.most_common() %}<span class="pill pill-soft">{{ k }}{% if n > 1 %} ×{{ n }}{% endif %}</span>{% endfor %}</dd></div>
       </dl>
+      {% endif %}
     </header>
 
     {{ mine_section(bundle_mine, here, heading="To-dos and notes on this bundle") }}
 
+    {% if not s.renewals %}
+    <div class="card empty"><p>No renewals left in this bundle: they were moved to other bundles. Its notes and to-dos stay here.</p></div>
+    {% else %}
     {% from "partials/move.html" import move_form %}
     {{ move_form(base, group, s, "move-form", here) }}
+    {% endif %}
 
     <div class="renewal-list">
       {% for r in s.renewals %}

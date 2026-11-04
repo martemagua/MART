@@ -186,6 +186,13 @@ MIGRATIONS: list[tuple[int, str]] = [
             updated_at  TEXT
         );
         CREATE INDEX ix_custom_bundles_client ON custom_bundles(client_id);
+        -- A name Martin gives a DEFAULT bundle (custom bundles carry their own).
+        CREATE TABLE bundle_names (
+            client_id   INTEGER NOT NULL REFERENCES clients(id),
+            bundle_key  TEXT NOT NULL,          -- "<country>|<renewal date>"
+            name        TEXT NOT NULL,
+            PRIMARY KEY (client_id, bundle_key)
+        );
         -- Which renewal sits in which custom bundle (none = its default one).
         CREATE TABLE renewal_bundles (
             renewal_id  INTEGER PRIMARY KEY REFERENCES renewals(id),

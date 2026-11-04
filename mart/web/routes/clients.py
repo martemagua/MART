@@ -82,10 +82,10 @@ def bundle_move(request: Request, client_id: int) -> Response:
     return _to_bundle(request, client_id, key)
 
 
-@router.route("/clients/{client_id:int}/bundles/{bundle_id:int}/rename", methods=("POST",))
-def bundle_rename(request: Request, client_id: int, bundle_id: int) -> Response:
+@router.route("/clients/{client_id:int}/bundles/rename", methods=("POST",))
+def bundle_rename(request: Request, client_id: int) -> Response:
     try:
-        key = bundle_service.rename(client_id, bundle_id, request.arg("name"))
+        key = bundle_service.rename(client_id, request.arg("key") or "", request.arg("name"))
     except bundle_service.Invalid as exc:
         raise HTTPError(400, str(exc)) from exc
     return _to_bundle(request, client_id, key)

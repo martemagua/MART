@@ -24,3 +24,14 @@ def custom_id(key: str) -> int | None:
     """The custom bundle id in a key, or None for a default bundle."""
     kind, _, rest = key.partition("|")
     return int(rest) if kind == CUSTOM and rest.isdigit() else None
+
+
+def is_default_key(key: str) -> bool:
+    country, sep, rdate = key.partition("|")
+    return bool(sep) and country != CUSTOM and "|" not in rdate and (rdate == NO_DATE or rdate[:4].isdigit())
+
+
+def split_default(key: str) -> tuple[str, str | None]:
+    """(country, renewal date or None) of a default key."""
+    country, _, rdate = key.partition("|")
+    return country, None if rdate == NO_DATE else rdate

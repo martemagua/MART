@@ -43,3 +43,18 @@ def place(conn: sqlite3.Connection, renewal_ids: list[int], bundle_id: int | Non
 def all_custom(conn: sqlite3.Connection) -> dict[int, dict[str, Any]]:
     """Every custom bundle (for naming targets in lists across clients)."""
     return {r["id"]: dict(r) for r in conn.execute("SELECT * FROM custom_bundles")}
+
+
+def names(conn: sqlite3.Connection, client_id: int) -> dict[str, str]:
+    """default bundle key -> the name Martin gave it."""
+    return {r["bundle_key"]: r["name"] for r in conn.execute(
+        "SELECT bundle_key, name FROM bundle_names WHERE client_id = ?", (client_id,))}
+
+
+def set_name(conn: sqlite3.Connection, client_id: int, key: str, name: str | None) -> None:
+    if not name:
+        conn.execute("DELETE FROM bundle_names WHERE client_id = ? AND bundle_key = ?", (client_id, key))
+        return
+    conn.execute("""INSERT INTO bundle_names (client_id, bundle_key, name) VALUES (?, ?, ?)
+                    ON CONFLICT (client_id, bundle_key) DO UPDATE SET name = excluded.name""",
+                 (client_id, key, name))
