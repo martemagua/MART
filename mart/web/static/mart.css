@@ -318,9 +318,6 @@ a.rc-name:hover { color: var(--accent); text-decoration: underline; }
 .rd-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 14px; min-width: 0; }
 .rd-section h3 { font-size: 16px; margin: 0 0 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .rd-section h4 { font-size: 13px; color: var(--muted); margin: 14px 0 6px; text-transform: uppercase; letter-spacing: 0.04em; }
-.rd-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.rd-cols .rd-section { margin-bottom: 14px; }
-@media (max-width: 1320px) { .rd-cols { grid-template-columns: minmax(0, 1fr); } }
 .sec-src { font-size: 12px; font-weight: 400; color: var(--muted); }
 .sec-old { color: var(--warn-ink); background: var(--warn-bg); border-radius: 4px; padding: 1px 6px; }
 .rd-fold > summary { cursor: pointer; font-weight: 600; }
@@ -329,6 +326,9 @@ a.rc-name:hover { color: var(--accent); text-decoration: underline; }
 /* In the renewal panel the label never takes more than ~40%: long BM+
    questions wrap, so the answer keeps room and words are not split. */
 .rd-section .facts:not(.facts-wide) { grid-template-columns: minmax(8rem, 40%) minmax(0, 1fr); }
+/* (after the rule above, which it overrides) The Renewal section's short facts: two label / value pairs per row (one in narrow windows). */
+.rd-section .facts.facts-2col { grid-template-columns: minmax(8rem, max-content) minmax(0, 1fr) minmax(8rem, max-content) minmax(0, 1fr); column-gap: 16px; }
+@media (max-width: 1100px) { .rd-section .facts.facts-2col { grid-template-columns: minmax(8rem, 40%) minmax(0, 1fr); } }
 
 /* ── What Martin writes (partials/mine.html): kept apart from BM+ data ── */
 .sec-mine { border-left: 4px solid var(--accent); }

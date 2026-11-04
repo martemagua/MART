@@ -145,3 +145,15 @@ def test_cards_put_the_name_on_top_and_the_policy_number_under_the_entity(app):
     assert all(c.index('class="rc-name"') < c.index('class="renewal-row"') for c in card)
     assert page.count("Policy no. PL-4711") == 1 and page.count("Policy no.") == 1
     assert '<div class="rc-label">Entity</div>' in page
+
+
+def test_renewal_panel_stacks_renewal_and_strategy(app):
+    """Martin, 04.11.2026: the strategy holds much more than the renewal's
+    facts, so the two sections are stacked; the short facts sit two per row."""
+    cid = _load(_book())
+    with connection() as conn:
+        rid = conn.execute("SELECT id FROM renewals WHERE policy_name = 'Medical'").fetchone()["id"]
+    page = get(app, f"/clients/{cid}/renewals/{rid}").body_bytes.decode()
+    assert "rd-cols" not in page and '<dl class="facts facts-2col">' in page
+    assert page.index('id="facts-h"') < page.index('id="strat-h"')
+    assert "group=" not in page

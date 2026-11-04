@@ -70,7 +70,7 @@ before changing anything.
 - Jinja: never `x.items` / `x.keys` / `x.values` on a dict — that is the
   dict METHOD; write `x["items"]`.
 - The renewal panel keeps a FIXED section order (glance → stages → YOUR
-  to-dos and notes → facts + strategy → proposals → savings → overview → the
+  to-dos and notes → facts (two pairs per row) → strategy, stacked → proposals → savings → overview → the
   rest), so each section is always in the same place. Everything except
   "yours" is BM+ data, read-only; what Martin writes carries the
   `.sec-mine` rail ("written in MART") and is never mixed into BM+ sections.

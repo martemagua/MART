@@ -6,6 +6,21 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.7.5 — 04.11.2026 · renewal panel: Renewal and Strategy stacked
+
+### Changed (Martin's note on 0.7.4)
+- **Renewal and Strategy are stacked** in the renewal panel instead of side
+  by side: the strategy section holds much more. The Renewal section's
+  short facts (insurer, period, kick-off, benefit owner, …) sit **two per
+  row**, one per row in a narrow window.
+
+### Fixed
+- The renewal panel's link to its bundle's notes still carried the removed
+  "group" setting in its address (harmless, now gone).
+
+### What to try
+Open a renewal: Renewal on top in two columns, Strategy below it.
+
 ## 0.7.4 — 04.11.2026 · moving renewals in an edit mode
 
 ### Changed (Martin's note on 0.7.3)

@@ -11,8 +11,8 @@
 
 {% macro older(key) %}{% if key in detail.older %}<span class="sec-src sec-old" title="The latest export didn't include this sheet, so MART kept what an earlier one said.">from the export of {{ detail.older[key] | dmy or "an earlier upload" }}</span>{% endif %}{% endmacro %}
 
-{% macro facts(items) %}
-<dl class="facts">{% for label, val in items %}<dt>{{ label }}</dt><dd>{% if val is string and val[:4] | int and val[4:5] == "-" %}{{ val | dmy }}{% else %}{{ val }}{% endif %}</dd>{% endfor %}</dl>
+{% macro facts(items, cls="") %}
+<dl class="facts {{ cls }}">{% for label, val in items %}<dt>{{ label }}</dt><dd>{% if val is string and val[:4] | int and val[4:5] == "-" %}{{ val | dmy }}{% else %}{{ val }}{% endif %}</dd>{% endfor %}</dl>
 {% endmacro %}
 
 <header class="rd-head">
@@ -49,10 +49,11 @@
   {% else %}<p class="muted">No Task Tracker loaded for this client yet. Upload one to see the stages, assignees and peer review.</p>{% endif %}
 </section>
 
-{{ mine_section(mine, here, earlier=mine.earlier, also=mine.bundle, also_url="/clients/" ~ client.id ~ "?bundle=" ~ (selected.key | urlencode) ~ "&group=" ~ group ~ "#mine") }}
+{{ mine_section(mine, here, earlier=mine.earlier, also=mine.bundle, also_url="/clients/" ~ client.id ~ "?bundle=" ~ (selected.key | urlencode) ~ "#mine") }}
 
-<div class="rd-cols">
-  <section class="rd-section" aria-labelledby="facts-h">
+{# Renewal and Strategy stacked (Martin, 04.11.2026): the strategy holds much
+   more; the renewal's short facts sit two pairs per row. #}
+<section class="rd-section" aria-labelledby="facts-h">
     <h3 id="facts-h">Renewal</h3>
     {{ facts([
       ("Insurer", r.insurer), ("Upcoming insurer", f.insurer_upcoming if f.insurer_upcoming != r.insurer else None),
@@ -63,7 +64,7 @@
       ("Plan design changes considered", f.pdc_considered), ("Plan design comments", f.pdc_comments),
       ("Date of local meeting", f.local_meeting_date), ("Client approval", f.client_approval_date),
       ("Benefit owner", f.benefit_owner), ("Local analyst", f.local_analyst),
-    ] | selectattr(1) | list) }}
+    ] | selectattr(1) | list, "facts-2col") }}
   </section>
   <section class="rd-section" aria-labelledby="strat-h">
     <h3 id="strat-h">Strategy <span class="sec-src">Renewal Strategy sheet</span> {{ older("strategy") }}</h3>
@@ -72,7 +73,6 @@
     {% if detail.claims %}<h4>Claims</h4>{{ facts(detail.claims) }}{% endif %}
     {% if detail.questions %}<h4>Client-specific questions</h4>{{ facts(detail.questions) }}{% endif %}
   </section>
-</div>
 
 <section class="rd-section" aria-labelledby="prop-h">
   <h3 id="prop-h">Proposals <span class="sec-src">first and final quote per insurer</span> {{ older("proposals") }}</h3>
