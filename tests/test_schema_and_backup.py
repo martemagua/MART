@@ -165,3 +165,23 @@ def test_hourly_backups_only_write_when_something_changed(db, tmp_path):
     time.sleep(0.3)
     thread.stop.set()
     assert len(bk.list_backups(out)) == 2
+
+
+def test_newest_backup_is_the_last_written_even_within_one_second(db, tmp_path):
+    """Backup names are stamped to the second; two in the same second (an
+    upload's backup and the hourly one) must still sort by when they were
+    written, not by their content hash, or a duplicate is written next."""
+    out = tmp_path / "same-second"
+    now = datetime(2026, 11, 4, 15, 0, 0)
+    first = bk.make_backup(db, out, keep=10, now=now)
+    # change the content until its hash sorts BEFORE the first one's (the bad case)
+    for i in range(200):
+        _write(db, f"v{i}")
+        second = bk.make_backup(db, out, keep=10, now=now)
+        if second.file.name < first.file.name:
+            break
+        second.file.unlink()
+    else:
+        pytest.skip("no hash sorted lower (very unlikely)")
+    assert bk.list_backups(out)[0].path == second.file
+    assert bk.make_backup(db, out, keep=10, now=now).status == "unchanged"

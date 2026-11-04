@@ -59,9 +59,12 @@ def list_backups(backup_dir: Path) -> list[BackupFile]:
         if not m or not entry.is_file():
             continue
         taken = datetime.strptime(m.group(1), "%Y-%m-%d_%H%M%S")
-        found.append(BackupFile(entry, taken, m.group(2), entry.stat().st_size))
-    found.sort(key=lambda b: (b.taken_at, b.path.name), reverse=True)
-    return found
+        st = entry.stat()
+        found.append((BackupFile(entry, taken, m.group(2), st.st_size), st.st_mtime_ns))
+    # names are stamped to the second: within one second, the file written
+    # last is the newest (never the content hash, which sorts arbitrarily)
+    found.sort(key=lambda bm: (bm[0].taken_at, bm[1]), reverse=True)
+    return [b for b, _ in found]
 
 
 def _snapshot(db_path: Path, target: Path) -> None:

@@ -19,6 +19,10 @@ laptop.
   many), besides the start and every upload.
 - **A backup just before a database upgrade**, so an upgrade can always be
   undone with `MART.bat restore`.
+- Two backups in the same second (an upload's and the hourly one) were
+  ordered by their content hash, so MART could take the older one for the
+  newest and write a duplicate; they are now ordered by when they were
+  written.
 - **A refused action explains itself and leads back**: "That didn't work",
   the reason, "Nothing was changed.", and a button back to the page you were
   on (the menu stays). Unexpected errors still name the log file.
