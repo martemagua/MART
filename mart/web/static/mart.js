@@ -124,6 +124,20 @@
       if (!window.confirm(f.getAttribute("data-confirm"))) e.preventDefault();
     });
   });
+  // Edit mode's move bar: "N selected", and Move only once something is ticked.
+  document.querySelectorAll("[data-move-form]").forEach(function (f) {
+    var count = f.querySelector("[data-pick-count]"), submit = f.querySelector("[data-pick-submit]");
+    if (!count || !f.id) return;
+    var boxes = document.querySelectorAll('input[type=checkbox][form="' + f.id + '"]');
+    function sync() {
+      var n = Array.prototype.filter.call(boxes, function (b) { return b.checked; }).length;
+      count.textContent = n ? n + " selected" : "Tick the renewals to move.";
+      if (submit) submit.disabled = n === 0;
+    }
+    boxes.forEach(function (b) { b.addEventListener("change", sync); });
+    f.querySelectorAll("[data-check-all]").forEach(function (b) { b.addEventListener("click", sync); });
+    sync();
+  });
   // [data-move-form]: the bundle name is only asked for a new bundle.
   document.querySelectorAll("[data-move-form]").forEach(function (f) {
     var target = f.querySelector("[data-move-target]"), name = f.querySelector("[data-move-name]");

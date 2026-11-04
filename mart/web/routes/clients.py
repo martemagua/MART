@@ -39,7 +39,7 @@ def client_explorer(request: Request, client_id: int) -> Response:
     # at the top, without the filters set earlier in this browser tab
     return render("client_explorer.html", active="clients", here=request.url, bundle_mine=bundle_mine,
                   client_counts=_client_counts(client_id), mine_counts=notes_service.counts(client_id),
-                  fresh=not request.arg("bundle"), **view)
+                  fresh=not request.arg("bundle"), editing=request.arg("edit") == "1" and bool(s), **view)
 
 
 @router.route("/clients/{client_id:int}/renewals/{renewal_id:int}")
