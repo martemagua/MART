@@ -1,0 +1,29 @@
+MART - Martin's Awesome Renewal Tool
+====================================
+
+START
+  Double-click MART.bat. A black window opens (keep it open while you use
+  MART) and your browser opens MART. The first time, MART asks for two
+  folders: where your data lives (a LOCAL folder) and where backups go
+  (OneDrive or a network folder is fine).
+
+STOP
+  Close the black window, or press Ctrl+C in it.
+
+UPDATE TO A NEW VERSION
+  Close MART. Delete the old MART folder (or unzip over it), unzip the new
+  version to the same place, start MART.bat. Your data and settings live
+  OUTSIDE this folder and are never touched by an update.
+
+OTHER COMMANDS (in a Command Prompt, in this folder)
+  MART.bat check             check that this computer has what MART needs
+  MART.bat backup            make a backup now
+  MART.bat restore "<file>"  replace the database with a backup (close MART
+                             first; the current database is kept beside it)
+
+WHERE THINGS ARE
+  Settings     %APPDATA%\MART\settings.json
+  Data         the data folder you chose (mart.db, logs\mart-error.log)
+  Backups      the backup folder you chose (mart-<date>-<id>.db.gz)
+
+MART only listens on this computer (127.0.0.1). Nothing is sent anywhere.

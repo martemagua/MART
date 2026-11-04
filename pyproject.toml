@@ -1,0 +1,14 @@
+# MART is not installed as a package: it runs from its folder (MART.bat).
+# This file only configures the development tools (tests, lint).
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+extend-exclude = ["vendor"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]

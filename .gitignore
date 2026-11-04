@@ -1,0 +1,23 @@
+# --- Spreadsheets: PRECAUTION (added 03.11.2026) ----------------------------
+# BM+ tracker exports contain client data and must never be committed.
+# Every spreadsheet is ignored for now. When MART gets its own templates,
+# do NOT delete this block: add an exception for the templates folder only,
+# e.g.
+#   !templates/**/*.xlsx
+# so real tracker exports stay blocked everywhere else.
+*.xlsx
+*.xls
+*.xlsm
+*.xlsb
+*.csv
+# Excel lock files ("~$Book.xlsx")
+~$*
+
+# --- Build output, caches, local data --------------------------------------
+dist/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.db
+*.db.gz

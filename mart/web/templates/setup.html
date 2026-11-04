@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% set setup_mode = True %}
+{% block title %}Set up{% endblock %}
+{% block content %}
+<header class="page-head">
+  <h1>Welcome to MART</h1>
+  <p class="lead">Two folders and you're ready. You can change them later under Settings.</p>
+</header>
+<section class="card narrow">
+  {% set action = "/setup" %}
+  {% set submit_label = "Create my MART" %}
+  {% include "_folders_form.html" %}
+</section>
+{% endblock %}
