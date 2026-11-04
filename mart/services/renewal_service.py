@@ -17,8 +17,9 @@ from mart.ingestion.ids import bm_link
 from mart.ingestion.sheet import lookup, norm, section_items
 from mart.ingestion.specs import renewal_tracker as rspec
 from mart.ingestion.specs import task_tracker as tspec
-from mart.repository import clients_repo, renewals_repo, tasks_repo, uploads_repo
+from mart.repository import clients_repo, history_repo, renewals_repo, tasks_repo, uploads_repo
 from mart.repository.db import connection
+from mart.services import history
 
 _STAGE_KEYS = {norm(s): s for s in tspec.STAGES}
 
@@ -130,7 +131,10 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
         tasks = tasks_repo.for_client(conn, client_id)
         has_task_data = bool(tasks)
         older = _older_sections(conn, r)
-    mine = link_tasks([r], tasks)[r["id"]]
+        mine_tasks = link_tasks([r], tasks)[r["id"]]
+        items = [("renewal", r["id"])] + [("task", t["id"]) for t in mine_tasks]
+        changes = history_repo.for_items(conn, items)
+    mine = mine_tasks
     f, d = r["fields"], r["details"]
     strategy = (d.get("strategy") or [{}])[0]
     savings = (d.get("savings") or [{}])[0]
@@ -157,6 +161,7 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
         "feed": sorted(ov.entries(f.get("renewal_feed")), key=lambda e: e["date"], reverse=True),
         "bm": r["bm"],
         "older": older,
+        "history": history.describe(changes, {t["id"]: t["task_name"] for t in mine}),
         "links": bm_links(f, stages_),
     }
 

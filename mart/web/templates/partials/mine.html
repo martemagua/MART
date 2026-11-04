@@ -31,7 +31,7 @@
 
 {% macro note_item(n, back) %}
 <li class="note" id="note-{{ n.id }}">
-  <div class="note-head"><span>{{ n.created_at | dmy(True) }}</span>{% if n.updated_at %}<span title="Edited {{ n.updated_at | dmy(True) }}">· edited</span>{% endif %}</div>
+  <div class="note-head"><span>{{ n.created_at | dmy(True) }}</span>{% if n.updated_at %}<span title="Edited {{ n.updated_at | dmy(True) }}">· edited</span>{% endif %}{% if n.from_bundle %}<span title="Written on a bundle that has been split or joined since">· from {{ n.from_bundle }}</span>{% endif %}</div>
   <div class="note-body">{{ n.body }}</div>
   <details class="row-edit">
     <summary>Edit</summary>

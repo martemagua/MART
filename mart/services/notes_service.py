@@ -22,7 +22,7 @@ from urllib.parse import quote
 
 from mart.repository import clients_repo, notes_repo, renewals_repo
 from mart.repository.db import connection
-from mart.services.client_service import bundle_key
+from mart.services import bundles as bx
 
 SCOPES = ("renewal", "bundle", "client")
 NOTE_MAX = 20_000
@@ -35,15 +35,18 @@ class Invalid(ValueError):
 
 
 # -- targets ----------------------------------------------------------------------------
-def bundle_ref(client_id: int, country: str | None, renewal_date: str | None) -> str:
-    return f"{client_id}|{bundle_key(country, renewal_date)}"
+def bundle_ref(client_id: int, key: str) -> str:
+    """A bundle target's ref: the client and the bundle key (services/bundles)."""
+    return f"{client_id}|{key}"
 
 
 def _split_bundle(ref: str) -> tuple[int, str, str]:
+    """(client id, bundle key, base key) of a bundle ref."""
     try:
-        cid, rest = ref.split("|", 1)
-        country, rdate = rest.rsplit("|", 1)
-        return int(cid), country, rdate
+        cid, key = ref.split("|", 1)
+        if "|" not in key:
+            raise ValueError(ref)
+        return int(cid), key, bx.base_of(key)
     except ValueError as exc:
         raise Invalid("This bundle doesn't exist.") from exc
 
@@ -81,10 +84,12 @@ def _describe(t: dict[str, Any], renewal_labels: dict[int, dict[str, Any]]) -> d
     if t["scope"] == "client":
         return {"kind": "client", "country": None, "renewal_date": None, "name": "client notes",
                 "url": f"/clients/{t['client_id']}/notes"}
-    cid, country, rdate = _split_bundle(t["ref"])
+    cid, key, base = _split_bundle(t["ref"])
+    country, rdate = base.split("|", 1)
+    extra = bx.label(key)
     return {"kind": "bundle", "country": country, "renewal_date": rdate if rdate[:4].isdigit() else None,
-            "name": "whole bundle",
-            "url": f"/clients/{cid}?bundle={quote(f'{country}|{rdate}', safe='')}"}
+            "name": f"whole bundle ({extra})" if extra else "whole bundle",
+            "url": f"/clients/{cid}?bundle={quote(key, safe='')}"}
 
 
 # -- reading ----------------------------------------------------------------------------
@@ -94,15 +99,16 @@ def _on(conn, scope: str, ref: str, today: date) -> dict[str, Any]:
             "todos": [{**x, **_due(x, today)} for x in notes_repo.todos_for(conn, t)]}
 
 
-def for_renewal(r: dict[str, Any], today: date | None = None) -> dict[str, Any]:
+def for_renewal(r: dict[str, Any], bundle: dict[str, Any] | None = None,
+                live_keys: set[str] | None = None, today: date | None = None) -> dict[str, Any]:
     """The renewal's own notes / to-dos, its bundle's (under "bundle"), and the
     notes of the policy's other renewal cycles (under "earlier")."""
     today = today or date.today()
     with connection() as conn:
-        return {**_on(conn, "renewal", str(r["id"]), today),
-                "bundle": _on(conn, "bundle", bundle_ref(r["client_id"], r["country"], r["renewal_date"]),
-                              today),
-                "earlier": _earlier_notes(conn, r)}
+        out = {**_on(conn, "renewal", str(r["id"]), today), "earlier": _earlier_notes(conn, r)}
+        if bundle:
+            out["bundle"] = _bundle_notes(conn, r["client_id"], bundle, live_keys or set(), today)
+        return out
 
 
 def _earlier_notes(conn, r: dict[str, Any]) -> list[dict[str, Any]]:
@@ -131,10 +137,31 @@ def client_totals() -> dict[int, dict[str, int]]:
         return notes_repo.client_target_counts(conn)
 
 
-def for_bundle(client_id: int, country: str | None, renewal_date: str | None,
+def for_bundle(client_id: int, bundle: dict[str, Any], live_keys: set[str],
                today: date | None = None) -> dict[str, Any]:
     with connection() as conn:
-        return _on(conn, "bundle", bundle_ref(client_id, country, renewal_date), today or date.today())
+        return _bundle_notes(conn, client_id, bundle, live_keys, today or date.today())
+
+
+def _bundle_notes(conn, client_id: int, bundle: dict[str, Any], live_keys: set[str],
+                  today: date) -> dict[str, Any]:
+    """The bundle's notes / to-dos. Notes on a bundle key that no longer
+    exists (split or joined since) show on the bundles that now hold its
+    renewals, marked with the bundle they were written on."""
+    key, bases = bundle["key"], bundle.get("bases") or {bx.base_of(bundle["key"])}
+
+    def mine(item: dict[str, Any]) -> bool:
+        k = item["ref"].split("|", 1)[1]
+        return k == key or (k not in live_keys and bx.base_of(k) in bases)
+
+    def mark(item: dict[str, Any]) -> dict[str, Any]:
+        k = item["ref"].split("|", 1)[1]
+        return {**item, "from_bundle": None if k == key else (bx.label(k) or k.replace("|", " · "))}
+
+    notes, todos = notes_repo.by_scope(conn, client_id, "bundle")
+    return {"target": {"scope": "bundle", "ref": bundle_ref(client_id, key)},
+            "notes": [mark(n) for n in notes if mine(n)],
+            "todos": [{**mark(t), **_due(t, today)} for t in todos if mine(t)]}
 
 
 def counts(client_id: int) -> dict[str, dict[str, int]]:

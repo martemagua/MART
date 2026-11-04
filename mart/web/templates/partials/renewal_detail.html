@@ -97,6 +97,19 @@
   {{ overview_timeline(detail.overview, keep=6) }}
 </section>
 
+<details class="rd-section rd-fold" id="history">
+  <summary>History ({{ detail.history | length }} upload{{ "s" if detail.history | length != 1 }}) <span class="sec-src">what each upload of BM+ data changed</span></summary>
+  {% for g in detail.history %}
+  <div class="hist-group">
+    <div class="hist-head">Export of {{ g.report_date | dmy or "?" }} <span class="muted">· loaded {{ g.committed_at | dmy(True) }}</span></div>
+    <ul class="hist-lines">{% for l in g.lines %}<li>
+      {% if l.task %}<strong>{{ l.task }}</strong> {% endif %}
+      {% if l.event %}{{ l.label }}{% else %}{{ l.label }}: <span class="hist-old">{{ (l.old | dmy if l.is_date else l.old) if l.old else "—" }}</span> → <strong>{{ (l.new | dmy if l.is_date else l.new) if l.new else "—" }}</strong>{% endif %}
+    </li>{% endfor %}</ul>
+  </div>
+  {% else %}<p class="muted">Nothing recorded yet. From now on, every upload records what it changed.</p>{% endfor %}
+</details>
+
 {% if detail.other_tasks %}
 <section class="rd-section" aria-labelledby="ot-h">
   <h3 id="ot-h">Other BM+ tasks</h3>

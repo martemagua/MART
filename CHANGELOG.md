@@ -6,6 +6,40 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.6.0 — 04.11.2026 · M1 day 6 · arrange bundles, history
+
+### Added
+- **Split a bundle** (Martin: "some can be bundled by country and renewal
+  date, others also need to be broken down by entity, policy number,
+  insurer"): **Arrange** on the bundle header → split by entity, insurer,
+  policy name and/or policy number. The parts show as their own bundles in
+  the side panel ("Poland · 01.01.2027 · Acme Polska"). Untick to undo.
+  Policy number is not in the Renewal Tracker; it comes from the renewal's
+  BM+ tasks (Task Tracker), "—" without one.
+- **Join bundles**: Arrange → "Join this bundle into" another bundle of the
+  client (same country first). The joined bundle lists what was joined into
+  it, each with "Undo join"; "+ n joined" in the side panel.
+- Splits and joins are yours (stored per client) and survive every upload.
+  **Bundle notes and to-dos never get lost**: one written on a bundle that
+  was split or joined since shows on the bundle(s) now holding its
+  renewals, marked "from …". An old link to such a bundle opens the bundle
+  that holds its renewals now.
+- **History** on the renewal panel (folded, after the overview): every
+  upload records what it changed: workflow status, strategy, insurer,
+  upcoming insurer, renewal / kick-off / local meeting / client approval
+  dates, expected rate change, benefit owner, local analyst, a new overview
+  entry, and for its BM+ stage tasks status, due date, assignee, delegate,
+  completion and peer-review approval; plus first seen / no longer in the
+  export / back in the export. Each is dated by the export it came from
+  ("Export of 10.11.2026"): BM+ does not say when something changed.
+
+### What to try
+1. Split a bundle by entity or insurer, then join two bundles; undo both.
+   Write a bundle note before splitting and find it again after.
+2. Upload a newer Renewal Tracker and Task Tracker, then open a renewal's
+   **History**. (History starts with this version: earlier uploads were not
+   recorded.)
+
 ## 0.5.1 — 04.11.2026 · client notes; notes from earlier renewals
 
 ### Added

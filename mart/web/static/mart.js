@@ -60,14 +60,15 @@
       });
     });
   });
-  // <details class="menu">: one open at a time; an outside click or Esc closes it.
+  // <details class="menu"> / class="arrange": one open at a time; an outside
+  // click or Esc closes it.
   function closeMenus(except) {
-    document.querySelectorAll("details.menu[open]").forEach(function (m) {
+    document.querySelectorAll("details.menu[open], details.arrange[open]").forEach(function (m) {
       if (m !== except) m.removeAttribute("open");
     });
   }
   document.addEventListener("click", function (e) {
-    closeMenus(e.target.closest ? e.target.closest("details.menu") : null);
+    closeMenus(e.target.closest ? e.target.closest("details.menu, details.arrange") : null);
   });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeMenus(null); });
   // <form data-confirm="Question?">: ask before submitting (deletes).

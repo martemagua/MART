@@ -165,7 +165,7 @@ def commit(upload_id: int, mine_keys: set[str], allow_older: bool = False) -> di
                 summary[outcome] += 1
             gone = adapter.in_export(conn, [client_id])[client_id] - {_key(r) for r in client_rows}
             gone -= adapter.not_news(conn, upload, gone)
-            adapter.mark_left(conn, sorted(gone))
+            adapter.mark_left(conn, sorted(gone), upload_id)
             summary["left_export"] += len(gone)
             adapter.after_client(conn, client_id, kept, ctx, upload)
         uploads_repo.mark_committed(conn, upload_id, summary)

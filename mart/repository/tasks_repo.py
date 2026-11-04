@@ -34,17 +34,22 @@ def in_export_for_clients(conn: sqlite3.Connection, client_ids: list[int]) -> di
     return out
 
 
+def merged_fields(row: dict[str, Any], existing: dict[str, Any] | None) -> dict[str, Any]:
+    """The task's fields after this export: what the export has no column for
+    is kept from before (one flavour lacks columns the other has)."""
+    if not existing:
+        return row["fields"]
+    carried = set(row.get("carried") or row["fields"])
+    return {**json.loads(existing.get("fields_json") or "{}"),
+            **{k: val for k, val in row["fields"].items() if k in carried}}
+
+
 def save(conn: sqlite3.Connection, row: dict[str, Any], client_id: int, upload_id: int,
-         existing: dict[str, Any] | None, touched: bool) -> None:
-    """Insert or update. On an update, what this export has no column for is
-    kept from before (one flavour lacks columns the other has). The raw BM+
-    copy is the last export's own row."""
+         existing: dict[str, Any] | None, touched: bool) -> int:
+    """Insert or update (fields: merged_fields). The raw BM+ copy is the last
+    export's own row."""
     existing_id = existing["id"] if existing else None
-    f, bm = row["fields"], row["bm"]
-    if existing:
-        carried = set(row.get("carried") or f)
-        f = {**json.loads(existing.get("fields_json") or "{}"),
-             **{k: val for k, val in f.items() if k in carried}}
+    f, bm = merged_fields(row, existing), row["bm"]
     vals = {
         "client_id": client_id, "policy_id": f.get("policy_id"),
         "expiring_policy_id": f.get("expiring_policy_id"),
@@ -60,15 +65,16 @@ def save(conn: sqlite3.Connection, row: dict[str, Any], client_id: int, upload_i
     if existing_id is None:
         cols = ", ".join(("task_key",) + _COLUMNS + ("first_upload_id", "last_upload_id"))
         marks = ", ".join("?" * (len(_COLUMNS) + 3))
-        conn.execute(f"INSERT INTO tasks ({cols}) VALUES ({marks})",
-                     [row["key"], *[vals[c] for c in _COLUMNS], upload_id, upload_id])
-        return
+        cur = conn.execute(f"INSERT INTO tasks ({cols}) VALUES ({marks})",
+                           [row["key"], *[vals[c] for c in _COLUMNS], upload_id, upload_id])
+        return int(cur.lastrowid)
     sets = ", ".join(f"{c} = ?" for c in _COLUMNS)
     conn.execute(
         f"""UPDATE tasks SET {sets}, last_upload_id = ?, in_latest_export = 1, left_export_at = NULL,
                 updated_at = CASE WHEN ? THEN datetime('now') ELSE updated_at END
             WHERE id = ?""",
         [*[vals[c] for c in _COLUMNS], upload_id, int(touched), existing_id])
+    return existing_id
 
 
 def delete(conn: sqlite3.Connection, keys: list[str]) -> None:
@@ -76,7 +82,10 @@ def delete(conn: sqlite3.Connection, keys: list[str]) -> None:
     tasks are discarded). BM+ data only; nothing the user wrote."""
     for i in range(0, len(keys), 500):
         chunk = keys[i:i + 500]
-        conn.execute(f"DELETE FROM tasks WHERE task_key IN ({','.join('?' * len(chunk))})", chunk)
+        marks = ",".join("?" * len(chunk))
+        conn.execute(f"""DELETE FROM changes WHERE item_kind = 'task'
+                         AND item_id IN (SELECT id FROM tasks WHERE task_key IN ({marks}))""", chunk)
+        conn.execute(f"DELETE FROM tasks WHERE task_key IN ({marks})", chunk)
 
 
 # the task dates a Task Tracker can be filtered by -> where they are stored

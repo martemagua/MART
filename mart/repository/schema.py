@@ -172,6 +172,40 @@ MIGRATIONS: list[tuple[int, str]] = [
         CREATE INDEX ix_todos_target ON todos(scope, ref);
         CREATE INDEX ix_todos_open ON todos(done_at, due_date);
     """),
+    (5, """
+        -- How Martin arranges a client's bundles (USER data). A bundle is
+        -- "<country>|<renewal date>" by default; a split adds the values of
+        -- the chosen fields; a join sends one bundle's renewals to another.
+        CREATE TABLE bundle_splits (
+            client_id   INTEGER NOT NULL REFERENCES clients(id),
+            base_key    TEXT NOT NULL,          -- "<country>|<renewal date>"
+            fields_json TEXT NOT NULL,          -- e.g. ["entity", "insurer"]
+            updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
+            PRIMARY KEY (client_id, base_key)
+        );
+        CREATE TABLE bundle_joins (
+            client_id   INTEGER NOT NULL REFERENCES clients(id),
+            from_key    TEXT NOT NULL,          -- this bundle's renewals …
+            into_key    TEXT NOT NULL,          -- … show in this bundle
+            created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+            PRIMARY KEY (client_id, from_key)
+        );
+
+        -- What each upload changed (append-only). BM+ doesn't say WHEN
+        -- something changed, so an entry is dated by the upload (its export's
+        -- report date): "first seen in the export of …".
+        CREATE TABLE changes (
+            id          INTEGER PRIMARY KEY,
+            item_kind   TEXT NOT NULL,          -- renewal | task
+            item_id     INTEGER NOT NULL,       -- renewals.id / tasks.id
+            upload_id   INTEGER NOT NULL REFERENCES uploads(id),
+            field       TEXT NOT NULL,          -- a field name, or an event: _seen _left _back
+            old_value   TEXT,
+            new_value   TEXT,
+            created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX ix_changes_item ON changes(item_kind, item_id);
+    """),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1][0]

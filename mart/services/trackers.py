@@ -9,6 +9,7 @@ items are saved. Adding a tracker = one adapter here + its ingestion module.
 from __future__ import annotations
 
 import io
+import json
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -20,8 +21,8 @@ from mart.ingestion import values as v
 from mart.ingestion.sheet import norm
 from mart.ingestion.specs import renewal_tracker as rt_spec
 from mart.ingestion.specs import task_tracker as tt_spec
-from mart.repository import clients_repo, renewals_repo, tasks_repo
-from mart.services import renewal_service
+from mart.repository import clients_repo, history_repo, renewals_repo, tasks_repo
+from mart.services import history, renewal_service
 
 
 class UnknownFile(ValueError):
@@ -37,6 +38,19 @@ class Parsed:
     report_time: str | None
     items: list[dict[str, Any]]                    # each has key, client_key, client_name
     extra: dict[str, Any] = field(default_factory=dict)   # tracker-specific preview facts
+
+
+def _record(conn, kind: str, item_id: int, upload_id: int, outcome: str, changes) -> None:
+    """History: first seen / back in the export, and what changed."""
+    if outcome == "new":
+        history_repo.add_event(conn, kind, [item_id], upload_id, "_seen")
+        return
+    if outcome == "returned":
+        history_repo.add_event(conn, kind, [item_id], upload_id, "_back")
+    if outcome in ("changed", "returned"):
+        entries = changes()
+        if entries:
+            history_repo.add(conn, kind, item_id, upload_id, entries)
 
 
 def _outcome(stored: dict[str, Any] | None, row: dict[str, Any], changed_text: bool = False) -> str:
@@ -85,7 +99,9 @@ class RenewalAdapter:
     def in_export(self, conn, client_ids):
         return renewals_repo.in_export_for_clients(conn, client_ids)
 
-    def mark_left(self, conn, keys):
+    def mark_left(self, conn, keys, upload_id):
+        history_repo.add_event(conn, "renewal", history_repo.ids_by_key(conn, "renewals", "cycle_key", keys),
+                               upload_id, "_left")
         renewals_repo.mark_left_export(conn, keys)
 
     @staticmethod
@@ -109,9 +125,11 @@ class RenewalAdapter:
         if stored is not None:
             rt.keep_streams_not_carried(row, stored["fields"], stored["bm"], ctx)
             rt.keep_links(row, stored["fields"])
-        renewals_repo.save(conn, row, client_id, upload_id,
-                           existing_id=stored["id"] if stored else None,
-                           touched=outcome != "unchanged")
+        rid = renewals_repo.save(conn, row, client_id, upload_id,
+                                 existing_id=stored["id"] if stored else None,
+                                 touched=outcome != "unchanged")
+        _record(conn, "renewal", rid, upload_id, outcome,
+                lambda: history.renewal_changes(stored["fields"], row["fields"]))
 
     def after_client(self, conn, client_id, rows, ctx, upload) -> None:
         # "Overview as of": only an export that actually carries the overview counts.
@@ -168,15 +186,20 @@ class TaskAdapter:
     def in_export(self, conn, client_ids):
         return tasks_repo.in_export_for_clients(conn, client_ids)
 
-    def mark_left(self, conn, keys):
+    def mark_left(self, conn, keys, upload_id):
+        history_repo.add_event(conn, "task", history_repo.ids_by_key(conn, "tasks", "task_key", keys),
+                               upload_id, "_left")
         tasks_repo.mark_left_export(conn, keys)
 
     def outcome(self, row, stored, ctx) -> str:
         return _outcome(stored, row)
 
     def save(self, conn, row, stored, client_id, upload_id, ctx, outcome) -> None:
-        tasks_repo.save(conn, row, client_id, upload_id, existing=stored,
-                        touched=outcome != "unchanged")
+        before = json.loads(stored["fields_json"] or "{}") if stored else {}
+        tid = tasks_repo.save(conn, row, client_id, upload_id, existing=stored,
+                              touched=outcome != "unchanged")
+        _record(conn, "task", tid, upload_id, outcome,
+                lambda: history.task_changes(before, tasks_repo.merged_fields(row, stored)))
 
     def after_client(self, conn, client_id, rows, ctx, upload) -> None:
         # tasks loaded before 0.4.4 that belong to no renewal MART has

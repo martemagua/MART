@@ -257,6 +257,7 @@ class T:
     pending: str = "N/A"
     rejected: int = 0
     policy_id: str | None = "auto"
+    policy_number: str | None = "PL-001"
 
     def ids(self) -> tuple[str, str | None, str, str]:
         tid = self.task_id or hexid(self.n * 10 + len(self.task_name), "a")
@@ -275,6 +276,7 @@ _TASK_COLS = [  # (header in the cross-client export, header in the client-speci
     ("Global Review Pending days", None), ("Current Task Due Date", "Task Due Date"),
     ("Local Task Completed Date", None), ("Task Assignee", None), ("Days with Task Assignee", None),
     ("Global Review approved by", None), ("Original Task Due Date", "-"),   # "-": cross-client only
+    ("Policy Number", None),
 ]
 
 
@@ -321,7 +323,7 @@ def task_tracker(tasks: list[T], flavour: str = CROSS, report_date: str = "03 No
             t.due, t.completed, t.assignee, "214",
             # BM+ gives the approver as an e-mail in one flavour, a name in the other
             ("ola.nowak@example.com" if flavour == CROSS else "Ola Nowak") if t.approved != "N/A" else "N/A",
-            t.due]
+            t.due, t.policy_number]
         vals = ([t.client] if flavour == CROSS else []) + [x for x, k in zip(cols, keep, strict=True) if k]
         for i, value in enumerate(vals, start=1):
             if value is not None:
