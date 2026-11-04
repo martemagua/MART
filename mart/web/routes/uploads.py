@@ -47,7 +47,8 @@ def upload_file(request: Request) -> Response:
                                      "commit or discard it, MART opens the next."))
     if errors:
         query.append("failed=" + quote("Not uploaded: " + " · ".join(errors)))
-    return Response.redirect(f"/uploads/{staged[0]}" + ("?" + "&".join(query) if query else ""))
+    first = next((w["id"] for w in upload_service.waiting_uploads() if w["id"] in staged), staged[0])
+    return Response.redirect(f"/uploads/{first}" + ("?" + "&".join(query) if query else ""))
 
 
 def _preview_page(upload_id: int, error: str | None = None, status: int = 200,
@@ -77,6 +78,8 @@ def upload_commit(request: Request, upload_id: int) -> Response:
     msg = (f"Loaded {loaded} client{'s' if loaded != 1 else ''} ({nouns}): {summary['new']} new, "
            f"{summary['changed'] + summary['returned']} changed, {summary['unchanged']} unchanged, "
            f"{summary['left_export']} no longer in the export.")
+    if summary.get("skipped"):
+        msg += f" {summary['skipped']} not loaded: they belong to no renewal MART has."
     waiting = upload_service.waiting_uploads()
     if waiting:     # several files uploaded at once: straight on to the next one
         return Response.redirect(f"/uploads/{waiting[0]['id']}?done=" + quote(msg))

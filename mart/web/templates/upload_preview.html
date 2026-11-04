@@ -31,7 +31,8 @@
 {% if p.skipped_no_client %}{% set _ = notes.append(p.skipped_no_client ~ " rows have no client and were skipped (BM+ test data).") %}{% endif %}
 {% if p.skipped_no_id %}{% set _ = notes.append(p.skipped_no_id ~ " rows have no task id and were skipped.") %}{% endif %}
 {% if a.tracker == "renewal_tracker" %}{% if carries_overview %}{% set _ = notes.append("This export carries the renewal overview: it updates the clients' “overview as of” date.") %}{% else %}{% set _ = notes.append("This export carries no renewal overview text (typical for cross-client exports). The overview MART already has is kept; single-client exports bring it in.") %}{% endif %}{% endif %}
-{% if a.tracker == "task_tracker" %}{% set _ = notes.append("A Task Tracker export is filtered (see “What this export contains”). A task missing from it is marked “no longer in the export”, never deleted.") %}{% endif %}
+{% if a.tracker == "task_tracker" %}{% set _ = notes.append("Tasks only attach to renewals MART has. A task that belongs to no renewal here is not loaded (column “No renewal”). A task MART has that is missing from this export is marked “no longer in the export” — unless it falls outside the export's period (see “What this export contains”), which is not news.") %}
+{% if skipped and renewals_waiting %}{% set _ = notes.append("A Renewal Tracker upload is still waiting: commit it first, then this one, so its renewals can take their tasks.") %}{% endif %}{% endif %}
 {% if p.no_id %}{% set _ = notes.append(p.no_id ~ " renewals have no BM+ id (e.g. “Transitioned” renewals). MART recognises them by client, country, entity, policy and renewal date, and marks them.") %}{% endif %}
 {% if p.duplicates_merged %}{% set _ = notes.append(p.duplicates_merged ~ " rows were exact duplicates of another row and were counted once.") %}{% endif %}
 {% if p.sheets_missing %}{% set _ = notes.append("Not in this export: " ~ (p.sheets_missing | join(", ")) ~ ". MART keeps what it already has from those sheets; only the sheets in this export are compared and updated.") %}{% endif %}
@@ -69,6 +70,7 @@
           <th scope="col" class="num">Changed</th>
           <th scope="col" class="num">Unchanged</th>
           <th scope="col" class="num" title="{{ a.nouns | capitalize }} MART has for this client that are not in this file. They are kept.">Not in file</th>
+          {% if a.tracker == "task_tracker" %}<th scope="col" class="num" title="Tasks that belong to no renewal MART has. They are not loaded.">No renewal</th>{% endif %}
           <th scope="col">Note</th>
         </tr></thead>
         <tbody id="client-rows">
@@ -81,6 +83,7 @@
             <td class="num">{{ c.changed or "" }}</td>
             <td class="num">{{ c.unchanged or "" }}</td>
             <td class="num">{{ c.leaving or "" }}</td>
+            {% if a.tracker == "task_tracker" %}<td class="num">{{ c.skipped or "" }}</td>{% endif %}
             <td class="nowrap muted">
               {% if c.is_mine == 1 and c.known %}your client{% elif c.is_mine == 0 %}not yours{% else %}new{% endif %}
               {% if c.flagged and a.flag_label %} · {{ c.flagged }} {{ a.flag_label }}{% endif %}

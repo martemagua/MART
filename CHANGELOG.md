@@ -6,6 +6,32 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.4.4 — 04.11.2026 · tasks attach only to renewals MART has
+
+### Changed
+- **A task that belongs to no renewal in MART is not loaded** (Martin,
+  04.11.2026: the renewals are the backbone, and the history grows from the
+  renewals MART keeps). The preview shows them per client in a **No renewal**
+  column, and the commit message counts them. Tasks loaded by 0.4.0–0.4.3
+  that belong to no renewal are removed at the next Task Tracker commit for
+  that client. Implementation tasks (Appointment, Upload Local Documents, …)
+  carry no policy id in BM+, so they never attach.
+- **Upload the Renewal Tracker first.** Uploaded together, Renewal Trackers
+  now open before Task Trackers; a Task Tracker preview says so when a
+  Renewal Tracker is still waiting.
+
+### Fixed
+- **A Task Tracker for a shorter period no longer reports older tasks as
+  "no longer in the export".** BM+ records the export's period on General
+  Information ("Date Type: Renewal Date, From … To …"); a task MART has
+  whose renewal date lies outside it is not news.
+
+### What to try
+Upload a Renewal Tracker and a Task Tracker covering several years in one
+go. The Renewal Tracker opens first; the Task Tracker preview shows how many
+tasks have no renewal in MART. Then upload a Task Tracker for this year
+only: nothing should read "no longer in the export".
+
 ## 0.4.3 — 04.11.2026 · a links menu on every renewal
 
 ### Changed

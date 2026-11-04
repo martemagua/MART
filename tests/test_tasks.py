@@ -56,7 +56,7 @@ def loaded(configured):
     view = us.preview(uid)
     assert view["adapter"].tracker == "task_tracker" and view["clients"][0]["is_mine"] == 1
     summary = us.commit(uid, {c["key"] for c in view["clients"]})
-    assert summary["new"] == 5
+    assert summary["new"] == 4 and summary["skipped"] == 1   # the older cycle has no renewal here
     with connection() as conn:
         cid = conn.execute("SELECT id FROM clients WHERE name = 'Acme Group'").fetchone()["id"]
         rids = {r["policy_name"]: r["id"] for r in conn.execute(
@@ -95,7 +95,7 @@ def test_same_task_export_again_is_unchanged(loaded):
     uid = us.stage("tasks.xlsx", task_tracker(_tasks(), report_date="04 Nov 2026"))
     view = us.preview(uid)
     c = view["clients"][0]
-    assert (c["new"], c["changed"], c["unchanged"]) == (0, 0, 5)
+    assert (c["new"], c["changed"], c["unchanged"], c["skipped"]) == (0, 0, 4, 1)
 
 
 def test_flavours_alternating_are_not_changes_and_keep_their_extra_columns(loaded):
@@ -104,7 +104,7 @@ def test_flavours_alternating_are_not_changes_and_keep_their_extra_columns(loade
     cid, rids = loaded                                   # the cross-client export is in
     uid = us.stage("tasks-acme.xlsx", task_tracker(_tasks(), CLIENT, report_date="04 Nov 2026"))
     c = us.preview(uid)["clients"][0]
-    assert (c["new"], c["changed"], c["unchanged"]) == (0, 0, 5)
+    assert (c["new"], c["changed"], c["unchanged"], c["skipped"]) == (0, 0, 4, 1)
     us.commit(uid, {c["key"]})
     with connection() as conn:
         tasks = {t["task_name"] + str(t["review_date"]): t for t in tasks_repo.for_client(conn, cid)}

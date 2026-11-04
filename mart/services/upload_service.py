@@ -81,6 +81,14 @@ def preview(upload_id: int) -> dict[str, Any]:
                  if _report_stamp(u) > _report_stamp(upload)
                  and set(u["preview"].get("clients", {})) & set(p["clients"])]
         waiting = [u for u in uploads_repo.staged(conn) if u["id"] != upload_id]
+        by_client = _by_client(rows)
+        kept = {key: adapter.keep(conn, known[key]["id"] if key in known else None,
+                                  by_client.get(key, []))
+                for key in p["clients"]}
+        leaving = {}
+        for key, c in known.items():
+            gone = in_export.get(c["id"], set()) - {_key(r) for r in by_client.get(key, [])}
+            leaving[key] = len(gone - adapter.not_news(conn, upload, gone))
 
     per_client: dict[str, dict[str, Any]] = {}
     for key, name in p["clients"].items():
@@ -88,18 +96,16 @@ def preview(upload_id: int) -> dict[str, Any]:
         per_client[key] = {"key": key, "name": name, "known": c is not None,
                            "is_mine": None if c is None else c["is_mine"],
                            "items": 0, "new": 0, "changed": 0, "unchanged": 0, "flagged": 0,
-                           "leaving": 0}
+                           "leaving": leaving.get(key, 0),
+                           "skipped": len(by_client.get(key, [])) - len(kept[key])}
     ctx = adapter.context(rows)
-    seen: dict[str, set[str]] = {k: set() for k in per_client}
-    for r in rows:
-        pc = per_client[r["client_key"]]
-        pc["items"] += 1
-        pc["flagged"] += int(bool(r.get("flagged") or r.get("id_missing")))
-        seen[r["client_key"]].add(_key(r))
-        outcome = adapter.outcome(r, existing.get(_key(r)), ctx)
-        pc["changed" if outcome == "returned" else outcome] += 1
-    for key, c in known.items():
-        per_client[key]["leaving"] = len(in_export.get(c["id"], set()) - seen[key])
+    for key, client_rows in kept.items():
+        pc = per_client[key]
+        for r in client_rows:
+            pc["items"] += 1
+            pc["flagged"] += int(bool(r.get("flagged") or r.get("id_missing")))
+            outcome = adapter.outcome(r, existing.get(_key(r)), ctx)
+            pc["changed" if outcome == "returned" else outcome] += 1
 
     if upload["flavour"] == "client":      # a single-client export: surely theirs
         for pc in per_client.values():
@@ -113,7 +119,16 @@ def preview(upload_id: int) -> dict[str, Any]:
         "mine_count": sum(1 for c in ordered if c["is_mine"] == 1),
         "carries_overview": bool({"overview_all", "overview_client_ready"} & set(ctx)),
         "waiting": waiting,
+        "skipped": sum(c["skipped"] for c in ordered if c["is_mine"] != 0),
+        "renewals_waiting": any(u["tracker"] == "renewal_tracker" for u in waiting),
     }
+
+
+def _by_client(rows: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    out: dict[str, list[dict[str, Any]]] = {}
+    for r in rows:
+        out.setdefault(r["client_key"], []).append(r)
+    return out
 
 
 def commit(upload_id: int, mine_keys: set[str], allow_older: bool = False) -> dict[str, Any]:
@@ -128,11 +143,9 @@ def commit(upload_id: int, mine_keys: set[str], allow_older: bool = False) -> di
         rows = uploads_repo.staged_rows(conn, upload_id)
         stored = adapter.stored(conn, [_key(r) for r in rows])
         ctx = adapter.context(rows)
-        by_client: dict[str, list[dict[str, Any]]] = {}
-        for r in rows:
-            by_client.setdefault(r["client_key"], []).append(r)
+        by_client = _by_client(rows)
         summary = {"new": 0, "changed": 0, "unchanged": 0, "returned": 0, "left_export": 0,
-                   "clients_loaded": [], "clients_ignored": [], "tracker": adapter.tracker}
+                   "skipped": 0, "clients_loaded": [], "clients_ignored": [], "tracker": adapter.tracker}
         for c in view["clients"]:
             key, mine = c["key"], c["key"] in mine_keys
             client_rows = by_client.get(key, [])
@@ -143,15 +156,18 @@ def commit(upload_id: int, mine_keys: set[str], allow_older: bool = False) -> di
                 summary["clients_ignored"].append(c["name"])
                 continue
             summary["clients_loaded"].append(c["name"])
-            for r in client_rows:
+            kept = adapter.keep(conn, client_id, client_rows)
+            summary["skipped"] += len(client_rows) - len(kept)
+            for r in kept:
                 e = stored.get(_key(r))
                 outcome = adapter.outcome(r, e, ctx)
                 adapter.save(conn, r, e, client_id, upload_id, ctx, outcome)
                 summary[outcome] += 1
             gone = adapter.in_export(conn, [client_id])[client_id] - {_key(r) for r in client_rows}
+            gone -= adapter.not_news(conn, upload, gone)
             adapter.mark_left(conn, sorted(gone))
             summary["left_export"] += len(gone)
-            adapter.after_client(conn, client_id, client_rows, ctx, upload)
+            adapter.after_client(conn, client_id, kept, ctx, upload)
         uploads_repo.mark_committed(conn, upload_id, summary)
 
     s = settings_mod.load()

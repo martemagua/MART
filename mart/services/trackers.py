@@ -16,9 +16,12 @@ import openpyxl
 
 from mart.ingestion import renewal_tracker as rt
 from mart.ingestion import task_tracker as tt
+from mart.ingestion import values as v
+from mart.ingestion.sheet import norm
 from mart.ingestion.specs import renewal_tracker as rt_spec
 from mart.ingestion.specs import task_tracker as tt_spec
 from mart.repository import clients_repo, renewals_repo, tasks_repo
+from mart.services import renewal_service
 
 
 class UnknownFile(ValueError):
@@ -69,6 +72,12 @@ class RenewalAdapter:
 
     def context(self, rows: list[dict[str, Any]]) -> tuple[str, ...]:
         return rt.carried_streams(rows)
+
+    def keep(self, conn, client_id, rows):
+        return rows
+
+    def not_news(self, conn, upload, keys) -> set[str]:
+        return set()
 
     def stored(self, conn, keys):
         return renewals_repo.stored_by_key(conn, keys)
@@ -132,6 +141,25 @@ class TaskAdapter:
     def context(self, rows):
         return ()
 
+    def keep(self, conn, client_id, rows):
+        """Only tasks of a renewal MART has (Martin, 04.11.2026: the renewals
+        are the backbone; a task that can't be linked is discarded)."""
+        if client_id is None or not rows:
+            return []
+        index = renewal_service.renewal_index(renewals_repo.for_client(conn, client_id))
+        return [r for r in rows if renewal_service.links_to_renewal(index, r["fields"])]
+
+    def not_news(self, conn, upload, keys) -> set[str]:
+        """Stored tasks outside the export's own period: missing from it is
+        not news. BM+ records the period on General Information."""
+        info = upload.get("info") or {}
+        column = _PERIOD_COLUMN.get(norm(info.get("Date Type")))
+        start, end = v.to_date(info.get("Date: From")), v.to_date(info.get("Date: To"))
+        if not (column and start and end and keys):
+            return set()
+        return {k for k, d in tasks_repo.dates(conn, sorted(keys), column).items()
+                if not d or not start <= d <= end}
+
     def stored(self, conn, keys):
         return tasks_repo.stored_by_key(conn, keys)
 
@@ -149,8 +177,17 @@ class TaskAdapter:
                         touched=outcome != "unchanged")
 
     def after_client(self, conn, client_id, rows, ctx, upload) -> None:
-        pass
+        # tasks loaded before 0.4.4 that belong to no renewal MART has
+        index = renewal_service.renewal_index(renewals_repo.for_client(conn, client_id))
+        orphans = [t["task_key"] for t in tasks_repo.for_client(conn, client_id)
+                   if not renewal_service.links_to_renewal(index, t)]
+        tasks_repo.delete(conn, orphans)
 
+
+# Task Tracker "Date Type" (General Information) -> the task date it filters on.
+# Only "Renewal Date" is seen in real exports so far; another type means no
+# period is applied (every missing task counts, as before).
+_PERIOD_COLUMN = {norm("Renewal Date"): "review_date"}
 
 ADAPTERS = [RenewalAdapter(), TaskAdapter()]
 BY_TRACKER = {a.tracker: a for a in ADAPTERS}

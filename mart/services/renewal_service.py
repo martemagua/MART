@@ -27,6 +27,24 @@ class NotFound(LookupError):
     pass
 
 
+def renewal_index(renewals: list[dict[str, Any]]) -> tuple[set[str], set[tuple[str, str]]]:
+    """What a task can link to: the renewals' per-cycle ids, and their
+    (stable policy id, renewal date) pairs."""
+    return ({r["cycle_id"] for r in renewals if r.get("cycle_id")},
+            {(r["expiring_policy_id"], r.get("renewal_date") or "") for r in renewals
+             if r.get("expiring_policy_id")})
+
+
+def links_to_renewal(index: tuple[set[str], set[tuple[str, str]]], task: dict[str, Any]) -> bool:
+    """Does this task (its fields) belong to one of the indexed renewals? The
+    same two rules as link_tasks."""
+    cycles, pairs = index
+    if task.get("policy_id") and task["policy_id"] in cycles:
+        return True
+    return bool(task.get("expiring_policy_id")) and \
+        (task["expiring_policy_id"], task.get("review_date") or "") in pairs
+
+
 def link_tasks(renewals: list[dict[str, Any]], tasks: list[dict[str, Any]]) -> dict[int, list[dict]]:
     """renewal id -> its tasks (this cycle only)."""
     by_policy: dict[str, list[dict]] = {}
