@@ -8,7 +8,7 @@ date, open a renewal, and add notes and to-dos.
 you unzip over the previous version (your data folder is never touched),
 plus a short **"what to try"** list. Your feedback steers the next day.
 
-Status: **in progress.** Day 1 done (MART 0.1.0, 03.11.2026).
+Status: **in progress.** Day 1 done and verified on both machines (04.11.2026): MART 0.1.1 runs on the personal PC (Python 3.14) and the work laptop (Python 3.12); `make-zip.bat` builds the tested zip.
 
 ---
 
