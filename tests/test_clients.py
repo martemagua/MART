@@ -110,6 +110,9 @@ def test_clients_and_explorer_pages(app):
     page = get(app, f"/clients/{cid}").body_bytes.decode()
     assert "Brazil · 01.07.2026" in page and 'data-fresh' in page
     assert "By country" not in page and "group=" not in page          # the toggle is gone
+    # the client's own notes look like MART's notes, not like a filter
+    assert ('<span class="cn-title">Client notes &amp; to-dos</span>'
+            '<span class="cn-sub">about Acme Group') in page
     assert '<img class="flag" src="/static/flags/br.svg"' in page
     assert 'type="date" data-f="from" min="2026-07-01" max="2027-02-01"' in page
     spain = get(app, f"/clients/{cid}?bundle=Spain%7C2027-02-01").body_bytes.decode()
