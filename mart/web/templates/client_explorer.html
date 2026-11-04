@@ -44,8 +44,7 @@
           <span class="bundle-main">
             <span class="bundle-name">{% if group == "country" %}{{ b.renewal_date | dmy or "No date" }}{% else %}{{ b.country }}{% endif %}</span>
             <span class="bundle-sub">{% if group == "country" %}{% if b.days_until is not none %}{{ "in " ~ b.days_until ~ " days" if b.days_until >= 0 else (-b.days_until) ~ " days ago" }}{% endif %}{% else %}{{ b.renewal_date | dmy or "no date" }}{% endif %}</span>
-            {% if b.extra %}<span class="bundle-extra" title="Split: {{ b.extra }}">{{ b.extra }}</span>{% endif %}
-            {% if b.joined %}<span class="bundle-extra" title="Joined into this bundle: {{ b.joined.values() | join(', ') }}">+ {{ b.joined | length }} joined</span>{% endif %}
+            {% if b.extra %}<span class="bundle-extra" title="Your bundle: {{ b.extra }}">{{ b.extra }}</span>{% endif %}
           </span>
           <span class="bundle-meta">
             {% if b.flags.no_cr or b.flags.gaps %}<span class="dot dot-warn" title="Overview: client-ready version missing or incomplete"></span>{% endif %}
@@ -72,45 +71,29 @@
     {% set s = selected %}
     <header class="bundle-head">
       <div>
-        <h2 class="bundle-title">{{ s.country }} · {{ s.renewal_date | dmy or "no renewal date" }}{% if s.extra %} <span class="title-extra">· {{ s.extra }}</span>{% endif %}</h2>
+        {% if s.custom_id %}
+        <h2 class="bundle-title">{{ s.country }} · <span class="title-extra">{{ s.extra }}</span></h2>
+        {% else %}
+        <h2 class="bundle-title">{{ s.country }} · {{ s.renewal_date | dmy or "no renewal date" }}</h2>
+        {% endif %}
         <p class="muted">
-          {% if s.days_until is not none %}{% if s.days_until >= 0 %}renews in <strong>{{ s.days_until }} days</strong>{% else %}renewal date {{ -s.days_until }} days ago{% endif %} · {% endif %}
+          {% if s.custom_id and s.last_date and s.last_date != s.renewal_date %}renewals {{ s.renewal_date | dmy }} – {{ s.last_date | dmy }} · {% elif s.custom_id %}renews {{ s.renewal_date | dmy or "—" }} · {% endif %}
+          {% if s.days_until is not none %}{% if s.days_until >= 0 %}{{ "first " if s.custom_id and s.last_date != s.renewal_date }}renews in <strong>{{ s.days_until }} days</strong>{% else %}renewal date {{ -s.days_until }} days ago{% endif %} · {% endif %}
           {{ s.renewals | length }} renewal{{ "s" if s.renewals | length != 1 }}
           {% if s.entities %} · {{ s.entities | length }} entit{{ "y" if s.entities | length == 1 else "ies" }}{% endif %}
           {% if s.insurers %} · {{ s.insurers | join(", ") }}{% endif %}
         </p>
       </div>
+      {% if s.custom_id %}
       <details class="arrange">
-        <summary class="btn btn-small">Arrange</summary>
-        <div class="arrange-box">
-          <form method="post" action="{{ base }}/bundles/split" class="stack-form">
-            <input type="hidden" name="key" value="{{ s.key }}"><input type="hidden" name="group" value="{{ group }}">
-            <strong>Split {{ s.country }} · {{ s.renewal_date | dmy or "no date" }} by</strong>
-            <div class="check-row">{% for f, label in split_options.items() %}<label class="check"><input type="checkbox" name="by" value="{{ f }}" {% if f in s.split_by %}checked{% endif %}> {{ label }}</label>{% endfor %}</div>
-            <p class="hint">Untick all to undo the split. Policy number comes from the BM+ tasks (Task Tracker).</p>
-            <div class="actions"><button type="submit" class="btn btn-small">Save split</button></div>
-          </form>
-          {% if s.join_targets %}
-          <form method="post" action="{{ base }}/bundles/join" class="stack-form">
-            <input type="hidden" name="key" value="{{ s.key }}"><input type="hidden" name="group" value="{{ group }}">
-            <strong>Join this bundle into</strong>
-            <select name="into" aria-label="Bundle to join into" required>
-              {% for k, b in s.join_targets %}<option value="{{ k }}">{{ b.country }} · {{ b.renewal_date | dmy or "no date" }}{% if b.extra %} · {{ b.extra }}{% endif %}</option>{% endfor %}
-            </select>
-            <div class="actions"><button type="submit" class="btn btn-small">Join</button></div>
-          </form>
-          {% endif %}
-          {% if s.joined %}
-          <div class="stack-form"><strong>Joined into this bundle</strong>
-            {% for member, name in s.joined.items() %}
-            <form method="post" action="{{ base }}/bundles/unjoin" class="inline-form">
-              <input type="hidden" name="member" value="{{ member }}"><input type="hidden" name="group" value="{{ group }}">
-              <span>{{ name }} · {{ member.split("|")[1] | dmy if member.split("|")[1][:4].isdigit() else "no date" }}</span>
-              <button type="submit" class="btn btn-small">Undo join</button>
-            </form>{% endfor %}
-          </div>{% endif %}
-        </div>
+        <summary class="btn btn-small">Rename</summary>
+        <form method="post" action="{{ base }}/bundles/{{ s.custom_id }}/rename" class="arrange-box stack-form">
+          <input type="hidden" name="group" value="{{ group }}">
+          <input type="text" name="name" value="{{ s.extra }}" required maxlength="120" aria-label="Bundle name">
+          <div class="actions"><button type="submit" class="btn btn-small">Save name</button></div>
+        </form>
       </details>
+      {% endif %}
       <dl class="mix">
         <div><dt>Strategy</dt><dd>{% for k, n in s.strategies.most_common() %}<span class="pill pill-soft">{{ k }}{% if n > 1 %} ×{{ n }}{% endif %}</span>{% endfor %}</dd></div>
         <div><dt>BM+ workflow</dt><dd>{% for k, n in s.statuses.most_common() %}<span class="pill pill-soft">{{ k }}{% if n > 1 %} ×{{ n }}{% endif %}</span>{% endfor %}</dd></div>
@@ -119,12 +102,16 @@
 
     {{ mine_section(bundle_mine, here, heading="To-dos and notes on this bundle") }}
 
+    {% from "partials/move.html" import move_form %}
+    {{ move_form(base, group, s, "move-form", here) }}
+
     <div class="renewal-list">
       {% for r in s.renewals %}
       <article class="renewal-card {% if not r.in_latest_export %}is-left{% endif %}" id="r{{ r.id }}">
         <div class="renewal-row">
           <div class="rc-policy">
             <div class="rc-name-row">
+              <input type="checkbox" name="renewal" value="{{ r.id }}" form="move-form" class="rc-pick" aria-label="Select {{ r.policy_name }} to move" title="Select to move to another bundle">
               <a class="rc-name" href="/clients/{{ client.id }}/renewals/{{ r.id }}?group={{ group }}{{ q_all }}" title="Open the renewal: {{ r.policy_name }}">{{ r.policy_name or "—" }}</a>
               {{ links_menu(r.links, "Links for " ~ (r.policy_name or "this renewal")) }}
             </div>

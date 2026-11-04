@@ -173,22 +173,24 @@ MIGRATIONS: list[tuple[int, str]] = [
         CREATE INDEX ix_todos_open ON todos(done_at, due_date);
     """),
     (5, """
-        -- How Martin arranges a client's bundles (USER data). A bundle is
-        -- "<country>|<renewal date>" by default; a split adds the values of
-        -- the chosen fields; a join sends one bundle's renewals to another.
-        CREATE TABLE bundle_splits (
+        -- Custom bundles (USER data): Martin moves renewals out of their
+        -- default bundle (country + renewal date) into a named bundle of the
+        -- same country, e.g. a policy BM+ split into several renewals, or
+        -- the product groups one broker handles.
+        CREATE TABLE custom_bundles (
+            id          INTEGER PRIMARY KEY,
             client_id   INTEGER NOT NULL REFERENCES clients(id),
-            base_key    TEXT NOT NULL,          -- "<country>|<renewal date>"
-            fields_json TEXT NOT NULL,          -- e.g. ["entity", "insurer"]
-            updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
-            PRIMARY KEY (client_id, base_key)
-        );
-        CREATE TABLE bundle_joins (
-            client_id   INTEGER NOT NULL REFERENCES clients(id),
-            from_key    TEXT NOT NULL,          -- this bundle's renewals …
-            into_key    TEXT NOT NULL,          -- … show in this bundle
+            country     TEXT NOT NULL,
+            name        TEXT NOT NULL,
             created_at  TEXT NOT NULL DEFAULT (datetime('now')),
-            PRIMARY KEY (client_id, from_key)
+            updated_at  TEXT
+        );
+        CREATE INDEX ix_custom_bundles_client ON custom_bundles(client_id);
+        -- Which renewal sits in which custom bundle (none = its default one).
+        CREATE TABLE renewal_bundles (
+            renewal_id  INTEGER PRIMARY KEY REFERENCES renewals(id),
+            bundle_id   INTEGER NOT NULL REFERENCES custom_bundles(id),
+            moved_at    TEXT NOT NULL DEFAULT (datetime('now'))
         );
 
         -- What each upload changed (append-only). BM+ doesn't say WHEN

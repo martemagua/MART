@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 __version__ = "0.6.0"
-RELEASE_LABEL = "M1 · day 6 · arrange bundles, history"
+RELEASE_LABEL = "M1 · day 6 · move renewals between bundles, history"
 
 APP_ROOT = Path(__file__).resolve().parent.parent
 VENDOR_DIR = APP_ROOT / "vendor"

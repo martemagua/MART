@@ -77,4 +77,12 @@
       if (!window.confirm(f.getAttribute("data-confirm"))) e.preventDefault();
     });
   });
+  // [data-move-form]: the bundle name is only asked for a new bundle.
+  document.querySelectorAll("[data-move-form]").forEach(function (f) {
+    var target = f.querySelector("[data-move-target]"), name = f.querySelector("[data-move-name]");
+    if (!target || !name) return;
+    function sync() { var isNew = target.value === "new"; name.hidden = !isNew; name.required = isNew; }
+    target.addEventListener("change", sync);
+    sync();
+  });
 })();

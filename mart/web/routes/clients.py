@@ -1,11 +1,11 @@
-"""Clients: the list of my clients, one client's explorer, and arranging its
-bundles (split / join)."""
+"""Clients: the list of my clients, one client's explorer, and moving renewals
+between its bundles."""
 
 from __future__ import annotations
 
 from urllib.parse import quote
 
-from mart.services import client_service, notes_service, renewal_service
+from mart.services import bundle_service, client_service, notes_service, renewal_service
 from mart.web.framework import HTTPError, Request, Response, Router
 from mart.web.templating import render
 
@@ -34,7 +34,7 @@ def _client_counts(client_id: int):
 def client_explorer(request: Request, client_id: int) -> Response:
     view = _explorer(request, client_id, bundle=request.arg("bundle"))
     s = view["selected"]
-    bundle_mine = notes_service.for_bundle(client_id, s, view["live_keys"]) if s else None
+    bundle_mine = notes_service.for_bundle(client_id, s) if s else None
     return render("client_explorer.html", active="clients", here=request.url, bundle_mine=bundle_mine,
                   client_counts=_client_counts(client_id), mine_counts=notes_service.counts(client_id),
                   **view)
@@ -49,7 +49,7 @@ def renewal_page(request: Request, client_id: int, renewal_id: int) -> Response:
         raise HTTPError(404, str(exc)) from exc
     r = detail["renewal"]
     view = _explorer(request, client_id, renewal_id=renewal_id, show_all=not r["in_latest_export"])
-    mine = notes_service.for_renewal(r, view["selected"], view["live_keys"])
+    mine = notes_service.for_renewal(r, view["selected"])
     return render("client_explorer.html", active="clients", detail=detail, here=request.url,
                   mine=mine, mine_counts={}, client_counts=_client_counts(client_id), **view)
 
@@ -66,34 +66,26 @@ def client_notes(request: Request, client_id: int) -> Response:
                   client_counts=_client_counts(client_id), **view)
 
 
-# -- arranging bundles ------------------------------------------------------------------
+# -- moving renewals between bundles ---------------------------------------------------
 def _to_bundle(request: Request, client_id: int, key: str) -> Response:
     group = request.arg("group") or "date"
     return Response.redirect(f"/clients/{client_id}?bundle={quote(key, safe='')}&group={quote(group)}")
 
 
-def _arrange(request: Request, client_id: int, action, key: str) -> Response:
+@router.route("/clients/{client_id:int}/bundles/move", methods=("POST",))
+def bundle_move(request: Request, client_id: int) -> Response:
+    ids = [int(x) for x in request.args("renewal") if x.isdigit()]
     try:
-        action()
-    except (client_service.NotFound, ValueError) as exc:
+        key = bundle_service.move(client_id, ids, request.arg("target") or "", request.arg("name"))
+    except bundle_service.Invalid as exc:
         raise HTTPError(400, str(exc)) from exc
     return _to_bundle(request, client_id, key)
 
 
-@router.route("/clients/{client_id:int}/bundles/split", methods=("POST",))
-def bundle_split(request: Request, client_id: int) -> Response:
-    key = request.arg("key") or ""
-    by = request.args("by")
-    return _arrange(request, client_id, lambda: client_service.set_split(client_id, key, by), key)
-
-
-@router.route("/clients/{client_id:int}/bundles/join", methods=("POST",))
-def bundle_join(request: Request, client_id: int) -> Response:
-    key, into = request.arg("key") or "", request.arg("into") or ""
-    return _arrange(request, client_id, lambda: client_service.join(client_id, key, into), into)
-
-
-@router.route("/clients/{client_id:int}/bundles/unjoin", methods=("POST",))
-def bundle_unjoin(request: Request, client_id: int) -> Response:
-    member = request.arg("member") or ""
-    return _arrange(request, client_id, lambda: client_service.unjoin(client_id, member), member)
+@router.route("/clients/{client_id:int}/bundles/{bundle_id:int}/rename", methods=("POST",))
+def bundle_rename(request: Request, client_id: int, bundle_id: int) -> Response:
+    try:
+        key = bundle_service.rename(client_id, bundle_id, request.arg("name"))
+    except bundle_service.Invalid as exc:
+        raise HTTPError(400, str(exc)) from exc
+    return _to_bundle(request, client_id, key)

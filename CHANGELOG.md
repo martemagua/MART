@@ -6,24 +6,22 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
-## 0.6.0 — 04.11.2026 · M1 day 6 · arrange bundles, history
+## 0.6.0 — 04.11.2026 · M1 day 6 · move renewals between bundles, history
 
 ### Added
-- **Split a bundle** (Martin: "some can be bundled by country and renewal
-  date, others also need to be broken down by entity, policy number,
-  insurer"): **Arrange** on the bundle header → split by entity, insurer,
-  policy name and/or policy number. The parts show as their own bundles in
-  the side panel ("Poland · 01.01.2027 · Acme Polska"). Untick to undo.
-  Policy number is not in the Renewal Tracker; it comes from the renewal's
-  BM+ tasks (Task Tracker), "—" without one.
-- **Join bundles**: Arrange → "Join this bundle into" another bundle of the
-  client (same country first). The joined bundle lists what was joined into
-  it, each with "Undo join"; "+ n joined" in the side panel.
-- Splits and joins are yours (stored per client) and survive every upload.
-  **Bundle notes and to-dos never get lost**: one written on a bundle that
-  was split or joined since shows on the bundle(s) now holding its
-  renewals, marked "from …". An old link to such a bundle opens the bundle
-  that holds its renewals now.
+- **Move renewals into your own bundles** (Martin, 04.11.2026: a policy BM+
+  split into several renewals, product groups handled by different brokers,
+  entities with their own policies). Bundles are still country + renewal
+  date by default. On a bundle, tick one or several renewals and **Move the
+  selected renewals to** an existing custom bundle of the same country, or
+  to **a new bundle…** you name. On a renewal panel, **Move to another
+  bundle** does the same for that one renewal. A custom bundle's renewals
+  may have different dates (its header shows the range); **Rename** it from
+  its header; "their own bundle (country + date)" moves renewals back. A
+  bundle never mixes countries. An emptied custom bundle is kept and offered
+  again. Placements are yours and survive every upload.
+- Custom bundles work like the others: notes and to-dos on them, on the To-dos
+  page as "bundle “name”", counted on the Clients list.
 - **History** on the renewal panel (folded, after the overview): every
   upload records what it changed: workflow status, strategy, insurer,
   upcoming insurer, renewal / kick-off / local meeting / client approval
@@ -34,8 +32,9 @@ laptop.
   ("Export of 10.11.2026"): BM+ does not say when something changed.
 
 ### What to try
-1. Split a bundle by entity or insurer, then join two bundles; undo both.
-   Write a bundle note before splitting and find it again after.
+1. In a bundle, tick two renewals and move them to a new bundle with a name;
+   from another renewal's panel, move it into that bundle; rename it; move
+   one back. Write a note on the custom bundle.
 2. Upload a newer Renewal Tracker and Task Tracker, then open a renewal's
    **History**. (History starts with this version: earlier uploads were not
    recorded.)

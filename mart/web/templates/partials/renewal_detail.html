@@ -5,6 +5,7 @@
 {% from "partials/stages.html" import stage_strip %}
 {% from "partials/links.html" import links_menu %}
 {% from "partials/mine.html" import mine_section %}
+{% from "partials/move.html" import move_form %}
 {% set r = detail.renewal %}
 {% set f = detail.fields %}
 
@@ -32,6 +33,13 @@
     {% for g in r.product_groups %}<span class="pill pill-soft">{{ g }}</span>{% endfor %}
     {% if not r.in_latest_export %}<span class="pill pill-warn">no longer in the export since {{ r.left_export_at | dmy }}</span>{% endif %}
     {% if r.id_missing %}<span class="pill pill-soft">no BM+ id</span>{% endif %}
+  </div>
+  <div class="rd-bundle">
+    <span class="muted small">Bundle: <a href="/clients/{{ client.id }}?bundle={{ selected.key | urlencode }}&group={{ group }}">{% if selected.custom_id %}{{ selected.extra }}{% else %}{{ selected.country }} · {{ selected.renewal_date | dmy or "no date" }}{% endif %}</a></span>
+    <details class="arrange">
+      <summary class="btn btn-small">Move to another bundle</summary>
+      <div class="arrange-box">{{ move_form(base, group, selected, "move-one", here, one=r.id) }}</div>
+    </details>
   </div>
 </header>
 

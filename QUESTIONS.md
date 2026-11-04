@@ -64,7 +64,7 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 
 **C1 ⭐** Bundle = client × country × **exact** renewal date, or the same month? Does entity matter (two entities in one country, same date)?
 →it would be nice to split and join policies. some can be bundled by country and renewal date, others also need to be broken down by entity, policy number, insurer etc)
-→ **Built 0.6.0:** Arrange on a bundle splits it by entity, insurer, policy name and/or policy number (from the Task Tracker), or joins it into another bundle of the client; both per client, undoable, kept across uploads.
+→ **Built 0.6.0 (Martin's simpler model, 04.11.2026):** bundles stay country + renewal date; renewals move, one or several at once, into a named custom bundle of the same country (new or existing), and back. Kept across uploads.
 
 **C2 ⭐** Is one Kanban card a **bundle** or a **single renewal**? What should happen when one renewal in a bundle diverges (different strategy or stage)?
 →it should be a bundle, but by the logic above, sometimes it might be that it's only one policy, others can be dozens. it depends

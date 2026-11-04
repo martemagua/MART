@@ -126,10 +126,11 @@ def overview_texts_for_mine(conn: sqlite3.Connection) -> list[dict[str, Any]]:
     """Per renewal of my clients still in the export: the two overview texts and
     the bundle facts, for the Clients list (one query for all clients)."""
     rows = conn.execute(
-        """SELECT r.client_id, r.country, r.renewal_date,
+        """SELECT r.client_id, r.country, r.renewal_date, rb.bundle_id AS custom_bundle_id,
                   json_extract(r.fields_json, '$.overview_all') AS overview_all,
                   json_extract(r.fields_json, '$.overview_client_ready') AS overview_client_ready
            FROM renewals r JOIN clients c ON c.id = r.client_id
+           LEFT JOIN renewal_bundles rb ON rb.renewal_id = r.id
            WHERE c.is_mine = 1 AND r.in_latest_export = 1""").fetchall()
     return [dict(r) for r in rows]
 

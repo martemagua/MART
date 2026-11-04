@@ -110,12 +110,3 @@ def client_target_counts(conn: sqlite3.Connection) -> dict[int, dict[str, int]]:
         out.setdefault(r["client_id"], {"notes": 0, "todos": 0})["todos"] = r["n"]
     return out
 
-
-def by_scope(conn: sqlite3.Connection, client_id: int, scope: str) -> tuple[list[dict], list[dict]]:
-    """(notes newest first, to-dos open first) of one client in one scope."""
-    notes = [dict(r) for r in conn.execute(
-        "SELECT * FROM notes WHERE client_id = ? AND scope = ? ORDER BY created_at DESC, id DESC",
-        (client_id, scope))]
-    todos = [dict(r) for r in conn.execute(
-        f"SELECT * FROM todos WHERE client_id = ? AND scope = ? ORDER BY {_TODO_ORDER}", (client_id, scope))]
-    return notes, todos
