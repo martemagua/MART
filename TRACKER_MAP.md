@@ -127,6 +127,23 @@ What this means for MART:
   Lines of Coverage, Insurer, Escalation Manager Email and Original Due Date,
   and names differ ("Task Due Date" vs "Current Task Due Date", "Global
   Review…" vs "Global Peer Review…").
+- **People differ by flavour too** (checked 04.11.2026): "Global Review
+  approved by" is an e-mail in the cross-client file and a name in the
+  client file; "Local Task Completed By" is `N/A` in the client file;
+  "Renewal Unique ID" is a bare id in one and a URL in the other; the
+  completion date is a full timestamp in one and a date in the other. MART
+  therefore compares only the workflow facts both carry
+  (`specs/task_tracker.COMPARED`) and keeps, per task, what the other
+  flavour had for columns this one lacks.
+- **Dates are real timestamps** (`2026-10-02 14:32:42`), not BM+'s usual
+  midnight-UTC-in-local-time; MART only rounds a time that is exactly on the
+  hour or half hour with no seconds.
+- **Task ids**: renewal tasks carry a 24-hex `taskId=`; implementation tasks
+  (Appointment, Upload Local Documents, Review ROR, Update Policies) a dashed
+  UUID.
+- **Linking**: `Policy ID` = the Renewal Tracker's per-cycle id (43 of 49
+  Globex renewals found their tasks this way); failing that, the stable
+  Expiring Policy Unique ID + the review date.
 
 ---
 
@@ -145,12 +162,15 @@ What this means for MART:
 | Renewal Information | Renewal Unique ID · Annual Renewal/Review Date · **Date of Local Meeting** · Upcoming Renewal Strategy · Workflow Status · Plan Design Changes Considered? + Comments · **Expected Change in Premium Rate (+ %) · Recommended Proposal Change · Final Change · General Benchmarking Position + Comments · Insurer (Recommended Proposals) · Recommended Proposals · Client Approval Date · Cost Savings / Cost Avoidance / Unrealized Savings / Other (MMB + Custom)** · Renewal Overview (all) · (client ready) · **Renewal Feed** |
 
 What to watch out for in the cell contents:
-- **Overview text** (corrected twice, 04.11.2026): in Martin's **real**
-  exports the overview (all + client ready) is usually full, in both
-  flavours. Only the *demo environment's* cross-client export left both
-  overview columns empty and filled just the **Renewal Feed**, a different
-  stream (BM+ system messages such as "No documents linked to renewal" and
-  other comments), not the overview. So MART decides from the DATA which
+- **Overview text** (settled 04.11.2026, after testing 0.3.0 with real
+  exports): the overview (all + client ready) is usually full and very
+  important, but **only the single-client export carries it**: real
+  cross-client exports leave both overview columns empty, just like the
+  demo files, and fill only the **Renewal Feed**, a different stream (BM+
+  system messages such as "No documents linked to renewal" and other
+  comments). Martin uploads single-client exports for the overview; MART
+  shows per client how old that overview data is ("Overview as of …", out
+  of date after Settings → Time limits). MART decides from the DATA which
   streams an export carries: a stream with text in at least one renewal is
   carried; one the whole export leaves empty keeps the stored text
   (`renewal_tracker.carried_streams`).

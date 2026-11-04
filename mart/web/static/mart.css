@@ -218,3 +218,48 @@ input[type=file] { padding: 8px 12px; min-height: 44px; }
 .ov-body p { margin: 0 0 2px; font-size: 14px; white-space: pre-line; }
 .ov-line-internal { background: var(--warn-bg); border-radius: 3px; padding: 0 3px; }
 .ov-older > summary { cursor: pointer; font-size: 13px; color: var(--accent); margin: 6px 0; }
+
+.input-unit { display: flex; align-items: center; gap: 8px; }
+.input-unit input { width: 100px; }
+
+/* Overview freshness (Settings → Time limits) */
+.freshness { color: var(--muted); margin: 0; }
+.freshness.is-stale { color: var(--warn-ink); font-weight: 600; }
+a.rc-name { display: block; color: var(--ink); text-decoration: none; }
+a.rc-name:hover { color: var(--accent); text-decoration: underline; }
+
+/* BM+ stages: three dots on a card, a strip in the renewal panel */
+.stage-dots { display: inline-flex; gap: 4px; margin-top: 4px; }
+.sdot { width: 10px; height: 10px; border-radius: 5px; border: 1.5px solid var(--muted); background: transparent; }
+.sdot-doing { border-color: var(--accent); background: var(--accent-soft); }
+.sdot-review { border-color: var(--warn-line); background: var(--warn-bg); }
+.sdot-done { border-color: var(--ok-ink); background: var(--ok-ink); }
+.sdot-missing { border-style: dashed; opacity: 0.6; }
+.sdot.is-late { box-shadow: 0 0 0 2px var(--err-bg); border-color: var(--err-ink); }
+.stage-strip { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.stage { border: 1px solid var(--border); border-top: 4px solid var(--muted); border-radius: 8px; padding: 10px 12px; background: var(--surface); font-size: 13px; }
+.stage-doing { border-top-color: var(--accent); }
+.stage-review { border-top-color: var(--warn-line); }
+.stage-done { border-top-color: var(--ok-ink); }
+.stage-missing { border-top-style: dashed; color: var(--muted); }
+.stage.is-late { border-top-color: var(--err-ink); }
+.stage-name { font-weight: 600; font-size: 14px; }
+.stage-state { margin: 2px 0 4px; }
+.stage-facts, .stage-review { color: var(--muted); }
+
+/* The renewal panel */
+.rd-head { margin-bottom: 18px; }
+.rd-head .pills { margin-top: 8px; }
+.rd-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 14px; min-width: 0; }
+.rd-section h3 { font-size: 16px; margin: 0 0 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rd-section h4 { font-size: 13px; color: var(--muted); margin: 14px 0 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+.rd-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.rd-cols .rd-section { margin-bottom: 14px; }
+@media (max-width: 1320px) { .rd-cols { grid-template-columns: minmax(0, 1fr); } }
+.sec-src { font-size: 12px; font-weight: 400; color: var(--muted); }
+.rd-fold > summary { cursor: pointer; font-weight: 600; }
+.facts-wide { grid-template-columns: minmax(200px, max-content) 1fr; font-size: 13px; margin-top: 10px; }
+.facts dd { white-space: pre-line; overflow-wrap: break-word; }
+/* In the renewal panel the label never takes more than ~40%: long BM+
+   questions wrap, so the answer keeps room and words are not split. */
+.rd-section .facts:not(.facts-wide) { grid-template-columns: minmax(8rem, 40%) minmax(0, 1fr); }

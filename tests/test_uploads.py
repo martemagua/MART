@@ -29,7 +29,7 @@ def test_preview_lists_clients_and_nothing_is_stored_yet():
     assert sorted(names) == ["Acme Group", "Globex"]
     assert all(c["is_mine"] is None for c in view["clients"])        # cross-client: you choose
     acme = next(c for c in view["clients"] if c["name"] == "Acme Group")
-    assert (acme["renewals"], acme["new"], acme["changed"]) == (2, 2, 0)
+    assert (acme["items"], acme["new"], acme["changed"]) == (2, 2, 0)
     assert view["filters"]["Completed within Last 6 Months"] == "Excluded"
     assert _db("SELECT COUNT(*) n FROM renewals")[0]["n"] == 0
 
@@ -134,8 +134,17 @@ def test_discard_changes_nothing():
 
 
 def test_wrong_file_is_refused_with_a_reason():
-    with pytest.raises(us.UploadError, match="Task Tracker"):
-        us.stage("tasks.xlsx", renewal_tracker([], task_tracker=True))
+    with pytest.raises(us.UploadError, match="missing these columns: Task Status, Task ID"):
+        us.stage("tasks.xlsx", renewal_tracker([], task_tracker=True))   # an empty Task Summary
+    import io
+
+    import openpyxl
+    wb = openpyxl.Workbook()
+    wb.active.title = "Benefit Details"
+    out = io.BytesIO()
+    wb.save(out)
+    with pytest.raises(us.UploadError, match="Benefit Tracker"):
+        us.stage("benefits.xlsx", out.getvalue())
 
 
 # -- through the web pages ----------------------------------------------------------------
@@ -157,7 +166,7 @@ def test_upload_preview_commit_through_the_pages(app):
     r = post(app, preview_url + "/commit", {"mine": key})
     assert r.status == 303 and dict(r.headers)["Location"].startswith("/uploads?done=")
     page = get(app, dict(r.headers)["Location"]).body_bytes.decode()
-    assert "Loaded 1 client: 2 new" in page and "Acme Group" in page
+    assert "Loaded 1 client (renewals): 2 new" in page and "Acme Group" in page
     home = get(app, "/").body_bytes.decode()
     assert "Your renewals" in home and "renewals in the latest export" in home
 

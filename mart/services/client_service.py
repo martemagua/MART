@@ -14,8 +14,9 @@ from datetime import date, datetime
 from typing import Any
 
 from mart.ingestion import overview as ov
-from mart.repository import clients_repo, renewals_repo
+from mart.repository import clients_repo, renewals_repo, tasks_repo
 from mart.repository.db import connection
+from mart.services import preferences, renewal_service
 
 GROUPINGS = ("date", "country")
 NO_DATE = "none"
@@ -42,9 +43,19 @@ def _month_label(iso: str | None) -> str:
     return f"{_MONTHS[d.month - 1]} {d.year}"
 
 
+def overview_freshness(as_of: str | None, today: date) -> dict[str, Any]:
+    """How old the client's overview data is: the report date of the last
+    export that carried the overview (in practice a single-client export)."""
+    limit = preferences.get("overview_data_stale_days")
+    if not as_of:
+        return {"as_of": None, "age_days": None, "stale": True, "limit": limit}
+    age = (today - datetime.fromisoformat(as_of).date()).days
+    return {"as_of": as_of, "age_days": age, "stale": age > limit, "limit": limit}
+
+
 def clients_overview(today: date | None = None) -> list[dict[str, Any]]:
-    """My clients for the Clients list: renewals, bundles, next renewal, and
-    how many renewals have overview issues."""
+    """My clients for the Clients list: renewals, bundles, next renewal, how
+    many renewals have overview issues, and how old the overview data is."""
     today = today or date.today()
     with connection() as conn:
         mine = clients_repo.mine_summary(conn)
@@ -60,7 +71,8 @@ def clients_overview(today: date | None = None) -> list[dict[str, Any]]:
     for c in mine:
         s = stats[c["id"]]
         out.append({**c, "bundles": len(s["bundles"]), "flags": dict(s["flags"]),
-                    "days_until": _days_until(c["next_renewal"], today)})
+                    "days_until": _days_until(c["next_renewal"], today),
+                    "freshness": overview_freshness(c.get("overview_as_of"), today)})
     return out
 
 
@@ -90,6 +102,7 @@ def explorer(client_id: int, bundle: str | None = None, group: str = "date",
         if client is None or client["is_mine"] != 1:
             raise NotFound("This client is not one of yours (or doesn't exist).")
         renewals = renewals_repo.for_client(conn, client_id)
+        tasks = tasks_repo.for_client(conn, client_id)
 
     left_count = sum(1 for r in renewals if not r["in_latest_export"])
     shown = [r for r in renewals if show_all or r["in_latest_export"]]
@@ -115,13 +128,15 @@ def explorer(client_id: int, bundle: str | None = None, group: str = "date",
         label = b["country"] if group == "country" else _month_label(b["renewal_date"])
         groups.setdefault(label, []).append(b)
 
+    linked = renewal_service.link_tasks(shown, tasks)
     selected = bundles.get(bundle or "")
     if selected is None and ordered:
         upcoming = [b for b in ordered if b["days_until"] is not None and b["days_until"] >= 0]
         selected = (upcoming or ordered)[0]
     detail = None
     if selected:
-        items = sorted((_enrich(r, today) for r in selected["renewals"]),
+        items = sorted(({**_enrich(r, today), "stages": renewal_service.stages(linked[r["id"]], today)}
+                        for r in selected["renewals"]),
                        key=lambda r: ((r["policy_name"] or "").casefold(), r["entity"] or ""))
         detail = {
             **selected, "renewals": items,
@@ -133,5 +148,6 @@ def explorer(client_id: int, bundle: str | None = None, group: str = "date",
     return {
         "client": client, "groups": groups, "bundle_count": len(ordered),
         "renewal_count": len(shown), "left_count": left_count, "show_all": show_all,
-        "group": group, "selected": detail,
+        "group": group, "selected": detail, "has_task_data": bool(tasks),
+        "freshness": overview_freshness(client.get("overview_as_of"), today),
     }

@@ -2,16 +2,18 @@
 {% block title %}Preview · {{ upload.filename }}{% endblock %}
 {% block content %}
 {% set p = upload.preview %}
+{% set a = adapter %}
 <header class="page-head">
   <p class="crumbs"><a href="/uploads">Uploads</a> / {{ upload.filename }}</p>
   <h1>{% if upload.status == "staged" %}Preview{% elif upload.status == "committed" %}Loaded{% else %}Discarded{% endif %}: {{ upload.filename }}</h1>
   <p class="lead">
-    Renewal Tracker · {{ "cross-client export" if upload.flavour == "cross_client" else "single-client export" }}
+    {{ a.label }} · {{ "cross-client export" if upload.flavour == "cross_client" else "single-client export" }}
     · report date {{ upload.report_date | dmy }}{% if upload.report_time %} {{ upload.report_time[:5] }}{% endif %}
-    · {{ p.renewals }} renewals for {{ p.clients | length }} client{{ "s" if p.clients | length != 1 }}
+    · {{ p["items"] }} {{ a.noun if p["items"] == 1 else a.nouns }} for {{ p.clients | length }} client{{ "s" if p.clients | length != 1 }}
   </p>
 </header>
 
+{% if notice %}<div class="notice notice-ok" role="status">{{ notice }}</div>{% endif %}
 {% if error %}<div class="notice notice-error" role="alert">{{ error }}</div>{% endif %}
 
 {% if upload.status == "committed" %}
@@ -27,10 +29,13 @@
 {% set notes = [] %}
 {% if same_file %}{% set _ = notes.append("This exact file was already loaded (" ~ (same_file.committed_at | dmy(True)) ~ "). Committing it again changes nothing.") %}{% endif %}
 {% if p.skipped_no_client %}{% set _ = notes.append(p.skipped_no_client ~ " rows have no client and were skipped (BM+ test data).") %}{% endif %}
+{% if p.skipped_no_id %}{% set _ = notes.append(p.skipped_no_id ~ " rows have no task id and were skipped.") %}{% endif %}
+{% if a.tracker == "renewal_tracker" %}{% if carries_overview %}{% set _ = notes.append("This export carries the renewal overview: it updates the clients' “overview as of” date.") %}{% else %}{% set _ = notes.append("This export carries no renewal overview text (typical for cross-client exports). The overview MART already has is kept; single-client exports bring it in.") %}{% endif %}{% endif %}
+{% if a.tracker == "task_tracker" %}{% set _ = notes.append("A Task Tracker export is filtered (see “What this export contains”). A task missing from it is marked “no longer in the export”, never deleted.") %}{% endif %}
 {% if p.no_id %}{% set _ = notes.append(p.no_id ~ " renewals have no BM+ id (e.g. “Transitioned” renewals). MART recognises them by client, country, entity, policy and renewal date, and marks them.") %}{% endif %}
 {% if p.duplicates_merged %}{% set _ = notes.append(p.duplicates_merged ~ " rows were exact duplicates of another row and were counted once.") %}{% endif %}
 {% if p.sheets_missing %}{% set _ = notes.append("Not in this export: " ~ (p.sheets_missing | join(", ")) ~ ". The renewals load without them.") %}{% endif %}
-{% if filters.get("Completed within Last 6 Months") == "Excluded" %}{% set _ = notes.append("Completed renewals are not in this export. Renewals MART already has stay, marked “no longer in the export”.") %}{% endif %}
+{% if a.tracker == "renewal_tracker" and filters.get("Completed within Last 6 Months") == "Excluded" %}{% set _ = notes.append("Completed renewals are not in this export. Renewals MART already has stay, marked “no longer in the export”.") %}{% endif %}
 
 {% if newer %}
 <div class="notice notice-error" role="alert">
@@ -59,11 +64,11 @@
         <thead><tr>
           <th scope="col" class="col-icon"><span class="visually-hidden">Mine</span></th>
           <th scope="col">Client</th>
-          <th scope="col" class="num">Renewals</th>
+          <th scope="col" class="num">{{ a.nouns | capitalize }}</th>
           <th scope="col" class="num">New</th>
           <th scope="col" class="num">Changed</th>
           <th scope="col" class="num">Unchanged</th>
-          <th scope="col" class="num" title="Renewals MART has for this client that are not in this file. They are kept.">Not in file</th>
+          <th scope="col" class="num" title="{{ a.nouns | capitalize }} MART has for this client that are not in this file. They are kept.">Not in file</th>
           <th scope="col">Note</th>
         </tr></thead>
         <tbody id="client-rows">
@@ -71,14 +76,14 @@
           <tr>
             <td class="col-icon"><input type="checkbox" name="mine" value="{{ c.key }}" id="m{{ loop.index }}" {% if c.is_mine == 1 %}checked{% endif %}></td>
             <td class="col-text" title="{{ c.name }}"><label for="m{{ loop.index }}">{{ c.name }}</label></td>
-            <td class="num">{{ c.renewals }}</td>
+            <td class="num">{{ c["items"] }}</td>
             <td class="num">{{ c.new or "" }}</td>
             <td class="num">{{ c.changed or "" }}</td>
             <td class="num">{{ c.unchanged or "" }}</td>
             <td class="num">{{ c.leaving or "" }}</td>
             <td class="nowrap muted">
               {% if c.is_mine == 1 and c.known %}your client{% elif c.is_mine == 0 %}not yours{% else %}new{% endif %}
-              {% if c.no_id %} · {{ c.no_id }} without id{% endif %}
+              {% if c.flagged and a.flag_label %} · {{ c.flagged }} {{ a.flag_label }}{% endif %}
             </td>
           </tr>
         {% endfor %}
@@ -91,6 +96,7 @@
     <div class="actions spaced">
       <button type="submit" class="btn btn-primary">Commit: load the ticked clients</button>
       <button type="submit" class="btn" formaction="/uploads/{{ upload.id }}/discard">Discard</button>
+      {% if waiting %}<span class="muted small">{{ waiting | length }} more upload{{ "s" if waiting | length != 1 }} waiting after this one.</span>{% endif %}
     </div>
   </section>
 </form>
@@ -100,7 +106,7 @@
   <h2 id="f-h">What this export contains</h2>
   <dl class="facts">
     {% for k, val in filters.items() %}<dt>{{ k }}</dt><dd>{{ val }}</dd>{% endfor %}
-    <dt>Sheets read</dt><dd>{{ p.sheets_read.keys() | join(", ") }}</dd>
+    <dt>Sheets read</dt><dd>{{ (p.sheets_read or {}).keys() | join(", ") }}</dd>
   </dl>
 </section>
 {% endif %}

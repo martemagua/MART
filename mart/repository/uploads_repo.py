@@ -88,3 +88,11 @@ def last_committed(conn: sqlite3.Connection) -> dict[str, Any] | None:
         """SELECT id, filename, committed_at, report_date FROM uploads WHERE status = 'committed'
            ORDER BY committed_at DESC, id DESC LIMIT 1""").fetchone()
     return dict(row) if row else None
+
+
+def staged(conn: sqlite3.Connection) -> list[dict[str, Any]]:
+    """Uploads waiting for a commit or discard, oldest first."""
+    rows = conn.execute(
+        """SELECT id, filename, tracker, flavour, report_date, staged_at, preview_json
+           FROM uploads WHERE status = 'staged' ORDER BY id""").fetchall()
+    return [{**dict(r), "preview": json.loads(r["preview_json"] or "{}")} for r in rows]

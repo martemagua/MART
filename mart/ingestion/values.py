@@ -30,8 +30,14 @@ def clean_text(value: Any) -> str | None:
 
 
 def nearest_midnight(dt: datetime) -> date:
-    """The calendar day a BM+ date means (see module docstring)."""
+    """The calendar day a BM+ date means (see module docstring).
+
+    Only a "midnight UTC shown in local time" value (a whole or half hour, no
+    seconds) is rounded. A real timestamp (the Task Tracker's "completed
+    14:32:42.220") is an instant, and keeps its own date."""
     d = dt.date()
+    if dt.second or dt.microsecond or dt.minute not in (0, 30):
+        return d
     return d + timedelta(days=1) if dt.hour >= 12 else d
 
 
@@ -55,12 +61,11 @@ def to_date(value: Any) -> str | None:
 
 
 def to_int(value: Any) -> int | None:
+    """Whole number, or None. Accepts BM+'s "138 day(s)"; "N/A" gives None."""
     if value is None or value == "":
         return None
-    try:
-        return int(float(str(value).strip()))
-    except ValueError:
-        return None
+    m = re.match(r"\s*(-?\d+(?:\.\d+)?)", str(value))
+    return int(float(m.group(1))) if m else None
 
 
 def is_non_expiring(value: Any) -> bool:

@@ -103,3 +103,57 @@ PERSON_FIELDS = {"benefit_owner", "local_analyst"}
 # Labels on the General Information sheet worth showing in the preview.
 EXPORT_FILTERS = ["Client Status", "In Progress & Pending Kickoff",
                   "Completed within Last 6 Months", "Upcoming within Next 6 Months"]
+
+# ---------------------------------------------------------------------------
+# What the renewal panel shows from the three detail sheets: (label, header,
+# section hint). Headers exactly as BM+ exports them, typos included.
+# ---------------------------------------------------------------------------
+STRATEGY_FIELDS = [
+    ("Renewal strategy", "Renewal Strategy", "Renewal Strategy Information"),
+    ("Confirmed with the local client?", "Have you confirmed the renewal strategy with the local client?", None),
+    ("Confirmed on", "Date the renewal strategy was confirmed with the local client", None),
+    ("Why not confirmed", "Please add comment on why you have not confirmed the renewal strategy with the local client", None),
+    ("Plan design changes considered?", "Are the Plan Design changes considered?", None),
+    ("Types of plan design changes", "Types of Plan Desing changes (e.g adding or removing a coverage, changing benefit levels, etc):", None),
+    ("Reasons for plan design changes", "Reasons for plan design changes", None),
+    ("Pooling partners invited?", "Will the pooling partners be invited?", None),
+    ("Primary pooling partners", "Primary Pooling Partners", None),
+    ("Other preferred global insurance partners", "Other Preferred Global Insurance Partners", None),
+    ("Why pooling partners are not invited", "Why pooling partners are not invited?", None),
+    ("Expected renewal rate adjustment", "Expected renewal rate adjustment", None),
+    ("Expected date for the final renewal terms", "Expected date to receive the final renewal terms", None),
+]
+LAST_RENEWAL_FIELDS = [
+    ("Last renewal strategy", "Last Renewal Strategy", None),
+    ("Last year of remarketing", "Last Year of Remarketing", None),
+    ("Next remarketing (as per RoR)", "Next Remarketing as per RoR", None),
+    ("Plan design changes", "Plan Design Changes", "Key Takeaways"),
+    ("Other considerations / complexity", "Other Considerations / Complexity", "Key Takeaways"),
+    ("Other comments", "Other Comments", "Key Takeaways"),
+]
+CLAIMS_FIELDS = [
+    ("Number of claims", "Number of Claims", None),
+    ("Claims amount (reporting currency)", "Claims Amount (reporting currency)", None),
+    ("Actual loss ratio", "Actual Loss Ratio", "Claims"),
+    ("Claims period", "Claims Experience Date Range", "Claims"),
+]
+PROPOSAL_COLUMNS = [
+    ("Proposal", "Proposals", None),
+    ("Flags", "Recommended / Selected / Lowest Cost", None),
+    ("Insurer", "Insurer", "Proposal Details"),
+    ("Plan design", "Plan Design", None),
+    ("Closing premium", "Closing Premium (Reporting Curency)", None),
+    ("First quote", "Annual Premium (Reporting Currency)", "First Quote"),
+    ("Final quote", "Annual Premium (Reporting Currency)", "Final Quote"),
+    ("Rate change", "Any Change in Premium Rate?", None),
+    ("Change %", "Premium Rate Change %", None),
+]
+SAVINGS_FIELDS = [
+    ("Recommended proposal accepted by the client?", "Was Recommended Proposal Accepted by Client?", None),
+    ("Improved benefit level", "Improved Benefit Level", None),
+    ("Enhanced underwriting terms", "Enhanced Underwriting Terms", None),
+    ("Unquantifiable changes", "Unquantifiable Changes", None),
+    ("Planned design changes (next renewal)", "Planned design changes", None),
+]
+SAVINGS_AMOUNTS_SECTION = "Savings (Reporting Currency)"
+CLIENT_QUESTIONS_SECTION = "Client Specific Questions"

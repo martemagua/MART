@@ -38,6 +38,11 @@ class Col:
     section: str | None = None   # substring of the section label
     after: str | None = None     # header this column follows (to its right)
     required: bool = False
+    aliases: tuple[str, ...] = ()  # other names BM+ uses for the same column
+
+    @property
+    def names(self) -> tuple[str, ...]:
+        return (self.header, *self.aliases)
 
 
 @dataclass
@@ -71,11 +76,11 @@ class SheetData:
         return out
 
 
-def _find_header_row(raw: list[tuple[Any, ...]], required: list[str]) -> int | None:
-    wanted = {norm(h) for h in required}
+def _find_header_row(raw: list[tuple[Any, ...]], required: list[Col]) -> int | None:
+    """The first row holding every required column (under any of its names)."""
     for i, row in enumerate(raw[:HEADER_SCAN_ROWS]):
         present = {norm(v) for v in row if v not in (None, "")}
-        if wanted <= present:
+        if all(any(norm(n) in present for n in c.names) for c in required):
             return i
     return None
 
@@ -96,10 +101,10 @@ def _sections(raw: list[tuple[Any, ...]], header_idx: int, width: int) -> list[s
 
 def read_sheet(ws: Any, spec: list[Col]) -> SheetData:
     raw = list(ws.iter_rows(values_only=True))
-    required = [c.header for c in spec if c.required]
+    required = [c for c in spec if c.required]
     hidx = _find_header_row(raw, required)
     if hidx is None:
-        return SheetData(ws.title, 0, [], {}, [], missing=required)
+        return SheetData(ws.title, 0, [], {}, [], missing=[c.header for c in required])
 
     headers = [" ".join(str(v).replace("_x000D_", "").replace("_x000d_", "").split())
                if v not in (None, "") else "" for v in raw[hidx]]
@@ -109,7 +114,7 @@ def read_sheet(ws: Any, spec: list[Col]) -> SheetData:
 
     mapping: dict[str, int] = {}
     for col in spec:
-        target = norm(col.header)
+        targets = {norm(n) for n in col.names}
         start = 0
         if col.after:
             after = norm(col.after)
@@ -118,7 +123,7 @@ def read_sheet(ws: Any, spec: list[Col]) -> SheetData:
                 continue
             start = pos + 1
         for i in range(start, width):
-            if normed[i] != target:
+            if normed[i] not in targets:
                 continue
             if col.section and norm(col.section) not in norm(sections[i]):
                 continue
@@ -149,3 +154,22 @@ def key_value_sheet(ws: Any, max_rows: int = 40) -> tuple[str | None, dict[str, 
         if value not in (None, ""):
             pairs[label.rstrip(":")] = json_value(value)
     return title, pairs
+
+
+def lookup(row: dict[str, Any], header: str, section: str | None = None) -> Any:
+    """A value from a full row copy ('Section › Header' keys, repeats suffixed
+    ' (2)'), by header and optional section substring, spelling-proof."""
+    want, sect = norm(header), norm(section) if section else None
+    for key, value in row.items():
+        sec, _, head = key.rpartition(" › ")
+        head = re.sub(r" \(\d+\)$", "", head)
+        if norm(head) == want and (sect is None or sect in norm(sec)):
+            return value
+    return None
+
+
+def section_items(row: dict[str, Any], section: str) -> list[tuple[str, Any]]:
+    """(header, value) pairs of one section of a full row copy, in order."""
+    sect = norm(section)
+    return [(key.rpartition(" › ")[2], value) for key, value in row.items()
+            if sect in norm(key.rpartition(" › ")[0])]

@@ -14,9 +14,9 @@
     <h2 id="up-h">Upload a tracker</h2>
     <form method="post" action="/uploads" enctype="multipart/form-data" class="form">
       <div class="field">
-        <label for="file">Renewal Tracker export (.xlsx)</label>
-        <input id="file" name="file" type="file" accept=".xlsx" required>
-        <p class="hint">Cross-client or single-client exports both work. The file itself is not kept, only what MART reads from it.</p>
+        <label for="file">Renewal Tracker or Task Tracker exports (.xlsx)</label>
+        <input id="file" name="file" type="file" accept=".xlsx" multiple required>
+        <p class="hint">Select one file or several at once (e.g. all your single-client exports). Cross-client and single-client exports both work; MART recognises the tracker. The files themselves are not kept, only what MART reads from them.</p>
       </div>
       <div class="actions"><button type="submit" class="btn btn-primary">Upload and preview</button></div>
     </form>
@@ -43,13 +43,37 @@
   </section>
 </div>
 
+{% if waiting %}
+<section class="card spaced-card" aria-labelledby="wait-h">
+  <h2 id="wait-h">Waiting for you ({{ waiting | length }})</h2>
+  <p class="muted">Each file has its own preview. After you commit or discard one, MART opens the next.</p>
+  <div class="table-scroll">
+    <table class="table">
+      <thead><tr><th scope="col">File</th><th scope="col">Tracker</th><th scope="col">Export</th><th scope="col" class="nowrap">Report date</th><th scope="col" class="num">Items</th><th scope="col"></th></tr></thead>
+      <tbody>
+      {% for u in waiting %}
+        <tr>
+          <td class="col-text" title="{{ u.filename }}">{{ u.filename }}</td>
+          <td class="nowrap">{{ "Task Tracker" if u.tracker == "task_tracker" else "Renewal Tracker" }}</td>
+          <td class="nowrap">{{ "Cross-client" if u.flavour == "cross_client" else (u.preview.title or "One client") }}</td>
+          <td class="nowrap">{{ u.report_date | dmy }}</td>
+          <td class="num">{{ u.preview["items"] or u.preview.renewals }}</td>
+          <td class="nowrap"><a href="/uploads/{{ u.id }}">Open the preview →</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
 <section class="card spaced-card" aria-labelledby="hist-h">
   <h2 id="hist-h">Upload history</h2>
   {% if uploads %}
   <div class="table-scroll">
     <table class="table">
       <thead><tr>
-        <th scope="col">Uploaded</th><th scope="col">File</th><th scope="col">Export</th>
+        <th scope="col">Uploaded</th><th scope="col">File</th><th scope="col">Tracker</th><th scope="col">Export</th>
         <th scope="col" class="nowrap">Report date</th><th scope="col">Status</th><th scope="col">Result</th>
       </tr></thead>
       <tbody>
@@ -57,6 +81,7 @@
         <tr>
           <td class="nowrap">{{ u.staged_at | dmy(True) }}</td>
           <td class="col-text" title="{{ u.filename }}"><a href="/uploads/{{ u.id }}">{{ u.filename }}</a></td>
+          <td class="nowrap">{{ "Task Tracker" if u.tracker == "task_tracker" else "Renewal Tracker" }}</td>
           <td class="nowrap">{{ "Cross-client" if u.flavour == "cross_client" else "One client" }}</td>
           <td class="nowrap">{{ u.report_date | dmy }}</td>
           <td><span class="pill pill-{{ u.status }}">{{ {"staged": "waiting for you", "committed": "loaded", "discarded": "discarded"}[u.status] }}</span></td>
