@@ -142,12 +142,14 @@ class TaskAdapter:
         return ()
 
     def keep(self, conn, client_id, rows):
-        """Only tasks of a renewal MART has (Martin, 04.11.2026: the renewals
-        are the backbone; a task that can't be linked is discarded)."""
+        """Only renewal tasks (Renewal Workspace) of a renewal MART has
+        (Martin, 04.11.2026: the renewals are the backbone; a task that can't
+        be linked is discarded; implementation and contract tasks are not
+        MART's concern)."""
         if client_id is None or not rows:
             return []
         index = renewal_service.renewal_index(renewals_repo.for_client(conn, client_id))
-        return [r for r in rows if renewal_service.links_to_renewal(index, r["fields"])]
+        return [r for r in rows if _wanted(index, r["fields"])]
 
     def not_news(self, conn, upload, keys) -> set[str]:
         """Stored tasks outside the export's own period: missing from it is
@@ -180,14 +182,19 @@ class TaskAdapter:
         # tasks loaded before 0.4.4 that belong to no renewal MART has
         index = renewal_service.renewal_index(renewals_repo.for_client(conn, client_id))
         orphans = [t["task_key"] for t in tasks_repo.for_client(conn, client_id)
-                   if not renewal_service.links_to_renewal(index, t)]
+                   if not _wanted(index, t)]
         tasks_repo.delete(conn, orphans)
 
 
-# Task Tracker "Date Type" (General Information) -> the task date it filters on.
-# Only "Renewal Date" is seen in real exports so far; another type means no
-# period is applied (every missing task counts, as before).
-_PERIOD_COLUMN = {norm("Renewal Date"): "review_date"}
+def _wanted(index, task: dict[str, Any]) -> bool:
+    return (norm(task.get("task_category")) == norm(tt_spec.RENEWAL_CATEGORY)
+            and renewal_service.links_to_renewal(index, task))
+
+
+# Task Tracker "Date Type" (General Information) -> the task date it filters
+# on (the options BM+ offers, Martin 04.11.2026). "Not Specified" = no period.
+_PERIOD_COLUMN = {norm("Renewal Date"): "review_date", norm("Task Start Date"): "start_date",
+                  norm("Task Due Date"): "due_date", norm("Task Complete Date"): "completed_date"}
 
 ADAPTERS = [RenewalAdapter(), TaskAdapter()]
 BY_TRACKER = {a.tracker: a for a in ADAPTERS}

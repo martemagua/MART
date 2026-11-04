@@ -79,19 +79,21 @@ def delete(conn: sqlite3.Connection, keys: list[str]) -> None:
         conn.execute(f"DELETE FROM tasks WHERE task_key IN ({','.join('?' * len(chunk))})", chunk)
 
 
-_DATE_COLUMNS = {"review_date", "due_date", "completed_date"}
+# the task dates a Task Tracker can be filtered by -> where they are stored
+_DATE_COLUMNS = {"review_date": "review_date", "due_date": "due_date",
+                 "completed_date": "completed_date",
+                 "start_date": "json_extract(fields_json, '$.start_date')"}
 
 
-def dates(conn: sqlite3.Connection, keys: list[str], column: str) -> dict[str, str | None]:
-    """task key -> one of its date columns."""
-    if column not in _DATE_COLUMNS:
-        raise ValueError(column)
+def dates(conn: sqlite3.Connection, keys: list[str], field: str) -> dict[str, str | None]:
+    """task key -> one of its dates."""
+    column = _DATE_COLUMNS[field]
     out: dict[str, str | None] = {}
     for i in range(0, len(keys), 500):
         chunk = keys[i:i + 500]
-        for r in conn.execute(f"SELECT task_key, {column} FROM tasks "
+        for r in conn.execute(f"SELECT task_key, {column} AS d FROM tasks "
                               f"WHERE task_key IN ({','.join('?' * len(chunk))})", chunk):
-            out[r["task_key"]] = r[column]
+            out[r["task_key"]] = r["d"]
     return out
 
 

@@ -79,7 +79,8 @@ def upload_commit(request: Request, upload_id: int) -> Response:
            f"{summary['changed'] + summary['returned']} changed, {summary['unchanged']} unchanged, "
            f"{summary['left_export']} no longer in the export.")
     if summary.get("skipped"):
-        msg += f" {summary['skipped']} not loaded: they belong to no renewal MART has."
+        msg += (f" {summary['skipped']} not loaded (implementation / contract tasks, "
+                "or no renewal in MART).")
     waiting = upload_service.waiting_uploads()
     if waiting:     # several files uploaded at once: straight on to the next one
         return Response.redirect(f"/uploads/{waiting[0]['id']}?done=" + quote(msg))

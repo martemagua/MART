@@ -227,4 +227,4 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 
 **L10** Tasks of renewals MART doesn't have (older cycles in a long Task Tracker export)?
 → **Answered 04.11.2026:** tasks only attach to renewals MART has; the others are discarded, and the history grows from the renewals MART keeps (0.4.4).
-Open: (a) which other "Date Type" values can a Task Tracker be filtered by (only "Renewal Date" seen)? (b) Implementation tasks (Appointment, Upload Local Documents, Review ROR, Update Policies, Local Contract Review) have no policy id in BM+, so they are always discarded — fine, or do you want them somewhere?
+(a) Date Types: Renewal Date, Task Start Date, Task Due Date, Task Complete Date, Not Specified — all applied (0.4.5). (b) Implementation and contract tasks: not important, ignored; only Renewal Workspace tasks are loaded (0.4.5).

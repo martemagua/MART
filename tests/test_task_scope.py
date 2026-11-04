@@ -37,7 +37,7 @@ def test_tasks_without_a_renewal_in_mart_are_not_loaded(configured, app):
     c = us.preview(uid)["clients"][0]
     assert (c["new"], c["skipped"]) == (1, 1)
     page = get(app, f"/uploads/{uid}").body_bytes.decode()
-    assert "No renewal" in page and "Tasks only attach to renewals MART has" in page
+    assert "Not loaded" in page and "MART loads renewal tasks (Renewal Workspace)" in page
     summary = us.commit(uid, {c["key"]})
     assert summary["skipped"] == 1 and _task_keys() == {THIS.ids()[0]}
 
@@ -81,3 +81,31 @@ def test_renewal_trackers_come_first_when_uploaded_together(configured):
     first = us.stage("tasks.xlsx", task_tracker([THIS]))
     second = us.stage("renewals.xlsx", renewal_tracker([R(n=1)]))
     assert [w["id"] for w in us.waiting_uploads()] == [second, first]
+
+
+def test_only_renewal_workspace_tasks_are_loaded(configured):
+    _load(renewal_tracker([R(n=1, policy="Medical")]))
+    tasks = [THIS, T(n=1, task_name="Appointment", category="Implementation"),
+             T(n=1, task_name="Local Contract Review", category="Contract")]
+    r = _load(task_tracker(tasks))
+    assert (r["summary"]["new"], r["summary"]["skipped"]) == (1, 2)
+    assert _task_keys() == {THIS.ids()[0]}
+
+
+def test_every_date_type_bm_offers_is_a_period(configured):
+    from mart.ingestion.sheet import norm
+    from mart.services.trackers import _PERIOD_COLUMN, TaskAdapter
+    assert {norm(t) for t in ("Renewal Date", "Task Start Date", "Task Due Date",
+                              "Task Complete Date")} == set(_PERIOD_COLUMN)
+    _load(renewal_tracker([R(n=1, policy="Medical")]))
+    _load(task_tracker([THIS]))                       # due 20.11.2026
+    key = THIS.ids()[0]
+    adapter = TaskAdapter()
+    with connection() as conn:
+        def outside(date_type, start, end):
+            info = {"Date Type": date_type, "Date: From": start, "Date: To": end}
+            return adapter.not_news(conn, {"info": info}, {key})
+        assert outside("Task Due Date", "01 Dec 2026", "31 Dec 2026") == {key}
+        assert outside("Task Due Date", "01 Nov 2026", "30 Nov 2026") == set()
+        assert outside("Task Start Date", "01 Jan 2020", "31 Dec 2030") == {key}  # no start date: outside
+        assert outside("Not Specified", None, None) == set()

@@ -162,13 +162,16 @@ What this means for MART:
   UUID.
 - **Period**: a Task Tracker export can cover years. General Information
   records it ("Date Type: Renewal Date · Date: From 31 Dec 2025 · Date: To
-  30 Dec 2026"; the client file showed "Not Specified"). Only "Renewal Date"
-  has been seen; MART applies the period for that type only.
+  30 Dec 2026"; the client file showed "Not Specified"). Date Types BM+
+  offers (Martin, 04.11.2026): Renewal Date · Task Start Date · Task Due
+  Date · Task Complete Date · Not Specified. MART applies each to the
+  matching task date.
 - **Most tasks of a long export belong to older cycles**: of the 490 tasks
   in the Globex client file, 436 belong to no renewal MART has (the
   Renewal Tracker carries in-progress and pending-kickoff renewals only).
-  MART discards those (Martin, 04.11.2026). Implementation tasks carry no
-  Policy ID / Expiring Policy Unique ID at all, so they never link.
+  MART discards those (Martin, 04.11.2026). MART loads **Renewal Workspace**
+  tasks only; implementation tasks (which carry no Policy ID / Expiring
+  Policy Unique ID at all) and contract tasks are not MART's concern.
 - **Linking**: `Policy ID` = the Renewal Tracker's per-cycle id (43 of 49
   Globex renewals found their tasks this way); failing that, the stable
   Expiring Policy Unique ID + the review date.
