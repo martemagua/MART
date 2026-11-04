@@ -38,14 +38,16 @@ def upload_file(request: Request) -> Response:
             staged.append(upload_service.stage(f.filename, f.data))
         except UploadError as exc:
             errors.append(f"{f.filename}: {exc}")
-    if len(staged) == 1 and not errors:
-        return Response.redirect(f"/uploads/{staged[0]}")
     if not staged:
         return _page(request, " · ".join(errors), 400)
-    msg = f"{len(staged)} file{'s' if len(staged) != 1 else ''} ready for preview below."
+    # Straight to the first preview; the others follow one by one.
+    query = []
+    if len(staged) > 1:
+        query.append("done=" + quote(f"{len(staged)} files uploaded. Here is the first; after you "
+                                     "commit or discard it, MART opens the next."))
     if errors:
-        msg += " Not uploaded: " + " · ".join(errors)
-    return Response.redirect("/uploads?done=" + quote(msg))
+        query.append("failed=" + quote("Not uploaded: " + " · ".join(errors)))
+    return Response.redirect(f"/uploads/{staged[0]}" + ("?" + "&".join(query) if query else ""))
 
 
 def _preview_page(upload_id: int, error: str | None = None, status: int = 200,
@@ -60,7 +62,7 @@ def _preview_page(upload_id: int, error: str | None = None, status: int = 200,
 
 @router.route("/uploads/{upload_id:int}")
 def upload_detail(request: Request, upload_id: int) -> Response:
-    return _preview_page(upload_id, notice=request.arg("done"))
+    return _preview_page(upload_id, error=request.arg("failed"), notice=request.arg("done"))
 
 
 @router.route("/uploads/{upload_id:int}/commit", methods=("POST",))

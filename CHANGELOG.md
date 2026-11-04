@@ -6,6 +6,28 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.4.2 — 04.11.2026 · straight to the preview, links to BM+
+
+### Changed
+- **Uploading several files opens the first preview straight away** (Martin,
+  04.11.2026). It says how many files came and which could not be read;
+  after you commit or discard it, MART opens the next one, as before.
+
+### Added
+- **Open in BM+** on the renewal panel, to make changes in BM+ directly.
+  It is the link BM+ itself writes in the cross-client Renewal Tracker;
+  MART keeps it when a single-client export (which has only bare ids)
+  comes later. Without it, the button opens one of the renewal's tasks in
+  BM+ and says so. Also a link to the expiring **policy** in BM+, and
+  **Task in BM+** on each stage card. Links open in a new tab; MART never
+  builds a link itself, it only uses `https://` links from the exports.
+
+### What to try
+1. Upload several files at once: you land on the first preview.
+2. Open a renewal, click **Open in BM+**: it should open that renewal.
+   Click **Task in BM+** on a stage. Tell me if any link lands on the wrong
+   page.
+
 ## 0.4.1 — 04.11.2026 · trackers without some sheets
 
 ### Fixed

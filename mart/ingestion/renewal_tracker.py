@@ -29,7 +29,7 @@ from typing import Any
 import openpyxl
 
 from mart.ingestion import values as v
-from mart.ingestion.ids import renewal_tracker_ids
+from mart.ingestion.ids import bm_link, renewal_tracker_ids
 from mart.ingestion.sheet import Col, key_value_sheet, norm, read_sheet
 from mart.ingestion.specs import renewal_tracker as spec
 
@@ -132,6 +132,17 @@ def details_from(stored: dict[str, Any], merged: dict[str, Any], carried, upload
     """Per detail sheet: the upload it was last read from."""
     before = stored.get("_from") or {}
     return {k: (upload_id if k in carried else before[k]) for k in merged if k in carried or k in before}
+
+
+LINK_FIELDS = ("bm_url", "bm_policy_url")
+
+
+def keep_links(row: dict[str, Any], stored_fields: dict[str, Any]) -> None:
+    """Only the cross-client export writes the BM+ links; a single-client
+    export after it must not lose them."""
+    for f in LINK_FIELDS:
+        if not row["fields"].get(f) and stored_fields.get(f):
+            row["fields"][f] = stored_fields[f]
 
 
 def carried_streams(rows: list[dict[str, Any]]) -> tuple[str, ...]:
@@ -279,6 +290,8 @@ def _overview_row(sheet, cells: list[Any], excel_row: int, client: str) -> Renew
             f[col.field] = v.clean_text(raw)
     f["non_expiring"] = v.is_non_expiring(sheet.value(cells, "end_date"))
     f["product_groups"] = v.product_groups(f.get("lines_of_coverage"))
+    f["bm_url"] = bm_link(f.get("renewal_ref"))          # cross-client exports only
+    f["bm_policy_url"] = bm_link(f.get("policy_ref"))
     ids = renewal_tracker_ids(f.get("policy_ref"), f.get("renewal_ref"))
     ckey = v.client_key(client)
     cycle_key, id_missing = _cycle_key(ids, ckey, f.get("country"), f.get("entity"),

@@ -14,7 +14,12 @@
 
 <header class="rd-head">
   <p class="crumbs"><a href="/clients/{{ client.id }}?bundle={{ selected.key | urlencode }}&group={{ group }}">← {{ selected.country }} · {{ selected.renewal_date | dmy or "no date" }}</a></p>
-  <h2 class="bundle-title">{{ r.policy_name or "—" }}</h2>
+  <div class="rd-title">
+    <h2 class="bundle-title">{{ r.policy_name or "—" }}</h2>
+    {% if detail.bm_link %}<a class="btn btn-small" href="{{ detail.bm_link.url }}" target="_blank" rel="noopener noreferrer" title="{{ detail.bm_link.title }} (new tab)">{{ detail.bm_link.label }} ↗</a>
+    {% else %}<span class="muted small" title="Only the cross-client Renewal Tracker and the Task Tracker carry BM+ links">no BM+ link yet</span>{% endif %}
+    {% if f.bm_policy_url %}<a class="small" href="{{ f.bm_policy_url }}" target="_blank" rel="noopener noreferrer" title="The expiring policy in BM+ (new tab)">policy ↗</a>{% endif %}
+  </div>
   <p class="muted">
     {{ r.country }}{% if r.entity %} · {{ r.entity }}{% endif %}
     · renews {{ r.renewal_date | dmy or "—" }}{% if detail.days_until is not none %} ({% if detail.days_until >= 0 %}in {{ detail.days_until }} days{% else %}{{ -detail.days_until }} days ago{% endif %}){% endif %}

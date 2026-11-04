@@ -53,6 +53,14 @@ the files are deliberately not copied here.
 → **Header rows differ per sheet *and* per flavour.** MART must find the
 header row by scanning, never from a fixed number.
 
+**Links to BM+** (checked 04.11.2026): the cross-client Renewal Tracker
+writes the renewal (`…/client/<c>/renewals/<renewal>/<cycle>`) and the
+expiring policy (`…/policies/<cycle>;<stable>`) as full links; the
+single-client one only bare ids. Every Task Tracker row links to its task
+(`…/renewals/v2/<renewal>/<workspace>?taskId=…`, same `<renewal>` id;
+implementation tasks `…/implementation/<id>?taskId=<uuid>`). MART shows
+these links as they are and never builds one.
+
 **Sheets are optional, columns are not** (Martin, 04.11.2026): when a
 tracker is created in BM+, each report sheet can be left out (General
 Information lists which are included); the standard trackers always have the

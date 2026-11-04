@@ -99,6 +99,7 @@ class RenewalAdapter:
         row["content_hash"] = rt.content_hash(row["bm"], merged)
         if stored is not None:
             rt.keep_streams_not_carried(row, stored["fields"], stored["bm"], ctx)
+            rt.keep_links(row, stored["fields"])
         renewals_repo.save(conn, row, client_id, upload_id,
                            existing_id=stored["id"] if stored else None,
                            touched=outcome != "unchanged")
