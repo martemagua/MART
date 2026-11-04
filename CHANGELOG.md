@@ -6,6 +6,19 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.7.7 — 04.11.2026 · "Everything BM+ exported" by section
+
+### Changed (Martin's note on 0.7.6)
+- **"Everything BM+ exported" is bundled under BM+'s own sections**
+  (Policy Information (Expiring Policy Period), LOC Information, Premium
+  Information, Multinational Network Information, Broking Remuneration,
+  Renewal Information), each one expandable, in the export's order, with
+  its number of fields. The headers no longer repeat the section name, and
+  dates show as DD.MM.YYYY like everywhere else.
+
+### What to try
+Open a renewal, then "Everything BM+ exported", then one of its sections.
+
 ## 0.7.6 — 04.11.2026 · lines of coverage as a list
 
 ### Changed (Martin's note on 0.7.5)

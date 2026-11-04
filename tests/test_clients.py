@@ -172,3 +172,23 @@ def test_lines_of_coverage_are_a_list_in_the_panel(app):
     page = get(app, f"/clients/{cid}/renewals/{rid}").body_bytes.decode()
     assert ('<ul class="loc-list"><li>Healthcare - Inpatient (Hospital and Surgical)</li>'
             "<li>Healthcare - Maternity</li></ul>") in page
+
+
+def test_everything_bm_exported_is_bundled_by_section(app):
+    """Martin, 04.11.2026: the raw BM+ row is grouped under BM+'s own
+    section headings, each one expandable, in the export's order."""
+    from mart.services import renewal_service as rs
+    secs = rs.bm_sections({"Policy Information (Expiring Policy Period) › Country": "Poland",
+                           "Policy Information (Expiring Policy Period) › Start Date": "2026-01-01",
+                           "Renewal Information › Renewal Unique ID*": "x", "Loose cell": 1})
+    assert [(s["name"], len(s["items"])) for s in secs] == [
+        ("Policy Information (Expiring Policy Period)", 2), ("Renewal Information", 1), ("Other", 1)]
+    cid = _load(_book())
+    with connection() as conn:
+        rid = conn.execute("SELECT id FROM renewals WHERE policy_name = 'Medical' AND country = 'Poland'"
+                           ).fetchone()["id"]
+    page = get(app, f"/clients/{cid}/renewals/{rid}").body_bytes.decode()
+    raw = page.split("Everything BM+ exported")[1]
+    assert raw.count('<details class="bm-group">') >= 3
+    assert "<summary>Policy Information (Expiring Policy Period) <span" in raw
+    assert "›" not in raw.split("</details>\n</details>")[0]          # headers shown without the section

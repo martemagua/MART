@@ -321,6 +321,11 @@ a.rc-name:hover { color: var(--accent); text-decoration: underline; }
 .sec-src { font-size: 12px; font-weight: 400; color: var(--muted); }
 .sec-old { color: var(--warn-ink); background: var(--warn-bg); border-radius: 4px; padding: 1px 6px; }
 .rd-fold > summary { cursor: pointer; font-weight: 600; }
+.bm-group { border-top: 1px solid var(--border); padding: 6px 0; }
+.bm-group:first-of-type { margin-top: 10px; }
+.bm-group > summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+.bm-group > summary .muted { font-weight: 400; margin-left: 6px; }
+.bm-group .facts-wide { margin: 8px 0 4px 16px; }
 .facts-wide { grid-template-columns: minmax(200px, max-content) 1fr; font-size: 13px; margin-top: 10px; }
 .facts dd { white-space: pre-line; overflow-wrap: break-word; }
 /* In the renewal panel the label never takes more than ~40%: long BM+

@@ -141,5 +141,11 @@
 
 <details class="rd-section rd-fold">
   <summary>Everything BM+ exported for this renewal ({{ detail.bm | length }} fields)</summary>
-  <dl class="facts facts-wide">{% for k, val in detail.bm.items() %}<dt>{{ k }}</dt><dd>{{ val }}</dd>{% endfor %}</dl>
+  {# bundled under BM+'s own section headings, each one expandable (Martin, 04.11.2026) #}
+  {% for sec in detail.bm_sections %}
+  <details class="bm-group">
+    <summary>{{ sec.name }} <span class="muted small">{{ sec["items"] | length }} field{{ "s" if sec["items"] | length != 1 }}</span></summary>
+    {{ facts(sec["items"], "facts-wide") }}
+  </details>
+  {% endfor %}
 </details>

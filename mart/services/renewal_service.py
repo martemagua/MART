@@ -167,11 +167,22 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
         "overview": ov.timeline(f.get("overview_all"), f.get("overview_client_ready"), today),
         "overview_state": ov.flag(f.get("overview_all"), f.get("overview_client_ready"))["state"],
         "feed": sorted(ov.entries(f.get("renewal_feed")), key=lambda e: e["date"], reverse=True),
-        "bm": r["bm"],
+        "bm": r["bm"], "bm_sections": bm_sections(r["bm"]),
         "older": older,
         "history": history.describe(changes, {t["id"]: t["task_name"] for t in mine}),
         "links": bm_links(f, stages_),
     }
+
+
+def bm_sections(bm: dict[str, Any] | None) -> list[dict[str, Any]]:
+    """The Overview row as BM+ exported it, bundled under its own section
+    headings ("Policy Information (Expiring Policy Period)", …), in the
+    export's order. A cell without a section goes under "Other"."""
+    sections: dict[str, list[tuple[str, Any]]] = {}
+    for key, value in (bm or {}).items():
+        section, _, header = key.rpartition(" › ")
+        sections.setdefault(section or "Other", []).append((header, value))
+    return [{"name": name, "items": items} for name, items in sections.items()]
 
 
 def policy_number(details: dict[str, Any] | None) -> str | None:
