@@ -8,7 +8,7 @@ date, open a renewal, and add notes and to-dos.
 you unzip over the previous version (your data folder is never touched),
 plus a short **"what to try"** list. Your feedback steers the next day.
 
-Status: **in progress.** Day 1 done and verified on both machines (04.11.2026). Day 2 done (MART 0.2.0) and verified on the laptop with real exports of both flavours (04.11.2026). Day 3 done (MART 0.3.0) and verified on the laptop (04.11.2026). Day 4 done (MART 0.4.0–0.4.6) and verified on the laptop (04.11.2026). Day 5 done (MART 0.5.0–0.5.1, 04.11.2026). Day 6 done (MART 0.6.0, 04.11.2026). Day 7 done (MART 0.7.0, 04.11.2026), Martin's notes on it in 0.7.1 (lighter pages, strategy colours, flags, panel filters, opening at the top) 0.7.2 (date filters, one BM+ renewal link, drag and drop) 0.7.3 (cards: name on top, policy number) 0.7.4 (moving renewals in an edit mode) 0.7.5 (Renewal and Strategy stacked) 0.7.6 (lines of coverage as a list) 0.7.7 ("Everything BM+ exported" by section) and 0.7.8 (client notes button); the M1 review is next.
+Status: **done (M1 review 04.11.2026), see the review below; M2 continues in `BUILD_PLAN_M2.md`.** Day 1 done and verified on both machines (04.11.2026). Day 2 done (MART 0.2.0) and verified on the laptop with real exports of both flavours (04.11.2026). Day 3 done (MART 0.3.0) and verified on the laptop (04.11.2026). Day 4 done (MART 0.4.0–0.4.6) and verified on the laptop (04.11.2026). Day 5 done (MART 0.5.0–0.5.1, 04.11.2026). Day 6 done (MART 0.6.0, 04.11.2026). Day 7 done (MART 0.7.0, 04.11.2026), Martin's notes on it in 0.7.1 (lighter pages, strategy colours, flags, panel filters, opening at the top) 0.7.2 (date filters, one BM+ renewal link, drag and drop) 0.7.3 (cards: name on top, policy number) 0.7.4 (moving renewals in an edit mode) 0.7.5 (Renewal and Strategy stacked) 0.7.6 (lines of coverage as a list) 0.7.7 ("Everything BM+ exported" by section) and 0.7.8 (client notes button); the M1 review followed the same day.
 
 ---
 
@@ -67,6 +67,22 @@ against the charter goals it touches:
 3. Arrange one client's bundles the way you actually work them.
 4. Capture everything from one call or mail as notes / to-dos in MART.
 5. End of the day: is what you wrote all there (and in the backup folder)?
+
+### Review result (Martin, 04.11.2026)
+
+"Pretty happy with the current state." M1's promise holds: any renewal can
+be found in a few clicks and written on; 0.7.1–0.7.8 were Martin's notes
+from using it. The review answered the questions that shape M2
+(QUESTIONS E1–E4, F2, G1, K4, M2a):
+
+- **Freshness:** amber after 7 days without a new overview entry, red after
+  14; "new" goes by the date on the entry itself; all entries count, not
+  only client-ready ones.
+- **Broker deadlines:** prefilled from "Expected date to receive the final
+  renewal terms" when BM+ has it; Martin confirms each one himself.
+- **Reminders:** inside MART first; the AI agent and an email brief later.
+- **Richer to-dos:** subtasks, description, urgency, delegated / waiting on.
+- **Home:** not settled yet; M2 starts with "Today" and simple client cards.
 
 **Questions for the review (they shape M2):**
 - What did you still have to open BM+ or a tracker for?

@@ -93,16 +93,16 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 ## E. Overview freshness & broker deadlines
 
 **E1 ⭐** When is an overview *stale*: a fixed number of days, or tighter as the renewal date approaches? What number of days?
-→
+→ **Answered 04.11.2026:** two steps: amber after **7 days** without a new overview entry, red ("stale") after **14**. Both in Settings → Time limits. (A future broker deadline pauses the clock, PLANNING §1c.)
 
 **E2** "New" relative to what: since I last *marked it seen*, since the last client meeting, or since the last upload?
-→
+→ **Answered 04.11.2026:** by the **date written on the overview entry itself** (the `DD MMM YYYY:` header MART already splits the overview on). No "seen" marks. MART marks entries dated within the last N days as new (N in Settings; proposed default 7, the same as the amber limit).
 
 **E3** Should freshness be measured on *all* overview entries, or on client-ready ones only?
-→
+→ **Answered 04.11.2026:** on **all** entries: "client ready" is a toggle that is sometimes forgotten.
 
 **E4** Is a broker deadline fulfilled by any new overview entry, or should you always confirm it yourself?
-→
+→ **Answered 04.11.2026:** **Martin confirms it himself.** (MART may point out that a new entry arrived, but never closes a deadline on its own.)
 
 **E5** When a deadline passes: just flag it, or start a chase (with a draft email) automatically?
 →
@@ -115,7 +115,7 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 →
 
 **F2** How should reminders reach you: in-app only, Outlook calendar (.ics), email, Teams, phone? What is technically allowed on your work machine?
-→
+→ **Answered 04.11.2026:** **inside MART** for sure (M2: Home's "Today"); over the AI agent some day (M4); and, if possible, an **email brief** (later, most likely through the agent).
 
 **F3** Do you want "waiting on X since Y" and simple dependencies, or is a checklist enough?
 →
@@ -128,7 +128,7 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 ## G. Home & daily orientation
 
 **G1** On a client card on Home, which 3–5 things matter most at a glance?
-→
+→ 04.11.2026: **not sure yet**, especially for clients. M2 starts Home with the "Today" list (what is due or overdue) and a simple client card, and we adjust it from use.
 
 **G2** Should the AI agent's day plan show up *inside* MART (a "Today" list it fills), or live in the agent's chat and only *read* MART?
 →
@@ -204,7 +204,7 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 →
 
 **K4** Is *"Expected date to receive the final renewal terms"* (Renewal Strategy sheet) where brokers record the date they give you, or is it usually empty?
-→
+→ **Answered 04.11.2026:** usually **filled**. MART prefills a broker deadline from it when it is there (M2).
 
 **K5** Is `Global Review Pending` the queue of tasks waiting for *your* peer review?
 →
@@ -239,3 +239,4 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 
 **M2a ⭐** **Richer to-dos** (to discuss when M2 starts). They already hang on a renewal, a bundle or a client and have a due date. Martin's starting points, from Microsoft To Do / Planner and Google Tasks: **subtasks**, **notes** on the to-do, **urgency**, **delegation** (who it was handed to / who we are waiting on). Open: which of these, what a status set looks like (e.g. open / in progress / waiting / done), and how broker deadlines and Home's "Today" use them.
 → Agreed 04.11.2026: designed in M2 together with broker deadlines and Home; a **to-do board** (cards = to-dos, columns = status) comes in M3, built on the same board code as the renewal Kanban.
+→ **Answered 04.11.2026 (M1 review):** all four: **subtasks** (a checklist inside a to-do), a **description**, **urgency**, and **delegated / waiting on** (who it is with, since when). See BUILD_PLAN_M2.md.
