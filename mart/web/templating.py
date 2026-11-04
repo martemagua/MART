@@ -14,6 +14,7 @@ from typing import Any
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from mart import RELEASE_LABEL, __version__
+from mart.web import colors, countries
 from mart.web.framework import Response
 
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
@@ -59,6 +60,8 @@ _env = Environment(
 )
 _env.filters["dmy"] = dmy
 _env.filters["filesize"] = filesize
+_env.filters["strategy_class"] = colors.strategy_class
+_env.filters["flag"] = countries.flag
 _env.globals.update(version=__version__, release=RELEASE_LABEL)
 
 

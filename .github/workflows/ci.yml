@@ -1,19 +1,26 @@
 name: CI
 
+# One run per change: pull requests into main, pushes to main (the merge),
+# and by hand from the Actions tab. A push to a PR branch is tested through
+# its PR, not a second time as a push. Windows only: MART runs on Windows.
 on:
   push:
+    branches: [main]
   pull_request:
+  workflow_dispatch:
+
+# A newer push to the same PR cancels the run it replaces (runs on main all finish).
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - { os: windows-latest, python: "3.12" }   # the work laptop
-          - { os: windows-latest, python: "3.14" }   # Martin's personal PC
-          - { os: ubuntu-latest,  python: "3.12" }
-    runs-on: ${{ matrix.os }}
+        python: ["3.12", "3.14"]   # the work laptop, Martin's personal PC
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -26,21 +33,17 @@ jobs:
       - run: python -m pytest
       # The launcher must find Python on its own (no PATH tricks).
       - name: MART.bat finds Python and passes its start-up check
-        if: runner.os == 'Windows'
         shell: cmd
         env:
           MART_NO_PAUSE: "1"
         run: MART.bat check
       - name: make-zip.bat builds and tests the zip
-        if: runner.os == 'Windows'
         shell: cmd
         env:
           MART_NO_PAUSE: "1"
         run: make-zip.bat --no-pull
-      - if: runner.os != 'Windows'
-        run: python tools/build_zip.py --verify
       - uses: actions/upload-artifact@v4
-        if: matrix.os == 'windows-latest' && matrix.python == '3.12'
+        if: matrix.python == '3.12'
         with:
           name: MART-zip
           path: dist/*.zip

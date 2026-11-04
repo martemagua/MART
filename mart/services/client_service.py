@@ -121,8 +121,8 @@ def explorer(client_id: int, bundle: str | None = None, group: str = "date",
              show_all: bool = False, today: date | None = None,
              renewal_id: int | None = None) -> dict[str, Any]:
     """The explorer's side panel (bundles, grouped) and the selected bundle:
-    the one asked for, else the one holding `renewal_id`, else the next to
-    renew. A renewal is in its default bundle (country + date) unless Martin
+    the one asked for, else the one holding `renewal_id`, else the first in
+    the panel. A renewal is in its default bundle (country + date) unless Martin
     moved it into a custom bundle (services/bundles.py)."""
     today = today or date.today()
     group = group if group in GROUPINGS else "date"
@@ -176,10 +176,10 @@ def explorer(client_id: int, bundle: str | None = None, group: str = "date",
         label = b["country"] if group == "country" else _month_label(b["renewal_date"])
         groups.setdefault(label, []).append(b)
 
-    selected = bundles.get(where.get(renewal_id) if renewal_id else (bundle or ""))
-    if selected is None and ordered:
-        upcoming = [b for b in ordered if b["days_until"] is not None and b["days_until"] >= 0]
-        selected = (upcoming or ordered)[0]
+    # nothing asked for: the bundle at the top of the side panel, so the page
+    # opens at the top (Martin, 04.11.2026)
+    selected = bundles.get(where.get(renewal_id) if renewal_id else (bundle or "")) \
+        or next((b for items in groups.values() for b in items), None)
     detail = None
     if selected:
         stage_of = {r["id"]: renewal_service.stages(linked[r["id"]], today, r.get("upcoming_strategy"))
@@ -199,8 +199,16 @@ def explorer(client_id: int, bundle: str | None = None, group: str = "date",
         "renewal_count": len(shown), "left_count": left_count, "show_all": show_all,
         "group": group, "selected": detail, "has_task_data": bool(tasks),
         "freshness": overview_freshness(client.get("overview_as_of"), today),
-        "where": where,
+        "where": where, "filters": panel_filters(ordered, shown),
     }
+
+
+def panel_filters(bundles: list[dict[str, Any]], renewals: list[dict[str, Any]]) -> dict[str, Any]:
+    """The side panel's dropdowns: the client's countries, and the months its
+    renewals renew in (for "from" / "until")."""
+    months = sorted({r["renewal_date"][:7] for r in renewals if r["renewal_date"]})
+    return {"countries": sorted({b["country"] for b in bundles}),
+            "months": [(m, _month_label(m + "-01")) for m in months]}
 
 
 def move_targets(customs: dict[int, dict[str, Any]], bundles: dict[str, dict[str, Any]],

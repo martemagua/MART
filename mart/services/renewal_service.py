@@ -12,6 +12,7 @@ from datetime import date, datetime
 from typing import Any
 
 from mart.ingestion import overview as ov
+from mart.ingestion import renewal_tracker as rt
 from mart.ingestion import task_tracker as tt
 from mart.ingestion.ids import bm_link
 from mart.ingestion.sheet import lookup, norm, section_items
@@ -112,6 +113,12 @@ def stages(tasks: list[dict[str, Any]], today: date | None = None,
     return out
 
 
+def _proposal(p: dict[str, Any]) -> dict[str, Any]:
+    out = {label: lookup(p, header, section) for label, header, section in rspec.PROPOSAL_COLUMNS}
+    out["Insurer"] = rt.insurer_or_provider(out.get("Insurer"), lookup(p, *rspec.PROPOSAL_PROVIDER))
+    return out
+
+
 def _facts(row: dict[str, Any], spec_fields: list[tuple[str, str, str | None]]) -> list[tuple[str, Any]]:
     out = []
     for label, header, section in spec_fields:
@@ -138,8 +145,7 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
     f, d = r["fields"], r["details"]
     strategy = (d.get("strategy") or [{}])[0]
     savings = (d.get("savings") or [{}])[0]
-    proposals = [{label: lookup(p, header, section) for label, header, section in rspec.PROPOSAL_COLUMNS}
-                 for p in d.get("proposals") or []]
+    proposals = [_proposal(p) for p in d.get("proposals") or []]
     amounts = [(h, val) for h, val in section_items(savings, rspec.SAVINGS_AMOUNTS_SECTION)
                if isinstance(val, (int, float)) and val]
     questions = [(h, val) for h, val in section_items(strategy, rspec.CLIENT_QUESTIONS_SECTION) if val]

@@ -35,9 +35,11 @@ def client_explorer(request: Request, client_id: int) -> Response:
     view = _explorer(request, client_id, bundle=request.arg("bundle"))
     s = view["selected"]
     bundle_mine = notes_service.for_bundle(client_id, s) if s else None
+    # opened from the Clients list (no bundle asked for): the side panel starts
+    # at the top, without the filters set earlier in this browser tab
     return render("client_explorer.html", active="clients", here=request.url, bundle_mine=bundle_mine,
                   client_counts=_client_counts(client_id), mine_counts=notes_service.counts(client_id),
-                  **view)
+                  fresh=not request.arg("bundle"), **view)
 
 
 @router.route("/clients/{client_id:int}/renewals/{renewal_id:int}")

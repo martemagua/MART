@@ -153,3 +153,27 @@ def test_a_refused_action_explains_and_leads_back(configured, app):
     page = post(app, "/todos/add", {"scope": "nonsense", "ref": "1", "title": "x"},
                 headers={**h, "origin": "http://127.0.0.1:8070"}).body_bytes.decode()
     assert "evil.example" not in page
+
+
+def test_strategies_are_colour_coded():
+    from mart.web.colors import strategy_class
+    assert strategy_class("Remarketing") == "st-remarket"
+    assert strategy_class("incumbent  with rate guarantee") == "st-guarantee"   # spelling-proof
+    assert strategy_class("Unknown / New Policy") == "st-new"
+    assert strategy_class(None) == strategy_class("Something new") == "st-none"
+
+
+def test_country_flags_ship_with_mart_and_cover_bm_spellings():
+    from mart.web import countries
+    from mart.web.server import STATIC_DIR, serve_static
+    assert all((STATIC_DIR / "flags" / f"{c}.svg").is_file()
+               for c in {**countries.NAMES, **countries.ALIASES}.values())
+    # BM+ writes ISO 3166's long forms; spacing, case and accents don't matter
+    for name, code in (("Korea, Republic Of", "kr"), ("United States", "us"), ("Cote D'Ivoire", "ci"),
+                       ("Tanzania, United Republic Of", "tz"), ("united  kingdom", "gb"),
+                       ("Türkiye", "tr")):
+        assert countries.code(name) == code, name
+    assert countries.flag("—") == "" and countries.flag(None) == ""
+    assert 'alt=""' in countries.flag("Poland") and "<script" not in countries.flag('<script>"')
+    r = serve_static("/static/flags/pl.svg")
+    assert r.status == 200 and r.content_type == "image/svg+xml"

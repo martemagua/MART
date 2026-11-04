@@ -12,7 +12,7 @@
     <span class="todo-title">{{ t.title }}</span>
     {% if t.due_date %}<span class="todo-due">{{ "due " if not t.done_at }}{{ t.due_date | dmy }}{% if t.overdue %} · overdue{% endif %}</span>{% endif %}
     {% if t.done_at %}<span class="todo-due">done {{ t.done_at | dmy(True) }}</span>{% endif %}
-    {% if show_target %}<a class="todo-target" href="{{ t.target.url }}">{{ t.client_name }} · {{ t.target.country }}{% if t.target.renewal_date %} · {{ t.target.renewal_date | dmy }}{% endif %} · {{ t.target.name }}</a>{% endif %}
+    {% if show_target %}<a class="todo-target" href="{{ t.target.url }}">{{ t.client_name }} · {{ t.target.country | flag }}{{ t.target.country }}{% if t.target.renewal_date %} · {{ t.target.renewal_date | dmy }}{% endif %} · {{ t.target.name }}</a>{% endif %}
   </div>
   <details class="row-edit">
     <summary title="Edit or delete">Edit</summary>
@@ -51,31 +51,47 @@
    and to-dos of the bundle, shown read-only with a link (renewal panel). #}
 {% macro mine_section(m, back, heading="Your to-dos and notes", also=none, also_url=none, earlier=none) %}
 <section class="rd-section sec-mine" id="mine" aria-labelledby="mine-h">
-  <h3 id="mine-h">{{ heading }} <span class="sec-src">written in MART</span></h3>
+  {% set open_todos = m.todos | rejectattr("done_at") | list %}{% set done_todos = m.todos | selectattr("done_at") | list %}
+  <div class="mine-head">
+    <h3 id="mine-h">{{ heading }} <span class="sec-src">written in MART</span></h3>
+    <div class="mine-actions">
+      <details class="arrange">
+        <summary class="btn btn-small">+ To-do</summary>
+        <form method="post" action="/todos/add" class="arrange-box arrange-right stack-form">
+          <input type="hidden" name="scope" value="{{ m.target.scope }}"><input type="hidden" name="ref" value="{{ m.target.ref }}"><input type="hidden" name="back" value="{{ back }}">
+          <input type="text" name="title" placeholder="What is to be done?" required maxlength="300" aria-label="New to-do" data-focus-on-open>
+          <label class="small muted">Due (optional) <input type="date" name="due" aria-label="Due date (optional)"></label>
+          <div class="actions"><button type="submit" class="btn btn-small btn-primary">Add to-do</button></div>
+        </form>
+      </details>
+      <details class="arrange">
+        <summary class="btn btn-small">+ Note</summary>
+        <form method="post" action="/notes/add" class="arrange-box arrange-right stack-form">
+          <input type="hidden" name="scope" value="{{ m.target.scope }}"><input type="hidden" name="ref" value="{{ m.target.ref }}"><input type="hidden" name="back" value="{{ back }}">
+          <textarea name="body" rows="5" placeholder="New note…" required aria-label="New note" data-focus-on-open></textarea>
+          <div class="actions"><button type="submit" class="btn btn-small btn-primary">Add note</button></div>
+        </form>
+      </details>
+    </div>
+  </div>
+  {% if open_todos or done_todos or m.notes %}
   <div class="mine-cols">
+    {% if open_todos or done_todos %}
     <div>
       <h4>To-dos</h4>
-      {% set open_todos = m.todos | rejectattr("done_at") | list %}{% set done_todos = m.todos | selectattr("done_at") | list %}
       <ul class="todo-list">{% for t in open_todos %}{{ todo_row(t, back) }}{% endfor %}</ul>
-      <form method="post" action="/todos/add" class="inline-form add-form">
-        <input type="hidden" name="scope" value="{{ m.target.scope }}"><input type="hidden" name="ref" value="{{ m.target.ref }}"><input type="hidden" name="back" value="{{ back }}">
-        <input type="text" name="title" placeholder="New to-do…" required maxlength="300" aria-label="New to-do">
-        <input type="date" name="due" aria-label="Due date (optional)" title="Due date (optional)">
-        <button type="submit" class="btn btn-small">Add</button>
-      </form>
       {% if done_todos %}<details class="done-fold"><summary>{{ done_todos | length }} done</summary><ul class="todo-list">{% for t in done_todos %}{{ todo_row(t, back) }}{% endfor %}</ul></details>{% endif %}
     </div>
+    {% endif %}
+    {% if m.notes %}
     <div>
       <h4>Notes</h4>
-      <form method="post" action="/notes/add" class="stack-form add-form">
-        <input type="hidden" name="scope" value="{{ m.target.scope }}"><input type="hidden" name="ref" value="{{ m.target.ref }}"><input type="hidden" name="back" value="{{ back }}">
-        <textarea name="body" rows="2" placeholder="New note…" required aria-label="New note"></textarea>
-        <div class="actions"><button type="submit" class="btn btn-small">Add note</button></div>
-      </form>
       <ul class="note-list">{% for n in m.notes[:3] %}{{ note_item(n, back) }}{% endfor %}</ul>
       {% if m.notes | length > 3 %}<details class="done-fold"><summary>{{ m.notes | length - 3 }} older note{{ "s" if m.notes | length - 3 != 1 }}</summary><ul class="note-list">{% for n in m.notes[3:] %}{{ note_item(n, back) }}{% endfor %}</ul></details>{% endif %}
     </div>
+    {% endif %}
   </div>
+  {% else %}<p class="muted small mine-empty">Nothing written here yet.</p>{% endif %}
   {% if earlier %}
   <details class="mine-also mine-earlier">
     <summary><h4>Notes from earlier renewals of this policy ({{ earlier | length }})</h4></summary>

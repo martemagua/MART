@@ -63,6 +63,18 @@ these links as they are and never builds one. **The renewal link does not
 open in BM+** (Martin, 04.11.2026); the policy link does. MART stores the
 renewal link but doesn't offer it.
 
+**"Insurer Not Found"**: BM+ writes it in Insurer when the insurer isn't in
+its list (158 of the cross-client demo rows). The **Provider** column beside
+each Insurer (expiring, upcoming, and in Proposals) then names who it is
+(Martin, 04.11.2026; empty in every demo row). MART shows the Provider in
+that case (`renewal_tracker.insurer_or_provider`).
+
+**Country names** are English, mostly the common short form ("Poland",
+"United Kingdom") but ISO 3166's long form where it has one: "Korea,
+Republic Of", "Tanzania, United Republic Of", "Cote D'Ivoire" (no accent),
+and "United States". 79 distinct names in the demo exports, all of them
+known to `web/countries.py` (flags).
+
 **Sheets are optional, columns are not** (Martin, 04.11.2026): when a
 tracker is created in BM+, each report sheet can be left out (General
 Information lists which are included); the standard trackers always have the
