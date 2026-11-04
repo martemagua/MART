@@ -3,8 +3,23 @@
 MART (Martin's Awesome Renewal Tool) is a local, single-user web app that
 tracks renewals from BM+ tracker exports and lets Martin record the real
 state, deadlines, notes and to-dos. Read `CHARTER.md` (why/what, agreed),
-`PLANNING.md` (design), `TRACKER_MAP.md` (what the BM+ exports contain) and
-the current `BUILD_PLAN_*.md` before changing anything.
+`PLANNING.md` (design), `TRACKER_MAP.md` (what the BM+ exports contain),
+`CHANGELOG.md` (what each version did) and the current `BUILD_PLAN_*.md`
+before changing anything.
+
+## Working agreement (Martin, 04.11.2026)
+
+- **Every change goes through a pull request** into `main`, never a direct
+  push to `main`. Open the PR as soon as the work is pushed, describe it with
+  `.github/pull_request_template.md` (what, why, how tested, docs, what to
+  try), and keep it updated until it is merged. After a merge, start the next
+  work from the new `main`.
+- **Documentation is part of every change**, not a later task: update
+  `CHANGELOG.md` (+ version in `mart/__init__.py` when MART changes), the
+  README status line, this file's layout table/rules, the build-plan progress,
+  `TRACKER_MAP.md` for anything new about the BM+ exports, and
+  `QUESTIONS.md` for open questions. The PR template's checklist is the list.
+- Commit messages say what changed and why, in plain words.
 
 ## Hard constraints (from the work laptop)
 
