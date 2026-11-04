@@ -39,7 +39,8 @@ Status: **in progress.** Day 1 done and verified on both machines (04.11.2026). 
 | 7 ✅ | **Hardening**: per-client uploads that replace only that client, renewals without ids ("Transitioned") identified and flagged, clear error messages, first M1 review | use M1 for a full day of real work; list what's missing |
 
 After day 7 we review M1 together, adjust the plan, and move to **M2**
-(freshness, broker deadlines, Home).
+(freshness, broker deadlines, Home, and richer to-dos: QUESTIONS M2a). The
+to-do board comes in M3 with the Kanban (Martin, 04.11.2026).
 
 ---
 
