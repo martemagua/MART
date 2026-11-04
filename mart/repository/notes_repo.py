@@ -8,7 +8,9 @@ from __future__ import annotations
 import sqlite3
 from typing import Any
 
-_TODO_ORDER = "done_at IS NOT NULL, due_date IS NULL, due_date, id"
+# open first; among them urgent before normal before low, then by due date (undated last)
+_URGENCY_RANK = "CASE urgency WHEN 'urgent' THEN 0 WHEN 'low' THEN 2 ELSE 1 END"
+_TODO_ORDER = f"done_at IS NOT NULL, {_URGENCY_RANK}, due_date IS NULL, due_date, id"
 
 
 def _targets_clause(targets: list[tuple[str, str]]) -> tuple[str, list[str]]:
@@ -56,7 +58,8 @@ def all_todos(conn: sqlite3.Connection, done_since: str | None) -> list[dict[str
     rows = conn.execute(
         """SELECT t.*, c.name AS client_name FROM todos t JOIN clients c ON c.id = t.client_id
             WHERE t.done_at IS NULL OR ? IS NULL OR t.done_at >= ?
-            ORDER BY t.done_at IS NOT NULL, t.due_date IS NULL, t.due_date, t.id""",
+            ORDER BY t.done_at IS NOT NULL, CASE t.urgency WHEN 'urgent' THEN 0 WHEN 'low' THEN 2 ELSE 1 END,
+                     t.due_date IS NULL, t.due_date, t.id""",
         (done_since, done_since))
     return [dict(r) for r in rows]
 
@@ -73,10 +76,52 @@ def counts_by_target(conn: sqlite3.Connection, client_id: int) -> dict[tuple[str
     return out
 
 
+def steps_for(conn: sqlite3.Connection, todo_ids: list[int]) -> dict[int, list[dict[str, Any]]]:
+    """todo id -> its subtasks in order (one query for all ids)."""
+    out: dict[int, list[dict[str, Any]]] = {i: [] for i in todo_ids}
+    if not todo_ids:
+        return out
+    marks = ",".join("?" * len(todo_ids))
+    for r in conn.execute(f"SELECT * FROM todo_steps WHERE todo_id IN ({marks}) ORDER BY position, id",
+                          todo_ids):
+        out[r["todo_id"]].append(dict(r))
+    return out
+
+
+def update_details(conn: sqlite3.Connection, todo_id: int, d: dict[str, Any]) -> None:
+    """The M2 extras (already validated): description, urgency, status, waiting_*."""
+    conn.execute("""UPDATE todos SET description = ?, urgency = ?, status = ?, waiting_kind = ?,
+                    waiting_on = ?, waiting_since = ?, updated_at = datetime('now') WHERE id = ?""",
+                 (d["description"], d["urgency"], d["status"], d["waiting_kind"], d["waiting_on"],
+                  d["waiting_since"], todo_id))
+
+
+def add_step(conn: sqlite3.Connection, todo_id: int, title: str) -> int:
+    pos = conn.execute("SELECT COALESCE(MAX(position), 0) + 1 FROM todo_steps WHERE todo_id = ?",
+                       (todo_id,)).fetchone()[0]
+    cur = conn.execute("INSERT INTO todo_steps (todo_id, title, position) VALUES (?, ?, ?)",
+                       (todo_id, title, pos))
+    return int(cur.lastrowid)
+
+
+def get_step(conn: sqlite3.Connection, step_id: int) -> dict[str, Any] | None:
+    r = conn.execute("SELECT * FROM todo_steps WHERE id = ?", (step_id,)).fetchone()
+    return dict(r) if r else None
+
+
+def set_step_done(conn: sqlite3.Connection, step_id: int, done: bool) -> None:
+    conn.execute("UPDATE todo_steps SET done_at = CASE WHEN ? THEN datetime('now') END WHERE id = ?",
+                 (int(done), step_id))
+
+
+def delete_step(conn: sqlite3.Connection, step_id: int) -> None:
+    conn.execute("DELETE FROM todo_steps WHERE id = ?", (step_id,))
+
+
 def add_todo(conn: sqlite3.Connection, scope: str, ref: str, client_id: int, title: str,
-             due_date: str | None) -> int:
-    cur = conn.execute("INSERT INTO todos (scope, ref, client_id, title, due_date) VALUES (?, ?, ?, ?, ?)",
-                       (scope, ref, client_id, title, due_date))
+             due_date: str | None, urgency: str = "normal") -> int:
+    cur = conn.execute("""INSERT INTO todos (scope, ref, client_id, title, due_date, urgency)
+                          VALUES (?, ?, ?, ?, ?, ?)""", (scope, ref, client_id, title, due_date, urgency))
     return int(cur.lastrowid)
 
 

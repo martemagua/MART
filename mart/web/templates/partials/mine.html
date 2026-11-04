@@ -3,27 +3,62 @@
    data on purpose: the "written in MART" rail. #}
 
 {% macro todo_row(t, back, show_target=false) %}
-<li class="todo {% if t.done_at %}is-done{% endif %}{% if t.overdue %} is-overdue{% endif %}" id="todo-{{ t.id }}">
+{% set waiting = t.status == "waiting" and not t.done_at %}
+<li class="todo urg-{{ t.urgency }}{% if t.done_at %} is-done{% endif %}{% if t.overdue %} is-overdue{% endif %}" id="todo-{{ t.id }}">
   <form method="post" action="/todos/{{ t.id }}/done" class="todo-check">
     <input type="hidden" name="back" value="{{ back }}"><input type="hidden" name="done" value="{{ '0' if t.done_at else '1' }}">
     <button type="submit" class="check-btn" aria-label="{{ 'Mark as not done' if t.done_at else 'Mark as done' }}: {{ t.title }}" title="{{ 'Not done after all' if t.done_at else 'Done' }}">{% if t.done_at %}✓{% endif %}</button>
   </form>
   <div class="todo-main">
+    {% if not t.done_at and t.urgency == "urgent" %}<span class="pill pill-urgent">urgent</span>{% endif %}
     <span class="todo-title">{{ t.title }}</span>
+    {% if not t.done_at and t.urgency == "low" %}<span class="todo-due">low priority</span>{% endif %}
+    {% if waiting %}<span class="pill pill-wait" title="Waiting since {{ t.waiting_since | dmy }}">waiting on {{ todo_vocab.kinds.get(t.waiting_kind, "someone") }}{% if t.waiting_on %} {{ t.waiting_on }}{% endif %} since {{ t.waiting_since | dmy }}</span>
+    {% elif not t.done_at and t.status == "in_progress" %}<span class="pill pill-soft">in progress</span>{% endif %}
+    {% if t.steps %}<span class="todo-due" title="Subtasks done">☑ {{ t.steps_done }}/{{ t.steps | length }}</span>{% endif %}
     {% if t.due_date %}<span class="todo-due">{{ "due " if not t.done_at }}{{ t.due_date | dmy }}{% if t.overdue %} · overdue{% endif %}</span>{% endif %}
     {% if t.done_at %}<span class="todo-due">done {{ t.done_at | dmy(True) }}</span>{% endif %}
     {% if show_target %}<a class="todo-target" href="{{ t.target.url }}">{{ t.client_name }} · {{ t.target.country | flag }}{{ t.target.country }}{% if t.target.renewal_date %} · {{ t.target.renewal_date | dmy }}{% endif %} · {{ t.target.name }}</a>{% endif %}
+    {% if t.description %}<div class="todo-desc clamp-3" title="{{ t.description }}">{{ t.description }}</div>{% endif %}
+    {% if t.steps %}
+    <ul class="todo-steps">{% for s in t.steps %}
+      <li class="{% if s.done_at %}is-done{% endif %}">
+        <form method="post" action="/todos/steps/{{ s.id }}/done"><input type="hidden" name="back" value="{{ back }}"><input type="hidden" name="done" value="{{ '0' if s.done_at else '1' }}">
+          <button type="submit" class="check-btn check-sm" aria-label="{{ 'Not done' if s.done_at else 'Done' }}: {{ s.title }}">{% if s.done_at %}✓{% endif %}</button></form>
+        <span>{{ s.title }}</span>
+      </li>{% endfor %}
+    </ul>
+    {% endif %}
   </div>
   <details class="row-edit">
-    <summary title="Edit or delete">Edit</summary>
-    <form method="post" action="/todos/{{ t.id }}/save" class="inline-form">
+    <summary title="Edit, add subtasks or delete">Edit</summary>
+    <form method="post" action="/todos/{{ t.id }}/save" class="stack-form todo-edit">
       <input type="hidden" name="back" value="{{ back }}">
       <input type="text" name="title" value="{{ t.title }}" required maxlength="300" aria-label="To-do">
-      <input type="date" name="due" value="{{ t.due_date or '' }}" aria-label="Due date">
-      <button type="submit" class="btn btn-small">Save</button>
+      <div class="todo-edit-row">
+        <label>Due <input type="date" name="due" value="{{ t.due_date or '' }}"></label>
+        <label>Urgency <select name="urgency">{% for k, label in todo_vocab.urgencies.items() %}<option value="{{ k }}" {% if t.urgency == k %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+        <label>Status <select name="status" data-shows="#wait-{{ t.id }}" data-shows-value="waiting">{% for k, label in todo_vocab.statuses.items() %}<option value="{{ k }}" {% if t.status == k %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+      </div>
+      <div class="todo-edit-row" id="wait-{{ t.id }}">
+        <label>Waiting on <select name="waiting_kind">{% for k, label in todo_vocab.kinds.items() %}<option value="{{ k }}" {% if t.waiting_kind == k %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+        <label>Name <input type="text" name="waiting_on" value="{{ t.waiting_on or '' }}" maxlength="120" placeholder="e.g. Broker A"></label>
+        <label>Since <input type="date" name="waiting_since" value="{{ t.waiting_since or '' }}"></label>
+      </div>
+      <textarea name="description" rows="3" maxlength="5000" placeholder="Description (optional)" aria-label="Description">{{ t.description or '' }}</textarea>
+      <div class="actions"><button type="submit" class="btn btn-small btn-primary">Save</button></div>
     </form>
-    <form method="post" action="/todos/{{ t.id }}/delete" data-confirm="Delete this to-do?">
-      <input type="hidden" name="back" value="{{ back }}"><button type="submit" class="btn btn-small btn-danger">Delete</button>
+    <div class="todo-edit-steps">
+      <h5>Subtasks</h5>
+      {% for s in t.steps %}<form method="post" action="/todos/steps/{{ s.id }}/delete" class="step-del"><input type="hidden" name="back" value="{{ back }}"><span>{{ s.title }}</span><button type="submit" class="icon-btn" aria-label="Delete subtask {{ s.title }}" title="Delete subtask">×</button></form>{% endfor %}
+      <form method="post" action="/todos/{{ t.id }}/steps/add" class="inline-form">
+        <input type="hidden" name="back" value="{{ back }}">
+        <input type="text" name="title" required maxlength="300" placeholder="New subtask" aria-label="New subtask">
+        <button type="submit" class="btn btn-small">Add</button>
+      </form>
+    </div>
+    <form method="post" action="/todos/{{ t.id }}/delete" data-confirm="Delete this to-do and its subtasks?">
+      <input type="hidden" name="back" value="{{ back }}"><button type="submit" class="btn btn-small btn-danger">Delete to-do</button>
     </form>
   </details>
 </li>
@@ -60,7 +95,10 @@
         <form method="post" action="/todos/add" class="arrange-box arrange-right stack-form">
           <input type="hidden" name="scope" value="{{ m.target.scope }}"><input type="hidden" name="ref" value="{{ m.target.ref }}"><input type="hidden" name="back" value="{{ back }}">
           <input type="text" name="title" placeholder="What is to be done?" required maxlength="300" aria-label="New to-do" data-focus-on-open>
-          <label class="small muted">Due (optional) <input type="date" name="due" aria-label="Due date (optional)"></label>
+          <div class="todo-edit-row">
+            <label class="small muted">Due (optional) <input type="date" name="due" aria-label="Due date (optional)"></label>
+            <label class="small muted">Urgency <select name="urgency">{% for k, label in todo_vocab.urgencies.items() %}<option value="{{ k }}" {% if k == "normal" %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+          </div>
           <div class="actions"><button type="submit" class="btn btn-small btn-primary">Add to-do</button></div>
         </form>
       </details>
@@ -101,7 +139,7 @@
   {% if also and (also.notes or also.todos | rejectattr("done_at") | list) %}
   <div class="mine-also">
     <h4>On the whole bundle <a class="small" href="{{ also_url }}">open the bundle →</a></h4>
-    <ul class="todo-list">{% for t in also.todos | rejectattr("done_at") %}<li class="todo is-ro{% if t.overdue %} is-overdue{% endif %}"><span class="todo-title">☐ {{ t.title }}</span>{% if t.due_date %} <span class="todo-due">due {{ t.due_date | dmy }}</span>{% endif %}</li>{% endfor %}</ul>
+    <ul class="todo-list">{% for t in also.todos | rejectattr("done_at") %}<li class="todo is-ro{% if t.overdue %} is-overdue{% endif %}">{% if t.urgency == "urgent" %}<span class="pill pill-urgent">urgent</span> {% endif %}<span class="todo-title">☐ {{ t.title }}</span>{% if t.due_date %} <span class="todo-due">due {{ t.due_date | dmy }}</span>{% endif %}</li>{% endfor %}</ul>
     {% for n in also.notes[:2] %}<div class="note is-ro"><div class="note-head">{{ n.created_at | dmy(True) }}</div><div class="note-body clamp-3">{{ n.body }}</div></div>{% endfor %}
     {% if also.notes | length > 2 %}<p class="small muted">{{ also.notes | length - 2 }} more on the bundle.</p>{% endif %}
   </div>

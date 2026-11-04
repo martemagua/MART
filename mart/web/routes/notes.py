@@ -46,12 +46,43 @@ def note_delete(request: Request, note_id: int) -> Response:
 @router.route("/todos/add", methods=("POST",))
 def todo_add(request: Request) -> Response:
     return _do(request, lambda: notes_service.add_todo(
-        request.arg("scope") or "", request.arg("ref") or "", request.arg("title"), request.arg("due")))
+        request.arg("scope") or "", request.arg("ref") or "", request.arg("title"), request.arg("due"),
+        request.arg("urgency")))
+
+
+DETAIL_FIELDS = ("description", "urgency", "status", "waiting_kind", "waiting_on", "waiting_since")
 
 
 @router.route("/todos/{todo_id:int}/save", methods=("POST",))
 def todo_save(request: Request, todo_id: int) -> Response:
-    return _do(request, lambda: notes_service.edit_todo(todo_id, request.arg("title"), request.arg("due")))
+    # the full edit form carries the M2 extras (it always sends "status")
+    details = {k: request.arg(k) for k in DETAIL_FIELDS} if "status" in request.form else None
+    return _do(request, lambda: notes_service.edit_todo(todo_id, request.arg("title"), request.arg("due"),
+                                                         details), anchor=f"todo-{todo_id}")
+
+
+@router.route("/todos/{todo_id:int}/steps/add", methods=("POST",))
+def step_add(request: Request, todo_id: int) -> Response:
+    return _do(request, lambda: notes_service.add_step(todo_id, request.arg("title")),
+               anchor=f"todo-{todo_id}")
+
+
+def _step(request: Request, action) -> Response:
+    try:
+        todo_id = action()
+    except Invalid as exc:
+        raise HTTPError(400, str(exc)) from exc
+    return _back(request, f"todo-{todo_id}")
+
+
+@router.route("/todos/steps/{step_id:int}/done", methods=("POST",))
+def step_done(request: Request, step_id: int) -> Response:
+    return _step(request, lambda: notes_service.set_step_done(step_id, request.arg("done") == "1"))
+
+
+@router.route("/todos/steps/{step_id:int}/delete", methods=("POST",))
+def step_delete(request: Request, step_id: int) -> Response:
+    return _step(request, lambda: notes_service.delete_step(step_id))
 
 
 @router.route("/todos/{todo_id:int}/done", methods=("POST",))

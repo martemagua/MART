@@ -6,6 +6,26 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.8.1 — 04.11.2026 · M2 day 2 · richer to-dos
+
+### Added (QUESTIONS M2a)
+- **Urgency**: urgent / normal / low, chosen when adding a to-do or in
+  Edit. Urgent ones carry a red "urgent" mark and come first everywhere
+  (then by due date); low ones go to the end.
+- **Status** while open: open, in progress, or **waiting**. Waiting asks
+  on whom (broker, insurer, client, colleague, someone else), their name
+  and since when (today if left empty): "waiting on broker Broker A since
+  04.11.2026". Leaving "waiting" forgets who it was.
+- **Description**: a longer text under the title (Edit).
+- **Subtasks**: a checklist inside a to-do. Add and remove them in Edit,
+  tick them off on the to-do itself; "☑ 1/2" shows the progress.
+- Database schema 7 (to-do fields + subtasks); existing to-dos keep
+  everything and start as open, normal.
+
+### What to try
+Add an urgent to-do on a renewal; in Edit set it to Waiting on your
+broker and add two subtasks; tick one. See it on the To-dos page and Home.
+
 ## 0.8.0 — 04.11.2026 · M2 day 1 · overview freshness
 
 ### Added

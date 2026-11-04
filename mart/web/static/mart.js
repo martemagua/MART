@@ -186,6 +186,14 @@
       document.addEventListener(t, function (e) { e.preventDefault(); });
     });
   });
+  // <select data-shows="#id" data-shows-value="v">: #id is shown only while v is chosen.
+  document.querySelectorAll("select[data-shows]").forEach(function (sel) {
+    var target = document.querySelector(sel.getAttribute("data-shows"));
+    if (!target) return;
+    function sync() { target.hidden = sel.value !== sel.getAttribute("data-shows-value"); }
+    sel.addEventListener("change", sync);
+    sync();
+  });
   // [data-focus-on-open] in a <details>: put the cursor there when it opens.
   document.querySelectorAll("details").forEach(function (d) {
     var field = d.querySelector("[data-focus-on-open]");

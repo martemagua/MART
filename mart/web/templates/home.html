@@ -36,7 +36,7 @@
     {% if todos.open %}
     <p class="muted">{{ todos.open | length }} open{% if todos.overdue %} · <strong class="warn">{{ todos.overdue }} overdue</strong>{% endif %}{% if todos.this_week %} · {{ todos.this_week }} due in the next 7 days{% endif %}</p>
     <ul class="todo-list todo-home">{% for t in todos.open[:5] %}
-      <li class="todo{% if t.overdue %} is-overdue{% endif %}"><a href="{{ t.target.url }}#mine">{{ t.title }}</a>
+      <li class="todo{% if t.overdue %} is-overdue{% endif %}">{% if t.urgency == "urgent" %}<span class="pill pill-urgent">urgent</span> {% endif %}<a href="{{ t.target.url }}#mine">{{ t.title }}</a>
         <span class="todo-due">{{ t.client_name }} · {{ t.target.country | flag }}{{ t.target.country }}{% if t.due_date %} · due {{ t.due_date | dmy }}{% endif %}</span></li>
     {% endfor %}</ul>
     {% else %}<p class="muted">Nothing open. Add to-dos on a renewal or a bundle.</p>{% endif %}

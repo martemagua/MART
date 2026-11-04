@@ -223,6 +223,26 @@ MIGRATIONS: list[tuple[int, str]] = [
         DELETE FROM staging_rows
         WHERE upload_id IN (SELECT id FROM uploads WHERE status <> 'staged');
     """),
+    (7, """
+        -- Richer to-dos (M2 day 2, Martin 04.11.2026): a description, an
+        -- urgency, a status while open (done stays done_at), who it is
+        -- waiting on and since when, and subtasks. USER data, like todos.
+        ALTER TABLE todos ADD COLUMN description   TEXT;
+        ALTER TABLE todos ADD COLUMN urgency       TEXT NOT NULL DEFAULT 'normal';  -- urgent | normal | low
+        ALTER TABLE todos ADD COLUMN status        TEXT NOT NULL DEFAULT 'open';  -- open|in_progress|waiting
+        ALTER TABLE todos ADD COLUMN waiting_kind  TEXT;   -- broker | insurer | client | colleague | other
+        ALTER TABLE todos ADD COLUMN waiting_on    TEXT;   -- a name, e.g. "Broker A"
+        ALTER TABLE todos ADD COLUMN waiting_since TEXT;   -- ISO date
+        CREATE TABLE todo_steps (
+            id         INTEGER PRIMARY KEY,
+            todo_id    INTEGER NOT NULL REFERENCES todos(id) ON DELETE CASCADE,
+            title      TEXT NOT NULL,
+            position   INTEGER NOT NULL,
+            done_at    TEXT,               -- UTC timestamp; NULL = open
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX ix_todo_steps_todo ON todo_steps(todo_id, position);
+    """),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1][0]
