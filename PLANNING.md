@@ -102,12 +102,13 @@ Mercedes-Benz Group AG
 - Filters: client, country, owner, "only discrepancies", "only stale".
 
 ### Overview freshness
-- **New** = an overview entry dated after the last time I marked it seen
-  (or after a reference point such as the last meeting).
-- **Stale** = no overview entry for N days. N could tighten as the renewal
-  date approaches (see Q-C1). N lives under Settings → Time limits (from
-  0.4.0; the first one there is the age of the overview *data* itself, 7
-  days).
+- **New** = an overview entry whose own date (its `DD MMM YYYY:` header)
+  is within the last N days (Martin, 04.11.2026, QUESTIONS E2: no "seen"
+  marks; the date written on the entry is what counts).
+- **Stale** = no overview entry for a while, in two steps: amber after 7
+  days, red after 14 (QUESTIONS E1), both under Settings → Time limits,
+  next to the age of the overview *data* itself (from 0.4.0, 7 days). All
+  entries count, client-ready or not (E3).
 - **An expected date defers the clock** (Martin, 04.11.2026): when a broker
   says "terms expected late November", nagging weekly until then makes no
   sense. A renewal with a broker deadline in the future is not stale; the
@@ -116,10 +117,13 @@ Mercedes-Benz Group AG
   stores `latest_overview_date`. This can be reused directly.
 
 ### Broker deadlines ("they said they'd update by …")
-- A **deadline** = (renewal or bundle, who promised, what, expected date,
-  source note).
-- **Fulfilled automatically** when a new overview entry dated on or after the
-  promise appears in BM+, or manually ticked.
+- A **deadline** = (**bundle**, who promised, what, expected date, source
+  note): when Martin expects updates on those renewals. Separate from
+  to-dos, which are his own tasks (Martin, 04.11.2026).
+- **Confirmed by Martin**, never closed automatically (QUESTIONS E4); MART
+  points out a new overview entry dated on or after the promise.
+- **Prefilled** from the Renewal Strategy sheet's "Expected date to receive
+  the final renewal terms" when BM+ has it (K4).
 - **Overdue** → it appears on Home/Today, and a chase can be started
   (chaser ladder, with a ready-to-send draft as in MAPT).
 

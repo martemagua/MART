@@ -187,7 +187,7 @@ Martin is the only user. Colleagues see MART on his shared screen.
 | Milestone | Contents | You can… |
 |---|---|---|
 | M0 | Charter agreed ✅, blocking questions answered ✅ | — |
-| M1 | Upload + clients + bundles + renewal detail + notes/to-dos | find any renewal and write on it |
+| M1 ✅ | Upload + clients + bundles + renewal detail + notes/to-dos | find any renewal and write on it |
 | M2 | Freshness + broker deadlines + Home + richer to-dos | start your day in MART |
 | M3 | Actual state + Kanban (+ a to-do board on the same board code) | run a colleague status session in MART |
 | M4 | AI plugin v1 | ask your agent to plan your day |
@@ -209,4 +209,5 @@ Martin is the only user. Colleagues see MART on his shared screen.
 | 03.11.2026 | Time for testing: 3–4 hours a day → daily increments |
 | 04.11.2026 | Desktop only (landscape and portrait); the client page is an explorer: bundles on the side, the bundle in the middle |
 | 03.11.2026 | **Charter agreed (v1.0)**, with goals G8–G10 added and the Benefit Tracker moved to v2 |
+| 04.11.2026 | **M1 done** (review: 0.7.8). M2 decisions: stale after 7 (amber) / 14 (red) days, "new" by the entry's own date, all entries count; broker deadlines belong to **bundles** (separate from to-dos), prefilled from BM+'s expected-terms date and confirmed by Martin; reminders inside MART first |
 | 04.11.2026 | M1 scope stays as is. Richer to-dos (subtasks, notes, urgency, delegation; QUESTIONS M2a) are designed in M2 with broker deadlines and Home; a to-do board joins the Kanban in M3 |
