@@ -3,7 +3,7 @@
 {% block content %}
 <header class="page-head">
   <h1>Home</h1>
-  <p class="lead">Your renewals will show up here once trackers are uploaded.</p>
+  <p class="lead">{% if data.mine %}What MART knows about your renewals.{% else %}Your renewals will show up here once a tracker is uploaded.{% endif %}</p>
 </header>
 
 {% if welcome %}
@@ -11,10 +11,25 @@
 {% endif %}
 
 <div class="grid">
+  {% if data.mine %}
+  <section class="card" aria-labelledby="data-h">
+    <h2 id="data-h">Your renewals</h2>
+    <div class="stats">
+      <div><div class="stat-value">{{ data.totals.in_export }}</div><div class="stat-label">renewals in the latest export</div></div>
+      <div><div class="stat-value">{{ data.mine | length }}</div><div class="stat-label">client{{ "s" if data.mine | length != 1 }}</div></div>
+      {% if data.totals.left_export %}<div><div class="stat-value">{{ data.totals.left_export }}</div><div class="stat-label">no longer in the export (kept)</div></div>{% endif %}
+    </div>
+    {% if data.last_upload %}<p class="muted">Last upload {{ data.last_upload.committed_at | dmy(True) }}: {{ data.last_upload.filename }} (report date {{ data.last_upload.report_date | dmy }}).</p>{% endif %}
+    <p><a href="/uploads">Uploads and my clients →</a></p>
+    <p class="hint">Next (M1 · day 3): a page per client, with its renewals bundled by country and renewal date.</p>
+  </section>
+  {% else %}
   <section class="card empty">
     <h2>No trackers uploaded yet</h2>
-    <p>Next step (M1 · day 2): upload a <strong>Renewal Tracker</strong> export, pick <em>your</em> clients, and MART builds your renewal list from it.</p>
+    <p>Upload a <strong>Renewal Tracker</strong> export, pick <em>your</em> clients, and MART builds your renewal list from it.</p>
+    <p><a class="btn btn-primary" href="/uploads">Upload a tracker</a></p>
   </section>
+  {% endif %}
 
   {% set st = status_info %}
   <section class="card" aria-labelledby="sys-h">

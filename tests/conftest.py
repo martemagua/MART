@@ -3,6 +3,7 @@ so nothing a test does can touch a real MART installation."""
 
 from __future__ import annotations
 
+import socket
 from pathlib import Path
 
 import pytest
@@ -27,8 +28,13 @@ def isolated(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 @pytest.fixture
 def configured(tmp_path: Path) -> settings_mod.Settings:
     """MART set up with data + backup folders inside the test's temp dir."""
+    # A free port of its own: a real MART running on this machine (8070) must
+    # never change a test's outcome.
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        port = sock.getsockname()[1]
     s = settings_mod.Settings(data_dir=str(tmp_path / "data"),
-                              backup_dir=str(tmp_path / "backups"), backups_keep=3)
+                              backup_dir=str(tmp_path / "backups"), backups_keep=3, port=port)
     Path(s.data_dir).mkdir()
     Path(s.backup_dir).mkdir()
     schema.ensure_schema(s.db_path)

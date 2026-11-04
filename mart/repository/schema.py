@@ -21,6 +21,87 @@ MIGRATIONS: list[tuple[int, str]] = [
             updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
         );
     """),
+    (2, """
+        -- Clients. is_mine: NULL = not decided yet, 1 = mine, 0 = not mine
+        -- (its renewals are ignored on every upload).
+        CREATE TABLE clients (
+            id            INTEGER PRIMARY KEY,
+            name          TEXT NOT NULL,
+            client_key    TEXT NOT NULL UNIQUE,
+            bm_client_id  TEXT,
+            is_mine       INTEGER,
+            created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at    TEXT
+        );
+
+        -- The upload log: every file staged, committed or discarded.
+        CREATE TABLE uploads (
+            id            INTEGER PRIMARY KEY,
+            filename      TEXT NOT NULL,
+            file_sha256   TEXT NOT NULL,
+            file_size     INTEGER,
+            tracker       TEXT NOT NULL,
+            flavour       TEXT,
+            report_date   TEXT,
+            report_time   TEXT,
+            info_json     TEXT,          -- General Information label/values
+            preview_json  TEXT,
+            summary_json  TEXT,          -- what the commit did
+            status        TEXT NOT NULL DEFAULT 'staged',   -- staged|committed|discarded
+            staged_at     TEXT NOT NULL DEFAULT (datetime('now')),
+            committed_at  TEXT,
+            discarded_at  TEXT
+        );
+
+        -- The parsed rows of a staged upload, so a commit never re-reads the file.
+        CREATE TABLE staging_rows (
+            id          INTEGER PRIMARY KEY,
+            upload_id   INTEGER NOT NULL REFERENCES uploads(id) ON DELETE CASCADE,
+            cycle_key   TEXT NOT NULL,
+            client_key  TEXT NOT NULL,
+            data_json   TEXT NOT NULL
+        );
+        CREATE INDEX ix_staging_upload ON staging_rows(upload_id);
+
+        -- One renewal cycle. MART-owned: never deleted by an upload; a renewal
+        -- that leaves the export (e.g. completed in BM+) keeps its row.
+        CREATE TABLE renewals (
+            id                  INTEGER PRIMARY KEY,
+            cycle_key           TEXT NOT NULL UNIQUE,
+            cycle_id            TEXT,      -- BM+ per-cycle id (= Task Tracker "Policy ID")
+            expiring_policy_id  TEXT,      -- stable across cycles
+            bm_renewal_id       TEXT,
+            client_id           INTEGER NOT NULL REFERENCES clients(id),
+            country             TEXT,
+            entity              TEXT,
+            division            TEXT,
+            region              TEXT,
+            policy_name         TEXT,
+            lines_of_coverage   TEXT,
+            product_groups      TEXT,      -- JSON list
+            insurer             TEXT,
+            start_date          TEXT,
+            end_date            TEXT,
+            non_expiring        INTEGER NOT NULL DEFAULT 0,
+            renewal_date        TEXT,      -- Annual Renewal/Review Date
+            kickoff_date        TEXT,
+            workflow_status     TEXT,
+            upcoming_strategy   TEXT,
+            id_missing          INTEGER NOT NULL DEFAULT 0,
+            fields_json         TEXT NOT NULL,   -- every cleaned field
+            bm_json             TEXT NOT NULL,   -- every Overview cell as exported
+            details_json        TEXT NOT NULL DEFAULT '{}',  -- Strategy/Proposals/Savings rows
+            content_hash        TEXT NOT NULL,
+            first_upload_id     INTEGER REFERENCES uploads(id),
+            last_upload_id      INTEGER REFERENCES uploads(id),
+            in_latest_export    INTEGER NOT NULL DEFAULT 1,
+            left_export_at      TEXT,
+            created_at          TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at          TEXT
+        );
+        CREATE INDEX ix_renewals_client ON renewals(client_id);
+        CREATE INDEX ix_renewals_expiring ON renewals(expiring_policy_id);
+    """),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1][0]

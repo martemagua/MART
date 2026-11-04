@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from mart import settings as settings_mod
 from mart.services import backup_service
 from mart.web.app import App, create_app
@@ -121,3 +123,19 @@ def test_values_are_escaped_in_pages(app, tmp_path):
                              "backups_keep": "1", "port": "8070"})
     html = r.body_bytes.decode()
     assert "<script>alert(1)</script>" not in html and "&lt;script&gt;" in html
+
+
+@pytest.mark.skipif(not hasattr(__import__("time"), "tzset"),
+                    reason="time zones can't be switched on Windows")
+def test_database_timestamps_are_shown_in_local_time(monkeypatch):
+    import time
+
+    from mart.web.templating import dmy
+    monkeypatch.setenv("TZ", "Europe/Berlin")
+    time.tzset()
+    try:
+        assert dmy("2026-11-04 08:03:00", True) == "04.11.2026 09:03"   # UTC in the DB
+        assert dmy("2026-11-04") == "04.11.2026"                      # a plain date stays
+    finally:
+        monkeypatch.delenv("TZ")
+        time.tzset()

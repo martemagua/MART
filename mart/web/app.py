@@ -82,10 +82,10 @@ def log_error(request: Request) -> Path:
 
 
 def build_router() -> Router:
-    from mart.web.routes import home, setup
+    from mart.web.routes import home, setup, uploads
 
     router = Router()
-    for module in (home, setup):
+    for module in (home, setup, uploads):
         router.include(module.router)
     return router
 

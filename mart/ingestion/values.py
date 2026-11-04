@@ -1,0 +1,118 @@
+"""Turning raw BM+ cell values into clean values.
+
+Two BM+ habits shape this module:
+
+* **Dates carry a stray time.** BM+ stores midnight UTC and the export shows
+  it in the local time of the policy's country: 01:00 (Europe), 05:30
+  (India), 08:00 (Asia) — or 19:00 / 18:30 on the *previous* evening for the
+  Americas. So a date is rounded to the NEAREST midnight: before noon → that
+  day, from noon → the next day.
+* **Empty is not zero.** Blank cells become None. Placeholders such as
+  "TBC" are kept as text: in a strategy column "TBC" *is* the answer BM+ has.
+"""
+
+from __future__ import annotations
+
+import re
+from datetime import date, datetime, timedelta
+from typing import Any
+
+NON_EXPIRING = "non expiring policy"
+
+
+def clean_text(value: Any) -> str | None:
+    if value is None:
+        return None
+    if isinstance(value, float) and value.is_integer():
+        value = int(value)
+    text = str(value).replace("\r\n", "\n").replace("_x000D_", "").replace("_x000d_", "").strip()
+    return text or None
+
+
+def nearest_midnight(dt: datetime) -> date:
+    """The calendar day a BM+ date means (see module docstring)."""
+    d = dt.date()
+    return d + timedelta(days=1) if dt.hour >= 12 else d
+
+
+def to_date(value: Any) -> str | None:
+    """ISO date (YYYY-MM-DD) or None. Text dates in ISO or DD.MM.YYYY form are
+    accepted; anything else (e.g. "Non Expiring Policy") gives None."""
+    if value is None or value == "":
+        return None
+    if isinstance(value, datetime):
+        return nearest_midnight(value).isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    text = str(value).strip()
+    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d", "%d.%m.%Y", "%d %b %Y"):
+        try:
+            parsed = datetime.strptime(text, fmt)
+        except ValueError:
+            continue
+        return nearest_midnight(parsed).isoformat()
+    return None
+
+
+def to_int(value: Any) -> int | None:
+    if value is None or value == "":
+        return None
+    try:
+        return int(float(str(value).strip()))
+    except ValueError:
+        return None
+
+
+def is_non_expiring(value: Any) -> bool:
+    return isinstance(value, str) and value.strip().lower() == NON_EXPIRING
+
+
+def person_name(value: Any) -> str | None:
+    """BM+ sometimes writes a name twice ("Ann Lee Ann Lee"); keep it once."""
+    text = clean_text(value)
+    if not text:
+        return None
+    words = text.split()
+    half = len(words) // 2
+    if len(words) % 2 == 0 and half and words[:half] == words[half:]:
+        return " ".join(words[:half])
+    return text
+
+
+def json_value(value: Any) -> Any:
+    """A cell as it goes into the JSON copy of a row: dates as ISO dates,
+    other datetimes as ISO timestamps, text cleaned, numbers unchanged."""
+    if isinstance(value, datetime):
+        if value.time().minute in (0, 30) and value.time().second == 0:
+            return nearest_midnight(value).isoformat()
+        return value.isoformat(timespec="seconds")
+    if isinstance(value, date):
+        return value.isoformat()
+    if isinstance(value, (int, float)):
+        return int(value) if isinstance(value, float) and value.is_integer() else value
+    return clean_text(value)
+
+
+_KEY_DROP = re.compile(r"[^a-z0-9]+")
+
+
+def client_key(name: str) -> str:
+    """Matching key for a client name: case, punctuation and spacing ignored,
+    "&" read as "and"."""
+    text = name.casefold().replace("&", " and ")
+    return " ".join(_KEY_DROP.sub(" ", text).split())
+
+
+def product_groups(lines_of_coverage: str | None) -> list[str]:
+    """'Healthcare - Medical, Life - Basic Term Life' -> ['Healthcare', 'Life']."""
+    if not lines_of_coverage:
+        return []
+    groups: list[str] = []
+    for part in re.split(r"[\n,;]+", lines_of_coverage):
+        part = part.strip()
+        if not part:
+            continue
+        group = part.split(" - ", 1)[0].strip()
+        if group and group not in groups:
+            groups.append(group)
+    return groups

@@ -39,12 +39,28 @@ class Request:
         return parse_qs(self.query_string, keep_blank_values=True)
 
     @cached_property
-    def form(self) -> dict[str, list[str]]:
+    def _parsed_body(self) -> tuple[dict[str, list[str]], dict[str, list[Any]]]:
         ctype = self.headers.get("content-type", "")
         if ctype.startswith("application/x-www-form-urlencoded"):
             return parse_qs(self.body.decode("utf-8", errors="replace"),
-                            keep_blank_values=True)
-        return {}
+                            keep_blank_values=True), {}
+        if ctype.startswith("multipart/form-data"):
+            from mart.web import multipart
+            return multipart.parse(self.body, ctype)
+        return {}, {}
+
+    @property
+    def form(self) -> dict[str, list[str]]:
+        return self._parsed_body[0]
+
+    @property
+    def files(self) -> dict[str, list[Any]]:
+        """Uploaded files by field name (multipart forms only)."""
+        return self._parsed_body[1]
+
+    def args(self, name: str) -> list[str]:
+        """Every value of `name` (e.g. a group of checkboxes)."""
+        return self.form.get(name, []) or self.query.get(name, [])
 
     def arg(self, name: str, default: str | None = None) -> str | None:
         """First value of `name` from the form, else from the query string."""

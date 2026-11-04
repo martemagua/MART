@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Preview · {{ upload.filename }}{% endblock %}
+{% block content %}
+{% set p = upload.preview %}
+<header class="page-head">
+  <p class="crumbs"><a href="/uploads">Uploads</a> / {{ upload.filename }}</p>
+  <h1>{% if upload.status == "staged" %}Preview{% elif upload.status == "committed" %}Loaded{% else %}Discarded{% endif %}: {{ upload.filename }}</h1>
+  <p class="lead">
+    Renewal Tracker · {{ "cross-client export" if upload.flavour == "cross_client" else "single-client export" }}
+    · report date {{ upload.report_date | dmy }}{% if upload.report_time %} {{ upload.report_time[:5] }}{% endif %}
+    · {{ p.renewals }} renewals for {{ p.clients | length }} client{{ "s" if p.clients | length != 1 }}
+  </p>
+</header>
+
+{% if error %}<div class="notice notice-error" role="alert">{{ error }}</div>{% endif %}
+
+{% if upload.status == "committed" %}
+<div class="notice notice-ok" role="status">
+  Loaded {{ upload.committed_at | dmy(True) }}: {{ upload.summary.new }} new, {{ upload.summary.changed + upload.summary.returned }} changed,
+  {{ upload.summary.unchanged }} unchanged, {{ upload.summary.left_export }} no longer in the export.
+  Clients loaded: {{ upload.summary.clients_loaded | join(", ") or "none" }}.
+</div>
+{% elif upload.status == "discarded" %}
+<div class="notice" role="status">This upload was discarded {{ upload.discarded_at | dmy(True) }}. Nothing was changed.</div>
+{% else %}
+
+{% set notes = [] %}
+{% if same_file %}{% set _ = notes.append("This exact file was already loaded (" ~ (same_file.committed_at | dmy(True)) ~ "). Committing it again changes nothing.") %}{% endif %}
+{% if p.skipped_no_client %}{% set _ = notes.append(p.skipped_no_client ~ " rows have no client and were skipped (BM+ test data).") %}{% endif %}
+{% if p.no_id %}{% set _ = notes.append(p.no_id ~ " renewals have no BM+ id (e.g. “Transitioned” renewals). MART recognises them by client, country, entity, policy and renewal date, and marks them.") %}{% endif %}
+{% if p.duplicates_merged %}{% set _ = notes.append(p.duplicates_merged ~ " rows were exact duplicates of another row and were counted once.") %}{% endif %}
+{% if p.sheets_missing %}{% set _ = notes.append("Not in this export: " ~ (p.sheets_missing | join(", ")) ~ ". The renewals load without them.") %}{% endif %}
+{% if filters.get("Completed within Last 6 Months") == "Excluded" %}{% set _ = notes.append("Completed renewals are not in this export. Renewals MART already has stay, marked “no longer in the export”.") %}{% endif %}
+
+{% if newer %}
+<div class="notice notice-error" role="alert">
+  A <strong>newer</strong> export of these clients is already loaded ({{ newer.filename }}, report date {{ newer.report_date | dmy }}). Loading this older one would turn back the clock.
+</div>
+{% endif %}
+{% if notes %}
+<div class="notice notice-info" role="status"><ul>{% for n in notes %}<li>{{ n }}</li>{% endfor %}</ul></div>
+{% endif %}
+
+<form method="post" action="/uploads/{{ upload.id }}/commit">
+  <section class="card" aria-labelledby="cl-h">
+    <div class="card-head">
+      <h2 id="cl-h">Which clients are yours?</h2>
+      {% if clients | length > 5 %}
+      <div class="actions">
+        <input type="search" placeholder="Filter clients…" aria-label="Filter clients" data-filter-rows="#client-rows">
+        <button type="button" class="btn" data-check-all="mine" data-value="on">All visible</button>
+        <button type="button" class="btn" data-check-all="mine" data-value="off">None</button>
+      </div>
+      {% endif %}
+    </div>
+    <p class="muted">Only ticked clients are loaded. MART remembers your choice for the next upload. Unticked clients are ignored, now and later (until you tick them).</p>
+    <div class="table-scroll">
+      <table class="table">
+        <thead><tr>
+          <th scope="col" class="col-icon"><span class="visually-hidden">Mine</span></th>
+          <th scope="col">Client</th>
+          <th scope="col" class="num">Renewals</th>
+          <th scope="col" class="num">New</th>
+          <th scope="col" class="num">Changed</th>
+          <th scope="col" class="num">Unchanged</th>
+          <th scope="col" class="num" title="Renewals MART has for this client that are not in this file. They are kept.">Not in file</th>
+          <th scope="col">Note</th>
+        </tr></thead>
+        <tbody id="client-rows">
+        {% for c in clients %}
+          <tr>
+            <td class="col-icon"><input type="checkbox" name="mine" value="{{ c.key }}" id="m{{ loop.index }}" {% if c.is_mine == 1 %}checked{% endif %}></td>
+            <td class="col-text" title="{{ c.name }}"><label for="m{{ loop.index }}">{{ c.name }}</label></td>
+            <td class="num">{{ c.renewals }}</td>
+            <td class="num">{{ c.new or "" }}</td>
+            <td class="num">{{ c.changed or "" }}</td>
+            <td class="num">{{ c.unchanged or "" }}</td>
+            <td class="num">{{ c.leaving or "" }}</td>
+            <td class="nowrap muted">
+              {% if c.is_mine == 1 and c.known %}your client{% elif c.is_mine == 0 %}not yours{% else %}new{% endif %}
+              {% if c.no_id %} · {{ c.no_id }} without id{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if newer %}
+    <label class="check"><input type="checkbox" name="allow_older" value="1"> Load this older export anyway</label>
+    {% endif %}
+    <div class="actions spaced">
+      <button type="submit" class="btn btn-primary">Commit: load the ticked clients</button>
+      <button type="submit" class="btn" formaction="/uploads/{{ upload.id }}/discard">Discard</button>
+    </div>
+  </section>
+</form>
+
+{% if filters %}
+<section class="card spaced-card" aria-labelledby="f-h">
+  <h2 id="f-h">What this export contains</h2>
+  <dl class="facts">
+    {% for k, val in filters.items() %}<dt>{{ k }}</dt><dd>{{ val }}</dd>{% endfor %}
+    <dt>Sheets read</dt><dd>{{ p.sheets_read.keys() | join(", ") }}</dd>
+  </dl>
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}

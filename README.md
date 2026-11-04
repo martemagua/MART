@@ -4,7 +4,7 @@ A local web app to run the renewal lifecycle: the real state of every
 renewal, broker deadlines, follow-ups, notes and to-dos, built on the BM+
 tracker exports. Runs on the work laptop with nothing installed.
 
-**Status:** M1 · day 1 (skeleton). See `BUILD_PLAN_M1.md`.
+**Status:** M1 · day 2 (Renewal Tracker upload). See `BUILD_PLAN_M1.md`.
 
 ## Use it
 
@@ -17,6 +17,7 @@ tracker exports. Runs on the work laptop with nothing installed.
 
 | File | What |
 |---|---|
+| `CHANGELOG.md` | what changed in each version, and what to try |
 | `CHARTER.md` | vision, goals, scope (agreed 03.11.2026) |
 | `PLANNING.md` | design: screens, data model, AI plugin, runtime |
 | `TRACKER_MAP.md` | what the BM+ Task and Renewal Tracker exports contain |
@@ -32,6 +33,13 @@ latest version (`git pull`), builds `dist\MART-<version>.zip`, tests it
 and opens Explorer with the zip selected. `make-zip.bat --no-pull` builds
 from the files as they are. The zip's `BUILD-INFO.txt` says which version
 and commit it holds.
+
+## How changes are made
+
+Every change comes as a **pull request** into `main` (template in
+`.github/pull_request_template.md`), with its documentation updated in the
+same PR: `CHANGELOG.md`, this README, `CLAUDE.md`, the build plan. CI runs
+the tests on Windows (Python 3.12 and 3.14) and Linux for every push.
 
 ## Develop
 

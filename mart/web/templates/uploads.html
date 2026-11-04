@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Uploads{% endblock %}
+{% block content %}
+<header class="page-head">
+  <h1>Uploads</h1>
+  <p class="lead">Load a BM+ export. You see a preview first; nothing changes until you commit.</p>
+</header>
+
+{% if notice %}<div class="notice notice-ok" role="status">{{ notice }}</div>{% endif %}
+{% if error %}<div class="notice notice-error" role="alert">{{ error }}</div>{% endif %}
+
+<div class="grid">
+  <section class="card" aria-labelledby="up-h">
+    <h2 id="up-h">Upload a tracker</h2>
+    <form method="post" action="/uploads" enctype="multipart/form-data" class="form">
+      <div class="field">
+        <label for="file">Renewal Tracker export (.xlsx)</label>
+        <input id="file" name="file" type="file" accept=".xlsx" required>
+        <p class="hint">Cross-client or single-client exports both work. The file itself is not kept, only what MART reads from it.</p>
+      </div>
+      <div class="actions"><button type="submit" class="btn btn-primary">Upload and preview</button></div>
+    </form>
+  </section>
+
+  <section class="card" aria-labelledby="mine-h">
+    <h2 id="mine-h">My clients</h2>
+    {% if data.mine %}
+    <p class="muted">{{ data.totals.in_export }} renewals in the latest exports{% if data.totals.left_export %}, {{ data.totals.left_export }} no longer in an export (kept){% endif %}.</p>
+    <div class="table-scroll">
+      <table class="table">
+        <thead><tr><th scope="col">Client</th><th scope="col" class="num">Renewals</th><th scope="col" class="nowrap">Next renewal</th></tr></thead>
+        <tbody>
+        {% for c in data.mine %}
+          <tr><td class="col-text" title="{{ c.name }}">{{ c.name }}</td><td class="num">{{ c.renewals }}</td><td class="nowrap">{{ c.next_renewal | dmy }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="hint">You choose your clients on each upload's preview.</p>
+    {% else %}
+    <p class="muted">None yet. Upload a Renewal Tracker and tick your clients in the preview.</p>
+    {% endif %}
+  </section>
+</div>
+
+<section class="card spaced-card" aria-labelledby="hist-h">
+  <h2 id="hist-h">Upload history</h2>
+  {% if uploads %}
+  <div class="table-scroll">
+    <table class="table">
+      <thead><tr>
+        <th scope="col">Uploaded</th><th scope="col">File</th><th scope="col">Export</th>
+        <th scope="col" class="nowrap">Report date</th><th scope="col">Status</th><th scope="col">Result</th>
+      </tr></thead>
+      <tbody>
+      {% for u in uploads %}
+        <tr>
+          <td class="nowrap">{{ u.staged_at | dmy(True) }}</td>
+          <td class="col-text" title="{{ u.filename }}"><a href="/uploads/{{ u.id }}">{{ u.filename }}</a></td>
+          <td class="nowrap">{{ "Cross-client" if u.flavour == "cross_client" else "One client" }}</td>
+          <td class="nowrap">{{ u.report_date | dmy }}</td>
+          <td><span class="pill pill-{{ u.status }}">{{ {"staged": "waiting for you", "committed": "loaded", "discarded": "discarded"}[u.status] }}</span></td>
+          <td class="col-text">
+            {% if u.status == "committed" %}{{ u.summary.clients_loaded | length }} clients · {{ u.summary.new }} new · {{ u.summary.changed + u.summary.returned }} changed
+            {% elif u.status == "staged" %}<a href="/uploads/{{ u.id }}">Open the preview →</a>{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="muted">No uploads yet.</p>
+  {% endif %}
+</section>
+{% endblock %}
