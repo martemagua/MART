@@ -24,7 +24,7 @@
     {{ links_menu(detail.links, "Links for this renewal") }}
   </div>
   <p class="muted">
-    {{ r.country }}{% if r.entity %} · {{ r.entity }}{% endif %}
+    {{ r.country | flag }}{{ r.country }}{% if r.entity %} · {{ r.entity }}{% endif %}
     · renews {{ r.renewal_date | dmy or "—" }}{% if detail.days_until is not none %} ({% if detail.days_until >= 0 %}in {{ detail.days_until }} days{% else %}{{ -detail.days_until }} days ago{% endif %}){% endif %}
   </p>
   <div class="pills">

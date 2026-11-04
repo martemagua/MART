@@ -6,7 +6,7 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
-## 0.7.1 — 04.11.2026 · lighter pages, strategy colours
+## 0.7.1 — 04.11.2026 · lighter pages, strategy colours, flags, filters
 
 ### Changed (Martin's notes on 0.7.0)
 - **"Insurer Not Found" gives way to the Provider.** BM+ writes it when an
@@ -28,11 +28,30 @@ laptop.
   Incumbent without RG blue, Incumbent with RG green, Non-expiring teal,
   Unknown / New Policy rose, TBC amber, none grey. Dark mode has its own
   shades.
+- **Country flags** beside every country name: the bundle list (and its
+  country headings), the bundle and renewal titles, To-dos and Home. They
+  are images shipped with MART (the flag-icons set, MIT): Windows shows flag
+  emoji as two letters. BM+'s long names ("Korea, Republic Of") are known;
+  a name MART doesn't know shows without a flag.
+- **Filters in the bundle list**: a country dropdown and **From / Until**
+  month dropdowns (the months the client's renewals renew in), on top of the
+  text filter. "4 of 35 bundles · Clear filters" says when one is on. They
+  stay while you click through the client's bundles.
+
+### Fixed
+- **A client opened somewhere down the bundle list.** MART selected the
+  next bundle to renew and scrolled the list to it, so every bundle renewing
+  earlier (still in progress) sat above, out of sight. Opening a client now
+  starts at the top of the list, with the top bundle selected, and without
+  the filters used earlier. Clicking a bundle keeps the list where it was,
+  and only the list ever scrolls to the selected bundle, never the page.
 
 ### What to try
 Open a bundle: spot the strategies by colour; add a to-do with **+ To-do**;
-hover the ⓘ; rename the bundle with ✎. After the next upload, check a
-renewal that showed "Insurer Not Found".
+hover the ⓘ; rename the bundle with ✎. Pick a country, then From / Until
+months, click a few bundles (the filters stay), go back to Clients and open
+the client again (top of the list, no filters). After the next upload,
+check a renewal that showed "Insurer Not Found".
 
 ## 0.7.0 — 04.11.2026 · M1 day 7 · hardening
 

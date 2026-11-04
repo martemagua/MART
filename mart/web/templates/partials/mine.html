@@ -12,7 +12,7 @@
     <span class="todo-title">{{ t.title }}</span>
     {% if t.due_date %}<span class="todo-due">{{ "due " if not t.done_at }}{{ t.due_date | dmy }}{% if t.overdue %} · overdue{% endif %}</span>{% endif %}
     {% if t.done_at %}<span class="todo-due">done {{ t.done_at | dmy(True) }}</span>{% endif %}
-    {% if show_target %}<a class="todo-target" href="{{ t.target.url }}">{{ t.client_name }} · {{ t.target.country }}{% if t.target.renewal_date %} · {{ t.target.renewal_date | dmy }}{% endif %} · {{ t.target.name }}</a>{% endif %}
+    {% if show_target %}<a class="todo-target" href="{{ t.target.url }}">{{ t.client_name }} · {{ t.target.country | flag }}{{ t.target.country }}{% if t.target.renewal_date %} · {{ t.target.renewal_date | dmy }}{% endif %} · {{ t.target.name }}</a>{% endif %}
   </div>
   <details class="row-edit">
     <summary title="Edit or delete">Edit</summary>

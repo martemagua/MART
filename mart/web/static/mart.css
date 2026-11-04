@@ -184,6 +184,16 @@ input[type=file] { padding: 8px 12px; min-height: 44px; }
 .bundle-nav > * { flex-shrink: 0; }   /* in a fixed-height column, parts would shrink to nothing */
 .nav-title { font-size: 20px; margin: 0; }
 .nav-filter { min-height: 36px; font-size: 14px; }
+.nav-filters { display: flex; flex-direction: column; gap: 6px; }
+.nav-filters select { min-height: 34px; width: 100%; min-width: 0; font: inherit; font-size: 13px; padding: 0 8px;
+  border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--ink); }
+.nav-filters select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.nav-range { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.nav-filter-summary { margin: 0; color: var(--muted); }
+.link-btn { background: none; border: 0; padding: 0; font: inherit; color: var(--accent); cursor: pointer; text-decoration: underline; }
+/* Country flags (static/flags, 4:3): always beside the country's name. */
+.flag { width: 1.2em; height: auto; aspect-ratio: 4 / 3; border-radius: 2px; vertical-align: -0.12em;
+  margin-right: 0.4em; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12); }
 .nav-toggle { color: var(--muted); }
 .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; align-self: flex-start; }
 .seg-btn { padding: 6px 12px; font-size: 13px; text-decoration: none; color: var(--ink-2); }

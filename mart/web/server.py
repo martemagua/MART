@@ -19,6 +19,8 @@ from mart.web.app import App, create_app
 from mart.web.framework import Request, Response
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
+# not left to mimetypes: on Windows it reads the registry, which may not know .svg
+STATIC_TYPES = {".css": "text/css", ".js": "application/javascript", ".svg": "image/svg+xml"}
 MAX_BODY = 200 * 1024 * 1024  # tracker uploads are a few MB; this is a safety cap
 HOST = "127.0.0.1"
 
@@ -37,7 +39,8 @@ def serve_static(path: str) -> Response | None:
         return Response.text("Not found", 404)
     if not target.is_file():
         return Response.text("Not found", 404)
-    ctype = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
+    ctype = (STATIC_TYPES.get(target.suffix.lower()) or mimetypes.guess_type(target.name)[0]
+             or "application/octet-stream")
     if ctype.startswith("text/") or ctype in ("application/javascript",):
         ctype += "; charset=utf-8"
     return Response(target.read_bytes(), 200, ctype,

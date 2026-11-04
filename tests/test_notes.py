@@ -88,7 +88,9 @@ def test_todos_page_and_home(book, app):
     assert view["open"][0]["target"]["url"] == f"/clients/{book['cid']}/renewals/{book['med']}"
     assert view["open"][1]["target"]["name"] == "whole bundle"
     page = _page(app, "/todos")
-    assert "1 overdue" in page and "Late one" in page and "Acme Group · Poland" in page and "Finished" in page
+    assert "1 overdue" in page and "Late one" in page and "Finished" in page
+    assert ('Acme Group · <img class="flag" src="/static/flags/pl.svg" alt="" width="16" height="12" '
+            'title="Poland">Poland') in page
     home = _page(app, "/")
     assert "To-dos" in home and "2 open" in home and "Late one" in home
 
