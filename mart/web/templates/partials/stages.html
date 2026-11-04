@@ -11,7 +11,7 @@
   <li class="stage stage-{{ s.state }}{% if s.past_due %} is-late{% endif %}">
     <div class="stage-name">{{ s.name }}</div>
     <div class="stage-state">{{ s.label }}{% if s.past_due %} · <strong>past due</strong>{% endif %}</div>
-    {% if s.state != "missing" %}
+    {% if s.state not in ("missing", "skipped") %}
     <div class="stage-facts">
       {% if s.state == "done" %}
         {% if s.completed_date %}done {{ s.completed_date | dmy }}{% endif %}{% if s.completed_by %} by {{ s.completed_by }}{% endif %}

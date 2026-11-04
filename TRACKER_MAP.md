@@ -160,6 +160,9 @@ What this means for MART:
 - **Task ids**: renewal tasks carry a 24-hex `taskId=`; implementation tasks
   (Appointment, Upload Local Documents, Review ROR, Update Policies) a dashed
   UUID.
+- **No Proposals stage** for the upcoming strategies *Incumbent with Rate
+  Guarantee* and *Non-expiring* (Martin, 04.11.2026): BM+ creates only
+  Renewal Strategy and Update Policy for them.
 - **Period**: a Task Tracker export can cover years. General Information
   records it ("Date Type: Renewal Date · Date: From 31 Dec 2025 · Date: To
   30 Dec 2026"; the client file showed "Not Specified"). Date Types BM+

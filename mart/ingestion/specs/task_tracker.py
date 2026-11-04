@@ -92,6 +92,10 @@ RENEWAL_CATEGORY = "Renewal Workspace"
 # Every BM+ renewal runs through these stages, in this order (Task Name).
 STAGES = ("Renewal Strategy", "Proposals", "Update Policy")
 
+# Upcoming renewal strategies that have no Proposals stage in BM+ (Martin,
+# 04.11.2026): the incumbent's terms are fixed, so nothing is quoted.
+NO_PROPOSALS_STRATEGIES = ("Incumbent with Rate Guarantee", "Non-expiring")
+
 # Labels on the General Information sheet: the export's own filters. A task
 # missing from a filtered export is not necessarily done.
 EXPORT_FILTERS = ["Client Status", "Task Name", "Policy Name", "Date Type", "Date: From",

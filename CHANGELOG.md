@@ -6,6 +6,25 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.4.6 — 04.11.2026 · no Proposals stage for fixed-terms strategies
+
+### Changed
+- **Proposals reads "not needed"** when the renewal's upcoming strategy is
+  *Incumbent with Rate Guarantee* or *Non-expiring* (Martin, 04.11.2026:
+  those strategies have no Proposals stage in BM+). Before, it read "not in
+  BM+ yet" as if something were missing. Shown on the stage strip and as a
+  faint dotted stage dot. If BM+ does create a Proposals task anyway, MART
+  shows that task.
+
+### Fixed
+- **The left menu stays put** while a page scrolls (Martin, 04.11.2026):
+  it is as tall as the window, with the MART version at its bottom, instead
+  of growing with the page and scrolling away.
+
+### What to try
+Open a renewal with *Incumbent with Rate Guarantee*: the Proposals stage
+says "not needed". Scroll down a long renewal: the menu on the left stays.
+
 ## 0.4.5 — 04.11.2026 · renewal tasks only; every period type
 
 ### Changed

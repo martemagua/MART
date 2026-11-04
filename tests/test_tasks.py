@@ -111,3 +111,30 @@ def test_flavours_alternating_are_not_changes_and_keep_their_extra_columns(loade
         tasks = {t["task_name"] + str(t["review_date"]): t for t in tasks_repo.for_client(conn, cid)}
     strat = tasks["Renewal Strategy2027-01-01"]
     assert strat["fields"]["original_due_date"] == "2026-11-20"   # only the cross-client one has it
+
+
+@pytest.mark.parametrize("strategy", ["Incumbent with Rate Guarantee", "Non-expiring"])
+def test_strategies_without_a_proposals_stage(configured, app, strategy):
+    """Martin, 04.11.2026: these strategies have no Proposals stage in BM+."""
+    uid = us.stage("rt.xlsx", renewal_tracker([R(n=1, policy="Medical", strategy=strategy),
+                                               R(n=2, policy="Life", strategy="Remarketing")]))
+    us.commit(uid, {c["key"] for c in us.preview(uid)["clients"]})
+    with connection() as conn:
+        rows = {r["policy_name"]: (r["client_id"], r["id"])
+                for r in conn.execute("SELECT id, client_id, policy_name FROM renewals")}
+    uid = us.stage("t.xlsx", task_tracker([T(n=1, task_name="Renewal Strategy")]))
+    us.commit(uid, {c["key"] for c in us.preview(uid)["clients"]})
+    med = {s["name"]: s for s in rs.detail(*rows["Medical"])["stages"]}
+    assert med["Proposals"]["state"] == "skipped" and strategy in med["Proposals"]["label"]
+    assert med["Update Policy"]["state"] == "missing"
+    life = {s["name"]: s for s in rs.detail(*rows["Life"])["stages"]}
+    assert life["Proposals"]["state"] == "missing"
+    page = get(app, "/clients/{}/renewals/{}".format(*rows["Medical"])).body_bytes.decode()
+    assert f"not needed ({strategy})" in page and "stage-skipped" in page
+    # if BM+ does create one anyway, it is shown as it is
+    uid = us.stage("t2.xlsx", task_tracker([T(n=1, task_name="Renewal Strategy"),
+                                           T(n=1, task_name="Proposals", status="In Progress")],
+                                          report_date="05 Nov 2026"))
+    us.commit(uid, {c["key"] for c in us.preview(uid)["clients"]})
+    med = {s["name"]: s for s in rs.detail(*rows["Medical"])["stages"]}
+    assert med["Proposals"]["state"] == "doing"

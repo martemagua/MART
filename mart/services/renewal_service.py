@@ -65,9 +65,14 @@ def link_tasks(renewals: list[dict[str, Any]], tasks: list[dict[str, Any]]) -> d
     return out
 
 
-def stages(tasks: list[dict[str, Any]], today: date | None = None) -> list[dict[str, Any]]:
+_NO_PROPOSALS = {norm(s) for s in tspec.NO_PROPOSALS_STRATEGIES}
+
+
+def stages(tasks: list[dict[str, Any]], today: date | None = None,
+           strategy: str | None = None) -> list[dict[str, Any]]:
     """The three BM+ stages in order, each from its task (missing = BM+ has not
-    created it). Status is BM+'s own; only the peer-review facts are added."""
+    created it; skipped = the renewal's strategy has no such stage).
+    Status is BM+'s own; only the peer-review facts are added."""
     today = today or date.today()
     by_stage: dict[str, dict] = {}
     for t in sorted(tasks, key=lambda t: (t.get("in_latest_export", 1), t.get("due_date") or "")):
@@ -78,7 +83,10 @@ def stages(tasks: list[dict[str, Any]], today: date | None = None) -> list[dict[
     for name in tspec.STAGES:
         t = by_stage.get(name)
         if t is None:
-            out.append({"name": name, "state": "missing", "label": "not in BM+ yet"})
+            if name == "Proposals" and norm(strategy) in _NO_PROPOSALS:
+                out.append({"name": name, "state": "skipped", "label": f"not needed ({strategy})"})
+            else:
+                out.append({"name": name, "state": "missing", "label": "not in BM+ yet"})
             continue
         f = t.get("fields") or {}
         state, past_due = tt.stage_state(t.get("task_status"))
@@ -134,7 +142,7 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
     others = sorted((t for t in mine if not _STAGE_KEYS.get(norm(t.get("task_name")))),
                     key=lambda t: t.get("due_date") or "")
     days = (datetime.fromisoformat(r["renewal_date"]).date() - today).days if r["renewal_date"] else None
-    stages_ = stages(mine, today)
+    stages_ = stages(mine, today, r.get("upcoming_strategy"))
     return {
         "client": client, "renewal": r, "fields": f, "days_until": days,
         "stages": stages_, "has_task_data": has_task_data, "other_tasks": others,
