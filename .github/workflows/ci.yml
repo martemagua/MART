@@ -31,7 +31,14 @@ jobs:
         env:
           MART_NO_PAUSE: "1"
         run: MART.bat check
-      - run: python tools/build_zip.py
+      - name: make-zip.bat builds and tests the zip
+        if: runner.os == 'Windows'
+        shell: cmd
+        env:
+          MART_NO_PAUSE: "1"
+        run: make-zip.bat --no-pull
+      - if: runner.os != 'Windows'
+        run: python tools/build_zip.py --verify
       - uses: actions/upload-artifact@v4
         if: matrix.os == 'windows-latest' && matrix.python == '3.12'
         with:

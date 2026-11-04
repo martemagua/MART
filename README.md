@@ -24,6 +24,15 @@ tracker exports. Runs on the work laptop with nothing installed.
 | `BUILD_PLAN_M1.md` | the current milestone, day by day |
 | `CLAUDE.md` | guide for AI assistants working on the code |
 
+## Make the zip for the work laptop
+
+On the PC with the repo, double-click **`make-zip.bat`**. It fetches the
+latest version (`git pull`), builds `dist\MART-<version>.zip`, tests it
+(unpacked into a temporary folder, MART's start-up check run from there)
+and opens Explorer with the zip selected. `make-zip.bat --no-pull` builds
+from the files as they are. The zip's `BUILD-INFO.txt` says which version
+and commit it holds.
+
 ## Develop
 
 ```bash
