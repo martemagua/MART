@@ -99,9 +99,12 @@ def backup_now(request: Request) -> Response:
 
 @router.route("/settings/limits", methods=("POST",))
 def limits_save(request: Request) -> Response:
-    values = {name: request.arg(name, "") or "" for name in preferences.PREFS}
+    # a limit the form doesn't send keeps its stored value; an emptied field is an error
+    values = {name: request.arg(name, "") or "" for name in preferences.PREFS
+              if name in request.form or name in request.query}
     errors = preferences.save(values)
     if errors:
         s = settings_mod.load()
-        return _settings_page(_values_of(s), [], [], status=400, pref_errors=errors, pref_values=values)
+        return _settings_page(_values_of(s), [], [], status=400, pref_errors=errors,
+                              pref_values={**preferences.all_values(), **values})
     return Response.redirect("/settings?limits=1")

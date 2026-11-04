@@ -1,6 +1,6 @@
 {# The renewal overview as a timeline, newest first, with what the client-ready
    overview is missing marked (ingestion/overview.timeline). Read-only: BM+'s text. #}
-{% macro overview_timeline(t, keep=4) %}
+{% macro overview_timeline(t, keep=4, new_since=none) %}
 {% if t.entries %}
 <p class="ov-legend">
   {{ t.entries | length }} entr{{ "y" if t.entries | length == 1 else "ies" }} · latest {{ t.latest | dmy }}{% if t.age_days is not none %} ({{ t.age_days }} day{{ "s" if t.age_days != 1 }} ago){% endif %}
@@ -13,6 +13,7 @@
 <article class="ov-entry {% if e.internal_only %}is-internal{% endif %}">
   <header class="ov-head">
     <span class="ov-date">{{ e.date | dmy }}</span>
+    {% if new_since and e.date >= new_since %}<span class="pill pill-new" title="Dated within the last few days (Settings → Time limits)">new</span>{% endif %}
     {% if e.internal_only %}<span class="pill pill-warn">{% if e.marked_not_ready %}marked not client-ready{% else %}not in client-ready{% endif %}</span>{% endif %}
   </header>
   <div class="ov-body">
@@ -31,4 +32,10 @@
 {% elif state == "no_cr" %}<span class="pill pill-warn" title="A full overview, but no client-ready version">no client-ready</span>
 {% elif state == "gaps" %}<span class="pill pill-warn" title="Entries missing from the client-ready overview">{{ t.internal_entries }} not client-ready</span>
 {% else %}<span class="pill pill-ok" title="Everything is client-ready">client-ready</span>{% endif %}
+{% endmacro %}
+
+{# How quiet a renewal's (or bundle's) overview is: services/freshness. Only
+   amber and red speak up; `short` = the side panel's compact form. #}
+{% macro fresh_badge(f, short=false) %}
+{% if f and f.state in ("amber", "red") %}<span class="fr-badge fr-{{ f.state }}" title="Newest overview entry {{ f.latest | dmy }}, {{ f.age_days }} days ago: {{ f.label }}">{% if short %}{{ f.age_days }} d{% else %}{{ f.label }} · {{ f.age_days }} days{% endif %}</span>{% endif %}
 {% endmacro %}

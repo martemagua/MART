@@ -1,7 +1,7 @@
 {# The renewal panel, in a FIXED order (glance → stages → YOUR to-dos and
    notes → facts → proposals → savings → overview → the rest), so each section
    is always in the same place. Everything but "yours" is BM+ data, read-only. #}
-{% from "partials/overview.html" import overview_timeline, overview_pill %}
+{% from "partials/overview.html" import overview_timeline, overview_pill, fresh_badge %}
 {% from "partials/stages.html" import stage_strip %}
 {% from "partials/links.html" import links_menu %}
 {% from "partials/mine.html" import mine_section %}
@@ -105,8 +105,8 @@
 </section>
 
 <section class="rd-section" aria-labelledby="ov-h">
-  <h3 id="ov-h">Renewal overview {{ overview_pill(detail.overview_state, detail.overview) }}</h3>
-  {{ overview_timeline(detail.overview, keep=6) }}
+  <h3 id="ov-h">Renewal overview {{ overview_pill(detail.overview_state, detail.overview) }} {{ fresh_badge(detail.freshness) }}</h3>
+  {{ overview_timeline(detail.overview, keep=6, new_since=fresh_limits.new_since) }}
 </section>
 
 <details class="rd-section rd-fold" id="history">

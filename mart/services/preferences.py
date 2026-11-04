@@ -29,6 +29,14 @@ PREFS: dict[str, Pref] = {p.name: p for p in [
     Pref("overview_data_stale_days", "Overview data out of date after", 7, 1, 90, "days",
          "The overview comes from single-client exports. When the last one for a client is "
          "older than this, MART highlights it, so old comments aren't read as current."),
+    Pref("overview_amber_days", "Overview getting old after", 7, 1, 90, "days",
+         "A renewal turns amber when its newest overview entry (by the date written on it) "
+         "is at least this old."),
+    Pref("overview_red_days", "Overview stale after", 14, 1, 180, "days",
+         "A renewal turns red when its newest overview entry is at least this old. "
+         "Never earlier than the amber limit."),
+    Pref("overview_new_days", "Overview entry counts as new for", 7, 0, 60, "days",
+         "Entries dated within this many days are marked new. 0 = no new marks."),
 ]}
 
 

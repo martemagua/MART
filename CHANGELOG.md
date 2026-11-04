@@ -6,6 +6,31 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.8.0 — 04.11.2026 · M2 day 1 · overview freshness
+
+### Added
+- **How quiet each renewal's overview is**, from the date written on its
+  newest entry, across the full and the client-ready overview: **amber**
+  ("getting old") after 7 days, **red** ("stale") after 14.
+  - On each renewal card, under the overview: "stale · 26 days".
+  - In the side panel, per bundle: its quietest renewal, e.g. "26 d"
+    (a small badge, so it isn't confused with the round "not client-ready"
+    dot).
+  - In the renewal panel, next to "Renewal overview".
+- **New entries**: overview entries dated within the last 7 days carry a
+  green "new" mark.
+- **Settings → Time limits** has the three new limits (getting old, stale,
+  new); stale is never earlier than getting old.
+
+### Fixed
+- Saving Time limits no longer fails when the form leaves a limit out; a
+  limit not sent keeps its stored value (an emptied field is still refused).
+
+### What to try
+Open a client: spot the quiet bundles by their badge in the side panel,
+then a renewal's "new" entries. Change the limits in Settings and look
+again. (In the demo data most overviews are months old, so most is red.)
+
 ## 0.7.8 — 04.11.2026 · the client notes button stands out
 
 ### Changed (Martin's note on 0.7.7)

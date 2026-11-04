@@ -21,7 +21,7 @@ from mart.ingestion.specs import renewal_tracker as rspec
 from mart.ingestion.specs import task_tracker as tspec
 from mart.repository import clients_repo, history_repo, renewals_repo, tasks_repo, uploads_repo
 from mart.repository.db import connection
-from mart.services import history
+from mart.services import freshness, history
 
 _STAGE_KEYS = {norm(s): s for s in tspec.STAGES}
 
@@ -165,6 +165,7 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
         "proposals": proposals,
         "savings": _facts(savings, rspec.SAVINGS_FIELDS), "savings_amounts": amounts,
         "overview": ov.timeline(f.get("overview_all"), f.get("overview_client_ready"), today),
+        "freshness": freshness.of(freshness.latest(f), freshness.limits(today)),
         "overview_state": ov.flag(f.get("overview_all"), f.get("overview_client_ready"))["state"],
         "feed": sorted(ov.entries(f.get("renewal_feed")), key=lambda e: e["date"], reverse=True),
         "bm": r["bm"], "bm_sections": bm_sections(r["bm"]),
