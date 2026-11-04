@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from mart.services import client_service, renewal_service
+from mart.services import client_service, notes_service, renewal_service
 from mart.web.framework import HTTPError, Request, Response, Router
 from mart.web.templating import render
 
@@ -22,7 +22,10 @@ def client_explorer(request: Request, client_id: int) -> Response:
             show_all=request.arg("all") == "1")
     except client_service.NotFound as exc:
         raise HTTPError(404, str(exc)) from exc
-    return render("client_explorer.html", active="clients", **view)
+    s = view["selected"]
+    bundle_mine = notes_service.for_bundle(client_id, s["country"], s["renewal_date"]) if s else None
+    return render("client_explorer.html", active="clients", here=request.url, bundle_mine=bundle_mine,
+                  mine_counts=notes_service.counts(client_id), **view)
 
 
 @router.route("/clients/{client_id:int}/renewals/{renewal_id:int}")
@@ -37,4 +40,5 @@ def renewal_page(request: Request, client_id: int, renewal_id: int) -> Response:
             show_all=request.arg("all") == "1" or not r["in_latest_export"])
     except (client_service.NotFound, renewal_service.NotFound) as exc:
         raise HTTPError(404, str(exc)) from exc
-    return render("client_explorer.html", active="clients", detail=detail, **view)
+    return render("client_explorer.html", active="clients", detail=detail, here=request.url,
+                  mine=notes_service.for_renewal(r), mine_counts={}, **view)

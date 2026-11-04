@@ -6,6 +6,40 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.5.0 — 04.11.2026 · M1 day 5 · notes and to-dos
+
+### Added
+- **To-dos and notes on a renewal**: a "Your to-dos and notes" section on
+  the renewal panel, right under the BM+ stages, marked *written in MART*
+  (blue rail) so it is never mistaken for BM+ data. Add a to-do (title,
+  optional due date) or a note in one line; tick a to-do off; edit or
+  delete either under "Edit". The newest three notes show, older ones fold
+  away; done to-dos fold away too.
+- **To-dos and notes on a bundle** (all its renewals, like one mail
+  covering several policies): the same section on the bundle view. A
+  renewal's panel also shows its bundle's open to-dos and latest notes,
+  with a link to the bundle.
+- **Counts on the renewal cards** in a bundle: ☐ open to-dos, ✎ notes.
+- **To-dos page** (new menu entry): every open to-do, overdue first, then by
+  due date, undated last, each with its client, country, date and renewal
+  (or "whole bundle") linking to it; done ones of the last 30 days below
+  (or all of them).
+- **Home**: a To-dos card with the open count, overdue, due in the next 7
+  days, and the next five.
+- Uploads never touch any of it: notes and to-dos stay on a renewal that
+  changes or leaves the export.
+
+### Fixed
+- MART could not show a page with a timestamp on **Python 3.10** (it uses
+  `datetime.UTC`, which only exists from 3.11). MART.bat accepts 3.10, so
+  this now works there too.
+
+### What to try
+Work a real client for a while: add to-dos with due dates on a renewal and
+on a bundle, write notes from a call, tick to-dos off on the To-dos page,
+and look at Home. Tell me what is missing or in the way (more fields? a
+note type? reminders?).
+
 ## 0.4.6 — 04.11.2026 · no Proposals stage for fixed-terms strategies
 
 ### Changed

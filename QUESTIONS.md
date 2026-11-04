@@ -228,3 +228,5 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 **L10** Tasks of renewals MART doesn't have (older cycles in a long Task Tracker export)?
 → **Answered 04.11.2026:** tasks only attach to renewals MART has; the others are discarded, and the history grows from the renewals MART keeps (0.4.4).
 (a) Date Types: Renewal Date, Task Start Date, Task Due Date, Task Complete Date, Not Specified — all applied (0.4.5). (b) Implementation and contract tasks: not important, ignored; only Renewal Workspace tasks are loaded (0.4.5).
+
+**L11** Notes and to-dos (0.5.0) hang on a renewal cycle or a bundle. Should notes about a *policy* also carry over to its next renewal cycle (e.g. "HR always wants the renewal before October")? And should a client have its own notes (Home: "my clients with their notes")?

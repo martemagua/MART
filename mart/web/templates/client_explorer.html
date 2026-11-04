@@ -2,6 +2,7 @@
 {% from "partials/overview.html" import overview_timeline, overview_pill %}
 {% from "partials/stages.html" import stage_dots %}
 {% from "partials/links.html" import links_menu %}
+{% from "partials/mine.html" import mine_section, mine_badges %}
 {% block title %}{{ client.name }}{% endblock %}
 {% block content_class %}content-explorer{% endblock %}
 {% block content %}
@@ -76,6 +77,8 @@
       </dl>
     </header>
 
+    {{ mine_section(bundle_mine, here, heading="To-dos and notes on this bundle") }}
+
     <div class="renewal-list">
       {% for r in s.renewals %}
       <article class="renewal-card {% if not r.in_latest_export %}is-left{% endif %}" id="r{{ r.id }}">
@@ -98,6 +101,7 @@
           </div>
         </div>
         <div class="rc-flags">
+          {{ mine_badges(mine_counts.get("renewal:" ~ r.id)) }}
           {% if not r.in_latest_export %}<span class="pill pill-soft">no longer in the export since {{ r.left_export_at | dmy }}</span>{% endif %}
           {% if r.id_missing %}<span class="pill pill-soft" title="BM+ gave no id; recognised by client, country, entity, policy and date">no BM+ id</span>{% endif %}
           {% if r.non_expiring %}<span class="pill pill-soft">non-expiring</span>{% endif %}

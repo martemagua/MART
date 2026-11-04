@@ -1,9 +1,10 @@
-{# The renewal panel: everything BM+ says about one renewal, in a FIXED order
-   (glance → stages → facts → proposals → savings → overview → the rest), so
-   each section is always in the same place. All of it is BM+ data, read-only. #}
+{# The renewal panel, in a FIXED order (glance → stages → YOUR to-dos and
+   notes → facts → proposals → savings → overview → the rest), so each section
+   is always in the same place. Everything but "yours" is BM+ data, read-only. #}
 {% from "partials/overview.html" import overview_timeline, overview_pill %}
 {% from "partials/stages.html" import stage_strip %}
 {% from "partials/links.html" import links_menu %}
+{% from "partials/mine.html" import mine_section %}
 {% set r = detail.renewal %}
 {% set f = detail.fields %}
 
@@ -39,6 +40,8 @@
   {% if detail.has_task_data %}{{ stage_strip(detail.stages) }}
   {% else %}<p class="muted">No Task Tracker loaded for this client yet. Upload one to see the stages, assignees and peer review.</p>{% endif %}
 </section>
+
+{{ mine_section(mine, here, also=mine.bundle, also_url="/clients/" ~ client.id ~ "?bundle=" ~ (selected.key | urlencode) ~ "&group=" ~ group ~ "#mine") }}
 
 <div class="rd-cols">
   <section class="rd-section" aria-labelledby="facts-h">
