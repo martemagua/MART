@@ -34,7 +34,7 @@
 {% if a.tracker == "task_tracker" %}{% set _ = notes.append("A Task Tracker export is filtered (see “What this export contains”). A task missing from it is marked “no longer in the export”, never deleted.") %}{% endif %}
 {% if p.no_id %}{% set _ = notes.append(p.no_id ~ " renewals have no BM+ id (e.g. “Transitioned” renewals). MART recognises them by client, country, entity, policy and renewal date, and marks them.") %}{% endif %}
 {% if p.duplicates_merged %}{% set _ = notes.append(p.duplicates_merged ~ " rows were exact duplicates of another row and were counted once.") %}{% endif %}
-{% if p.sheets_missing %}{% set _ = notes.append("Not in this export: " ~ (p.sheets_missing | join(", ")) ~ ". The renewals load without them.") %}{% endif %}
+{% if p.sheets_missing %}{% set _ = notes.append("Not in this export: " ~ (p.sheets_missing | join(", ")) ~ ". MART keeps what it already has from those sheets; only the sheets in this export are compared and updated.") %}{% endif %}
 {% if a.tracker == "renewal_tracker" and filters.get("Completed within Last 6 Months") == "Excluded" %}{% set _ = notes.append("Completed renewals are not in this export. Renewals MART already has stay, marked “no longer in the export”.") %}{% endif %}
 
 {% if newer %}

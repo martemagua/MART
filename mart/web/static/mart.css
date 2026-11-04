@@ -257,6 +257,7 @@ a.rc-name:hover { color: var(--accent); text-decoration: underline; }
 .rd-cols .rd-section { margin-bottom: 14px; }
 @media (max-width: 1320px) { .rd-cols { grid-template-columns: minmax(0, 1fr); } }
 .sec-src { font-size: 12px; font-weight: 400; color: var(--muted); }
+.sec-old { color: var(--warn-ink); background: var(--warn-bg); border-radius: 4px; padding: 1px 6px; }
 .rd-fold > summary { cursor: pointer; font-weight: 600; }
 .facts-wide { grid-template-columns: minmax(200px, max-content) 1fr; font-size: 13px; margin-top: 10px; }
 .facts dd { white-space: pre-line; overflow-wrap: break-word; }

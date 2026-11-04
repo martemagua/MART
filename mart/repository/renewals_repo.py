@@ -15,11 +15,12 @@ def stored_by_key(conn: sqlite3.Connection, keys: list[str]) -> dict[str, dict[s
         marks = ",".join("?" * len(chunk))
         for r in conn.execute(
                 f"""SELECT id, cycle_key, client_id, content_hash, in_latest_export,
-                           fields_json, bm_json
+                           fields_json, bm_json, details_json
                     FROM renewals WHERE cycle_key IN ({marks})""", chunk):
             d = dict(r)
             d["fields"] = json.loads(d.pop("fields_json"))
             d["bm"] = json.loads(d.pop("bm_json"))
+            d["details"] = json.loads(d.pop("details_json") or "{}")
             out[r["cycle_key"]] = d
     return out
 

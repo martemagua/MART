@@ -53,6 +53,15 @@ the files are deliberately not copied here.
 → **Header rows differ per sheet *and* per flavour.** MART must find the
 header row by scanning, never from a fixed number.
 
+**Sheets are optional, columns are not** (Martin, 04.11.2026): when a
+tracker is created in BM+, each report sheet can be left out (General
+Information lists which are included); the standard trackers always have the
+same columns. Renewal Overview / Task Summary are the item lists themselves,
+so a file without them is refused. A missing Renewal Strategy, Proposals or
+Savings sheet is **not news**: MART keeps what it has for those sheets and
+compares only the sheets the export includes (`renewal_tracker.merge_details`);
+the renewal panel says which export a kept section is from.
+
 **Client name:** the cross-client files have a `Client` / `Client Name`
 column. The client-specific files have it only in *General Information* A1,
 and that extra title row shifts every metadata cell down by one (Report

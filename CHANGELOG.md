@@ -6,6 +6,25 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.4.1 — 04.11.2026 · trackers without some sheets
+
+### Fixed
+- **A Renewal Tracker created without some sheets no longer wipes them.**
+  BM+ lets you leave out Renewal Strategy, Proposals or Savings. Before, an
+  export without one of them showed every renewal as "changed" and, on
+  commit, deleted what MART had from that sheet. Now a sheet that isn't in
+  the export is not news: MART keeps what it has, compares only the sheets
+  that are there, and the preview says so. A sheet that *is* there is the
+  truth: a renewal with no rows in it really has none any more.
+- The renewal panel marks a section kept from an earlier export: "from the
+  export of 28.10.2026".
+
+### What to try
+Upload a full Renewal Tracker, then a slim one (e.g. without Proposals):
+the preview says which sheets it lacks and shows no changes, and the
+renewal panel still has the proposals, marked with the date of the export
+they came from.
+
 ## 0.4.0 — 04.11.2026 · M1 day 4 · tasks and the renewal panel
 
 ### Added

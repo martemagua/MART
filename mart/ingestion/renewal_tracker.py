@@ -70,6 +70,11 @@ class ParsedTracker:
     unmatched_detail_rows: int = 0
 
     @property
+    def sheets_carried(self) -> tuple[str, ...]:
+        """The detail sheets (keys of spec.DETAIL_SHEETS) this export has."""
+        return tuple(k for k, (name, _) in spec.DETAIL_SHEETS.items() if name in self.sheets_read)
+
+    @property
     def no_id_count(self) -> int:
         return sum(1 for r in self.renewals if r.id_missing)
 
@@ -103,9 +108,30 @@ def content_hash(bm: dict[str, Any], details: dict[str, list[dict[str, Any]]]) -
     """Same for the same data from either flavour. The text streams are
     compared separately (text_changed), because each flavour carries others."""
     payload = json.dumps({"bm": _neutral(bm),
-                          "details": {s: [_neutral(r) for r in rows] for s, rows in sorted(details.items())}},
+                          "details": {s: [_neutral(r) for r in rows] for s, rows in sorted(details.items())
+                                      if not s.startswith("_")}},
                          sort_keys=True, default=str)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
+
+
+def merge_details(new: dict[str, list[dict[str, Any]]], stored: dict[str, Any],
+                  carried: tuple[str, ...] | list[str]) -> dict[str, list[dict[str, Any]]]:
+    """The detail sheets as they stand after this export: a sheet the export
+    has is the truth (no rows = none any more); a sheet it doesn't have keeps
+    what MART already had. Trackers can be created without some sheets, and a
+    missing sheet is not news."""
+    out = {}
+    for key in spec.DETAIL_SHEETS:
+        rows = new.get(key) if key in carried else stored.get(key)
+        if rows:
+            out[key] = rows
+    return out
+
+
+def details_from(stored: dict[str, Any], merged: dict[str, Any], carried, upload_id: int) -> dict[str, int]:
+    """Per detail sheet: the upload it was last read from."""
+    before = stored.get("_from") or {}
+    return {k: (upload_id if k in carried else before[k]) for k in merged if k in carried or k in before}
 
 
 def carried_streams(rows: list[dict[str, Any]]) -> tuple[str, ...]:
