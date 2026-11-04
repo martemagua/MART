@@ -6,6 +6,17 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.7.8 — 04.11.2026 · the client notes button stands out
+
+### Changed (Martin's note on 0.7.7)
+- **"Client notes & to-dos" no longer looks like a filter.** It has the
+  blue rail of everything written in MART, a notebook icon, and a second
+  line "about <client> as a whole"; it turns blue on hover and while open.
+  Its counts of notes and open to-dos stay on the right.
+
+### What to try
+Open a client: the client notes button stands out above the filters.
+
 ## 0.7.7 — 04.11.2026 · "Everything BM+ exported" by section
 
 ### Changed (Martin's note on 0.7.6)
