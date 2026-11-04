@@ -59,7 +59,8 @@ class RenewalAdapter:
         items = []
         for r in p.renewals:
             d = asdict(r)
-            d.update(key=r.cycle_key, content_hash=r.content_hash, flagged=r.id_missing)
+            d.update(key=r.cycle_key, content_hash=r.content_hash, flagged=r.id_missing,
+                     sheets=p.sheets_carried)
             items.append(d)
         return Parsed(p.flavour, p.title, p.info, p.report_date, p.report_time, items, {
             "sheets_read": p.sheets_read, "sheets_missing": p.sheets_missing,
@@ -78,10 +79,24 @@ class RenewalAdapter:
     def mark_left(self, conn, keys):
         renewals_repo.mark_left_export(conn, keys)
 
+    @staticmethod
+    def _sheets(row) -> tuple[str, ...]:
+        # rows staged before 0.4.1 carry no list: they had every sheet they had
+        return tuple(row["sheets"]) if "sheets" in row else tuple(rt_spec.DETAIL_SHEETS)
+
     def outcome(self, row, stored, ctx) -> str:
-        return _outcome(stored, row, bool(stored) and rt.text_changed(row, stored["fields"], ctx))
+        if stored is None:
+            return _outcome(stored, row)
+        # compare as if the sheets this export lacks were unchanged
+        merged = rt.merge_details(row.get("details") or {}, stored["details"], self._sheets(row))
+        compared = {**row, "content_hash": rt.content_hash(row["bm"], merged)}
+        return _outcome(stored, compared, rt.text_changed(row, stored["fields"], ctx))
 
     def save(self, conn, row, stored, client_id, upload_id, ctx, outcome) -> None:
+        sheets, before = self._sheets(row), (stored or {}).get("details") or {}
+        merged = rt.merge_details(row.get("details") or {}, before, sheets)
+        row["details"] = {**merged, "_from": rt.details_from(before, merged, sheets, upload_id)}
+        row["content_hash"] = rt.content_hash(row["bm"], merged)
         if stored is not None:
             rt.keep_streams_not_carried(row, stored["fields"], stored["bm"], ctx)
         renewals_repo.save(conn, row, client_id, upload_id,

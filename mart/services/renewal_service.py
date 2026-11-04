@@ -16,7 +16,7 @@ from mart.ingestion import task_tracker as tt
 from mart.ingestion.sheet import lookup, norm, section_items
 from mart.ingestion.specs import renewal_tracker as rspec
 from mart.ingestion.specs import task_tracker as tspec
-from mart.repository import clients_repo, renewals_repo, tasks_repo
+from mart.repository import clients_repo, renewals_repo, tasks_repo, uploads_repo
 from mart.repository.db import connection
 
 _STAGE_KEYS = {norm(s): s for s in tspec.STAGES}
@@ -101,6 +101,7 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
             raise NotFound("This renewal doesn't exist (or isn't one of your clients').")
         tasks = tasks_repo.for_client(conn, client_id)
         has_task_data = bool(tasks)
+        older = _older_sections(conn, r)
     mine = link_tasks([r], tasks)[r["id"]]
     f, d = r["fields"], r["details"]
     strategy = (d.get("strategy") or [{}])[0]
@@ -126,4 +127,16 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
         "overview_state": ov.flag(f.get("overview_all"), f.get("overview_client_ready"))["state"],
         "feed": sorted(ov.entries(f.get("renewal_feed")), key=lambda e: e["date"], reverse=True),
         "bm": r["bm"],
+        "older": older,
     }
+
+
+def _older_sections(conn, r: dict[str, Any]) -> dict[str, str | None]:
+    """Detail sheets kept from an earlier export (the latest one didn't include
+    that sheet): sheet key -> that export's report date."""
+    out = {}
+    for key, upload_id in ((r["details"] or {}).get("_from") or {}).items():
+        if upload_id != r["last_upload_id"]:
+            u = uploads_repo.get(conn, upload_id)
+            out[key] = u["report_date"] if u else None
+    return out

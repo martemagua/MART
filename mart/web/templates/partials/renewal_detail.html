@@ -6,6 +6,8 @@
 {% set r = detail.renewal %}
 {% set f = detail.fields %}
 
+{% macro older(key) %}{% if key in detail.older %}<span class="sec-src sec-old" title="The latest export didn't include this sheet, so MART kept what an earlier one said.">from the export of {{ detail.older[key] | dmy or "an earlier upload" }}</span>{% endif %}{% endmacro %}
+
 {% macro facts(items) %}
 <dl class="facts">{% for label, val in items %}<dt>{{ label }}</dt><dd>{% if val is string and val[:4] | int and val[4:5] == "-" %}{{ val | dmy }}{% else %}{{ val }}{% endif %}</dd>{% endfor %}</dl>
 {% endmacro %}
@@ -47,7 +49,7 @@
     ] | selectattr(1) | list) }}
   </section>
   <section class="rd-section" aria-labelledby="strat-h">
-    <h3 id="strat-h">Strategy <span class="sec-src">Renewal Strategy sheet</span></h3>
+    <h3 id="strat-h">Strategy <span class="sec-src">Renewal Strategy sheet</span> {{ older("strategy") }}</h3>
     {% if detail.strategy %}{{ facts(detail.strategy) }}{% else %}<p class="muted">Nothing filled in BM+ yet.</p>{% endif %}
     {% if detail.last_renewal %}<h4>From the last renewal</h4>{{ facts(detail.last_renewal) }}{% endif %}
     {% if detail.claims %}<h4>Claims</h4>{{ facts(detail.claims) }}{% endif %}
@@ -56,7 +58,7 @@
 </div>
 
 <section class="rd-section" aria-labelledby="prop-h">
-  <h3 id="prop-h">Proposals <span class="sec-src">first and final quote per insurer</span></h3>
+  <h3 id="prop-h">Proposals <span class="sec-src">first and final quote per insurer</span> {{ older("proposals") }}</h3>
   {% if detail.proposals %}
   <div class="table-scroll">
     <table class="table">
@@ -73,7 +75,7 @@
 </section>
 
 <section class="rd-section" aria-labelledby="sav-h">
-  <h3 id="sav-h">Savings</h3>
+  <h3 id="sav-h">Savings {{ older("savings") }}</h3>
   {% if detail.savings or detail.savings_amounts %}
     {{ facts(detail.savings) }}
     {% if detail.savings_amounts %}<h4>Amounts (reporting currency)</h4>
