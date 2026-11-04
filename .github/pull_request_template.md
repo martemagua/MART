@@ -11,7 +11,7 @@
 - [ ] `python -m pytest` passes (and `MART_REAL_EXPORTS` checks, if real-structure exports were used)
 - [ ] `ruff check .` is clean
 - [ ] built with `tools/build_zip.py --verify`, unzipped into an empty folder and tried in a browser
-- [ ] CI is green on Windows (3.12, 3.14) and Linux
+- [ ] CI is green on Windows (3.12 and 3.14)
 
 ## Documentation
 

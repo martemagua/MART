@@ -46,6 +46,13 @@ laptop.
   the filters used earlier. Clicking a bundle keeps the list where it was,
   and only the list ever scrolls to the selected bundle, never the page.
 
+### Development
+- **CI uses less than half the runner time**: Windows only (3.12 and
+  3.14; the Linux job is dropped, MART runs on Windows), one run per change
+  (pull requests and merges into `main`, not every branch push a second
+  time), and a newer push to a PR cancels the run it replaces. It can also
+  be started by hand from the Actions tab.
+
 ### What to try
 Open a bundle: spot the strategies by colour; add a to-do with **+ To-do**;
 hover the ⓘ; rename the bundle with ✎. Pick a country, then From / Until

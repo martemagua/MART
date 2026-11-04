@@ -39,7 +39,8 @@ and commit it holds.
 Every change comes as a **pull request** into `main` (template in
 `.github/pull_request_template.md`), with its documentation updated in the
 same PR: `CHANGELOG.md`, this README, `CLAUDE.md`, the build plan. CI runs
-the tests on Windows (Python 3.12 and 3.14) and Linux for every push.
+the tests on Windows (Python 3.12 and 3.14) for every pull request and
+every merge into `main`; a newer push to a PR cancels the run it replaces.
 
 ## Develop
 
