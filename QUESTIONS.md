@@ -256,7 +256,7 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 → **Agreed 05.11.2026:** in **M3** scope. Topics live **inside each client**: partner trackers are per client (one file per client, different partners and requirements). The existing client notes and to-dos start in a "General" topic.
 
 **M3b** Repeating to-dos: which rhythms are needed? Proposal: every N weeks, monthly on a day or on the Nth working day, quarterly. Does "working day" need a holiday calendar (which country)?
-→
+→ **Answered 05.11.2026:** the standard options, nothing more: **every N days**, **every N weeks** (on chosen weekday(s)), **every N months**. No working-day rule, no holiday calendar.
 
 **M3c** Should a set of topics be suggested for every client (e.g. "Client requests", "Partner tracker", "Implementation – <country>"), or does each client start empty except "General"?
-→
+→ **Answered 05.11.2026:** no suggestions; Martin sets each topic up himself. A client starts with "General" only.

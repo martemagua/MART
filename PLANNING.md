@@ -327,8 +327,12 @@ overview.
 - **Pinned notes** ("key facts": recipients of the partner file, a go-live
   date, an agreed process) stay at the top of their topic; the rest is a
   dated log, newest first.
-- **Repeating to-dos**, e.g. "release the partner tracker: monthly, 1st
-  working day". Ticking one creates the next with the next date.
+- **Repeating to-dos**, e.g. "release the partner tracker: every month".
+  The standard options only (QUESTIONS M3b): every N days, every N weeks
+  on chosen weekday(s), every N months. No working-day rule, no holiday
+  calendar. Ticking one creates the next with the next date.
+- **No suggested topics** (M3c): a client starts with "General"; Martin
+  creates each topic himself.
 - **Optional, visual:** a country strip on the client page (flags of the
   countries with topics, open / overdue counts, click to filter), and the
   topic's colour chip on Home "Today" and the To-dos page.
