@@ -8,7 +8,7 @@ to-dos the detail real work needs, and open Home on what is due today.
 a zip and a short **"what to try"** list. Every change goes through a pull
 request with its docs.
 
-Status: **in progress.** Day 1 done (MART 0.8.0, 04.11.2026). Day 2 done (MART 0.8.1, 04.11.2026). Day 3 done (MART 0.8.2, 04.11.2026). Day 4 done (MART 0.8.3–0.8.4, 05.11.2026). Day 5's hardening done (MART 0.8.5, 05.11.2026); the M2 review comes after a day of real work. The foundations of M1
+Status: **done** (reviewed 05.11.2026, MART 0.8.5). Day 1 done (MART 0.8.0, 04.11.2026). Day 2 done (MART 0.8.1, 04.11.2026). Day 3 done (MART 0.8.2, 04.11.2026). Day 4 done (MART 0.8.3–0.8.4, 05.11.2026). Day 5 done (MART 0.8.5 + the review, 05.11.2026). The foundations of M1
 (`BUILD_PLAN_M1.md`) hold unchanged: nothing installed, all SQL in
 `repository/`, append-only migrations, uploads never delete what you wrote.
 
@@ -38,7 +38,7 @@ Status: **in progress.** Day 1 done (MART 0.8.0, 04.11.2026). Day 2 done (MART 0
 | 2 ✅ | **Richer to-dos** (your own tasks). A to-do gets a **description**, **subtasks** (tick them one by one; "2 of 3" on the to-do), **urgency** (urgent / normal / low) and **delegated / waiting on** (whom: you, broker, insurer, client, colleague; since when). Status: open → in progress → waiting → done. Existing to-dos keep everything they have | turn one real to-do into a checklist, hand one to a broker, mark one urgent |
 | 3 ✅ | **Broker deadlines on bundles.** A bundle gets an **expected update date** ("terms by 15.11", who promised it, an optional note), set from the bundle header with a ✎ like its name. Prefilled from BM+'s expected-terms date of its renewals (see below), shown as "from BM+", yours to keep, change or drop. While the date is ahead, the bundle's renewals are **not stale**; once it has passed, the bundle turns red until you confirm the update arrived (or set a new date). MART points out a new overview entry dated on or after the promise. The date shows in the side panel, on Home and on each renewal of the bundle | set "terms by 15.11" on a bundle from a broker mail; see a prefilled one; confirm one |
 | 4 ✅ | **Home: "Today".** One list of what needs you: deadlines due or passed, to-dos due or overdue (urgent first), renewals gone red, new overview entries since yesterday. Below it, a simple card per client (renewals in flight, next renewal date, counts of the above). Adjusted from your use | start a day from Home; tell me what is missing or in the way |
-| 5 | **Hardening + M2 review.** Speed on a full book, upload edge cases found on the way, wording; a day of real work | use M2 for a full day; list what's missing |
+| 5 ✅ | **Hardening + M2 review.** Speed on a full book, upload edge cases found on the way, wording; a day of real work | use M2 for a full day; list what's missing |
 
 ---
 
@@ -64,7 +64,9 @@ on someone). Martin decided otherwise, and it fits how the work runs:
 
 ## Still open (not blocking M2)
 
-- **G1** What a client card on Home should show: we learn it on day 4.
+- **G1** What a client card on Home should show: still not clear after the
+  review (Martin goes straight to a client page or to the To-dos). Home stays
+  as it is and becomes the place where the AI agent works (M4, QUESTIONS G2).
 - **E5** When a deadline passes: flag it only (M2), or also start a chase
   with a draft email (later, with the chaser ladder)?
 - **F3** "Waiting on X since Y" comes with the richer to-dos; simple
@@ -90,3 +92,16 @@ on someone). Martin decided otherwise, and it fits how the work runs:
 - Were the amber / red limits right, or too noisy / too quiet?
 - Did the BM+ prefill create deadlines you wanted, or noise?
 - Which to-do extras did you actually use?
+
+**Answers (Martin, 05.11.2026):**
+
+| Question | Answer | What follows |
+|---|---|---|
+| Home | not sure what belongs there; Martin goes **straight to a client page or to the To-dos**. Home is likely where the **AI agent** will work later | Home stays as it is for now; it is reshaped with the AI plugin (M4, QUESTIONS G2) |
+| Amber / red limits | **the colours are right** (7 / 14 days) | kept |
+| BM+ prefill | **works well** | kept |
+| To-do extras | **all of them** used: description, subtasks, urgency (and status / waiting on) | kept; the to-do board (M3) builds on them |
+| Client card (G1) | not sure, as for Home | left open, revisited in M4 |
+
+**M2 is done.** Next: M3 (actual state + Kanban, the to-do board with the
+client topics).

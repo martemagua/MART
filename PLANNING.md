@@ -72,6 +72,10 @@ Above the cards is a **"Today"** strip: deadlines due, to-dos due, overdue
 broker promises. The AI agent's day plan (written over MCP) can appear here
 as a note or a set of to-dos it created.
 
+*M2 review (05.11.2026):* built as above in 0.8.3, but Martin starts his day
+on a client page or the To-dos, not on Home. Home stays as it is and is
+reshaped with the AI plugin (M4), as the place where the agent works.
+
 ### Client page — renewals by bundle
 ```
 Mercedes-Benz Group AG
