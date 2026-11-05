@@ -1,0 +1,84 @@
+{# The ACTUAL state of a renewal (services/actuals): Martin's strategy beside
+   BM+'s, and "completed". Written in MART, so it carries the mine rail; BM+
+   stays the record and is always shown beside it. `a` = actuals.view(). #}
+
+{% set _pen %}<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M11.7 1.3a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4l-8.6 8.6-3.4.8.8-3.4 8.2-8.6zM3.6 11l-.4 1.8 1.8-.4L12.6 4.8 11.2 3.4 3.6 11z"/></svg>{% endset %}
+
+{# How Martin's strategy stands against BM+'s, in one pill. #}
+{% macro strategy_vs_bm(a) %}
+{% if a.state == "behind" %}<span class="pill pill-warn" title="BM+ hasn't caught up with your strategy yet">≠ BM+: {{ a.bm_strategy or "blank" }}</span>
+{% elif a.state == "conflict" %}<span class="pill pill-err" title="BM+ changed to something else than your strategy since you set it: have a look">≠ BM+ changed to {{ a.bm_strategy }}</span>
+{% elif a.caught_up %}<span class="pill pill-ok" title="BM+ now says the same as you">✓ BM+ caught up</span>
+{% elif a.state == "sync" %}<span class="muted small">same as BM+</span>{% endif %}
+{% endmacro %}
+
+{# The renewal card's strategy cell: Martin's wins, BM+'s beside it. #}
+{% macro strategy_cell(a) %}
+<span class="pill pill-st {{ a.effective | strategy_class }}" title="{{ 'Your strategy' if a.strategy else 'Upcoming renewal strategy (BM+)' }}">{{ a.effective or "—" }}</span>
+{% if a.differs %}<div class="rc-sub act-differs" title="{{ 'BM+ changed since you set yours' if a.state == 'conflict' else 'BM+ has not caught up yet' }}: BM+ says {{ a.bm_strategy or 'nothing' }}">≠ BM+: {{ a.bm_strategy or "blank" }}</div>
+{% elif a.strategy %}<div class="rc-sub">yours{{ " · BM+ caught up" if a.caught_up }}</div>{% endif %}
+{% endmacro %}
+
+{% macro completed_badge(a) %}
+{% if a.completed %}<span class="pill pill-ok" title="Marked completed by you{% if a.completed_reason %}: {{ a.completed_reason }}{% endif %}">✓ completed {{ a.completed | dmy }}</span>{% endif %}
+{% endmacro %}
+
+{% macro completed_form(base, ids, back, label="Mark completed", right=false) %}
+<form method="post" action="{{ base }}/completed" class="arrange-box stack-form{% if right %} arrange-right{% endif %}">
+  <input type="hidden" name="back" value="{{ back }}">
+  {% for i in ids %}<input type="hidden" name="rid" value="{{ i }}">{% endfor %}
+  <label class="small muted">Completed on <input type="date" name="date" required value="{{ today_iso() }}" data-focus-on-open></label>
+  <label class="small muted">Note (optional) <input type="text" name="reason" maxlength="500" placeholder="e.g. all tasks approved in BM+"></label>
+  <div class="actions"><button type="submit" class="btn btn-small btn-primary">{{ label }}</button></div>
+</form>
+{% endmacro %}
+
+{# The renewal panel's section, just after the BM+ stages. #}
+{% macro actual_section(base, r, a, back) %}
+<section class="rd-section sec-mine" id="actual" aria-labelledby="actual-h">
+  <h3 id="actual-h">Actual state <span class="sec-src">written in MART · BM+ stays the record</span></h3>
+  <div class="act-row">
+    <span class="act-label">Strategy</span>
+    {% if a.strategy %}<span class="pill pill-st {{ a.strategy | strategy_class }}">{{ a.strategy }}</span>{{ strategy_vs_bm(a) }}
+    {% else %}<span class="muted small">not set — going by BM+ ({{ a.bm_strategy or "blank" }})</span>{% endif %}
+    <details class="arrange">
+      <summary class="icon-btn" title="{{ 'Change your strategy' if a.strategy else 'Set your strategy' }}" aria-label="{{ 'Change your strategy' if a.strategy else 'Set your strategy' }}">{{ _pen }}</summary>
+      <form method="post" action="{{ base }}/renewals/{{ r.id }}/strategy" class="arrange-box stack-form">
+        <input type="hidden" name="back" value="{{ back }}">
+        <label class="small muted">Your strategy <input type="text" name="strategy" list="strategy-options" maxlength="120" value="{{ a.strategy or '' }}" placeholder="{{ a.bm_strategy or 'e.g. Remarketing' }}" data-focus-on-open></label>
+        <datalist id="strategy-options">{% for s in strategies %}<option value="{{ s }}">{% endfor %}</datalist>
+        <label class="small muted">Why (optional) <input type="text" name="reason" maxlength="500" value="{{ a.strategy_reason or '' }}" placeholder="e.g. agreed with HR on the call of 28.10"></label>
+        <p class="hint">BM+ says: {{ a.bm_strategy or "nothing yet" }}. Leave it empty to go by BM+'s again.</p>
+        <div class="actions"><button type="submit" class="btn btn-small btn-primary">Save</button></div>
+      </form>
+    </details>
+  </div>
+  {% if a.strategy_reason %}<div class="act-note">{{ a.strategy_reason }}</div>{% endif %}
+  <div class="act-row">
+    <span class="act-label">Completed</span>
+    {% if a.completed %}
+    {{ completed_badge(a) }}
+    <form method="post" action="{{ base }}/completed" data-confirm="Mark this renewal as not completed?">
+      <input type="hidden" name="back" value="{{ back }}"><input type="hidden" name="rid" value="{{ r.id }}"><input type="hidden" name="undo" value="1">
+      <button type="submit" class="icon-btn" title="Not completed after all" aria-label="Mark as not completed">×</button>
+    </form>
+    {% else %}
+    <span class="muted small">not yet</span>
+    {% if a.suggest_completed %}<span class="pill pill-new" title="BM+'s Renewal Strategy, Proposals and Update Policy are all completed">BM+'s stages are all done</span>{% endif %}
+    <details class="arrange">
+      <summary class="btn btn-small">✓ Mark completed</summary>
+      {{ completed_form(base, [r.id], back) }}
+    </details>
+    {% endif %}
+  </div>
+  {% if a.completed_reason %}<div class="act-note">{{ a.completed_reason }}</div>{% endif %}
+  {% if a.history %}
+  <details class="dl-history">
+    <summary class="small muted">Changes ({{ a.history | length }})</summary>
+    <ul>{% for h in a.history %}<li class="small">{{ h.created_at | dmy(True) }} · {{ "strategy" if h.field == "strategy" else "completed" }}:
+      {% if h.value is none %}{{ "cleared (BM+'s counts)" if h.field == "strategy" else "taken back" }}{% elif h.field == "completed" %}{{ h.value | dmy }}{% else %}{{ h.value }}{% endif %}
+      {% if h.field == "strategy" %}<span class="muted">(BM+ then: {{ h.bm_value or "blank" }})</span>{% endif %}{% if h.reason %} · {{ h.reason }}{% endif %}</li>{% endfor %}</ul>
+  </details>
+  {% endif %}
+</section>
+{% endmacro %}

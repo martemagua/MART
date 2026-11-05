@@ -5,7 +5,15 @@ from __future__ import annotations
 
 from urllib.parse import quote
 
-from mart.services import bundle_service, client_service, deadlines, freshness, notes_service, renewal_service
+from mart.services import (
+    actuals,
+    bundle_service,
+    client_service,
+    deadlines,
+    freshness,
+    notes_service,
+    renewal_service,
+)
 from mart.web.framework import HTTPError, Request, Response, Router
 from mart.web.templating import render
 
@@ -95,11 +103,11 @@ def bundle_rename(request: Request, client_id: int) -> Response:
 
 
 # -- broker deadlines on bundles (services/deadlines) ----------------------------------
-def _after_deadline(request: Request, client_id: int, key: str) -> Response:
+def _after_deadline(request: Request, client_id: int, key: str, anchor: str = "deadline") -> Response:
     """Back to the page the form was on (a path on MART), else the bundle."""
     back = request.arg("back") or ""
     if back.startswith("/") and not back.startswith("//") and "\\" not in back:
-        return Response.redirect(back.split("#", 1)[0] + "#deadline")
+        return Response.redirect(back.split("#", 1)[0] + "#" + anchor)
     return _to_bundle(client_id, key)
 
 
@@ -122,3 +130,25 @@ def deadline_close(request: Request, client_id: int) -> Response:
     except deadlines.Invalid as exc:
         raise HTTPError(400, str(exc)) from exc
     return _after_deadline(request, client_id, key)
+
+
+# -- the actual state of renewals (services/actuals) -----------------------------------
+@router.route("/clients/{client_id:int}/renewals/{renewal_id:int}/strategy", methods=("POST",))
+def actual_strategy(request: Request, client_id: int, renewal_id: int) -> Response:
+    try:
+        actuals.set_strategy(client_id, renewal_id, request.arg("strategy"), request.arg("reason"))
+    except actuals.Invalid as exc:
+        raise HTTPError(400, str(exc)) from exc
+    return _after_deadline(request, client_id, "", "actual")
+
+
+@router.route("/clients/{client_id:int}/completed", methods=("POST",))
+def actual_completed(request: Request, client_id: int) -> Response:
+    """Mark one renewal or a whole bundle completed (or take it back)."""
+    ids = [int(x) for x in request.args("rid") if x.isdigit()]
+    undo = request.arg("undo") == "1"
+    try:
+        actuals.set_completed(client_id, ids, request.arg("date"), request.arg("reason"), undo=undo)
+    except actuals.Invalid as exc:
+        raise HTTPError(400, str(exc)) from exc
+    return _after_deadline(request, client_id, "", "actual" if len(ids) == 1 else "completed")

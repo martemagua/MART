@@ -263,6 +263,22 @@ MIGRATIONS: list[tuple[int, str]] = [
         );
         CREATE INDEX ix_deadlines_bundle ON deadlines(client_id, bundle_key, status);
     """),
+    (9, """
+        -- M3 day 1: the ACTUAL state of a renewal beside BM+'s (USER data,
+        -- never touched by uploads). Append-only: the newest row per
+        -- (renewal, field) is the current value, a NULL value clears it, and
+        -- the older rows are its history.
+        CREATE TABLE renewal_actuals (
+            id          INTEGER PRIMARY KEY,
+            renewal_id  INTEGER NOT NULL REFERENCES renewals(id),
+            field       TEXT NOT NULL,     -- strategy | completed
+            value       TEXT,              -- the strategy / ISO date completed; NULL = cleared
+            bm_value    TEXT,              -- BM+'s value when this was set
+            reason      TEXT,
+            created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX ix_actuals_renewal ON renewal_actuals(renewal_id, field, id);
+    """),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1][0]

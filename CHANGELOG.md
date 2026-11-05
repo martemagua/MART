@@ -6,6 +6,38 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.0 — 05.11.2026 · M3 day 1 · actual state
+
+### Added
+- **Your strategy beside BM+'s.** The renewal panel has a new section,
+  **Actual state** (written in MART), right after the BM+ stages. Set your
+  own strategy with ✎ (the BM+ strategies are offered, any text works) and
+  an optional reason. MART remembers what BM+ said at that moment, so it can
+  tell you:
+  - **≠ BM+: …** BM+ hasn't caught up yet (still blank or the old value);
+  - **≠ BM+ changed to …** BM+ moved to something else since, have a look;
+  - **✓ BM+ caught up** once an upload brings BM+ in line; nothing to clean
+    up by hand.
+  Leave it empty to go by BM+'s strategy again. Nothing turns into a to-do.
+- **Your strategy wins on the cards.** The renewal card's colour and
+  strategy pill, the bundle's strategy mix and the side panel's dots go by
+  your strategy where you set one; the card shows "≠ BM+: …" underneath.
+- **Completed.** Mark a renewal completed (with a date and an optional
+  note) in its panel, or **a whole bundle** at once from the bundle header
+  ("Completed: 1 of 3 · ✓ Mark the rest completed"). MART suggests it when
+  BM+'s three stages are all done, but only you mark it. Cards show
+  "✓ completed DD.MM.YYYY", and a bundle whose renewals are all completed
+  gets a green count in the side panel. × takes it back.
+- Every change is kept (**Changes** in the section): what you set, when,
+  why, and what BM+ said then.
+
+### What to try
+1. Open a renewal whose strategy BM+ doesn't have yet (blank / TBC), set
+   yours with ✎ and a reason. See "≠ BM+" on the panel and on its card.
+2. Mark a finished renewal completed; then mark the rest of its bundle
+   completed from the bundle header.
+3. After your next upload, check whether a "≠ BM+" became "✓ BM+ caught up".
+
 ## 0.8.5 — 05.11.2026 · M2 day 5 · hardening
 
 ### Changed

@@ -15,10 +15,18 @@ from datetime import date, datetime
 from typing import Any
 
 from mart.ingestion import overview as ov
-from mart.repository import bundles_repo, clients_repo, deadlines_repo, notes_repo, renewals_repo, tasks_repo
+from mart.repository import (
+    actuals_repo,
+    bundles_repo,
+    clients_repo,
+    deadlines_repo,
+    notes_repo,
+    renewals_repo,
+    tasks_repo,
+)
 from mart.repository.db import connection
+from mart.services import actuals, deadlines, freshness, preferences, renewal_service
 from mart.services import bundles as bx
-from mart.services import deadlines, freshness, preferences, renewal_service
 
 NO_DATE = "none"
 _MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August",
@@ -114,7 +122,7 @@ def _new_bundle(key: str, country: str, today: date, custom: dict[str, Any] | No
     return {"key": key, "country": country, "renewal_date": None, "last_date": None, "days_until": None,
             "extra": custom["name"] if custom else (name or ""),
             "custom_id": custom["id"] if custom else None,
-            "renewals": [], "flags": Counter(), "left": 0, "search": []}
+            "renewals": [], "flags": Counter(), "left": 0, "completed": 0, "search": []}
 
 
 def explorer(client_id: int, bundle: str | None = None,
@@ -137,6 +145,7 @@ def explorer(client_id: int, bundle: str | None = None,
         with_notes = notes_repo.bundle_keys_with_content(conn, client_id) | \
             deadlines_repo.open_bundle_keys(conn, client_id)
         details = renewals_repo.details_of(conn, [r["id"] for r in renewals])
+        actual_rows = actuals_repo.for_client(conn, client_id)
 
     lim = freshness.limits(today)
     fresh_of = {r["id"]: freshness.of(freshness.latest(r["fields"]), lim) for r in renewals}
@@ -157,7 +166,10 @@ def explorer(client_id: int, bundle: str | None = None,
             b["renewal_date"] = rd
         if rd and (b["last_date"] is None or rd > b["last_date"]):
             b["last_date"] = rd
+        # Martin's actual state (strategy, completed) beside BM+'s
+        r["actual"] = actuals.view(actual_rows.get(r["id"], []), r.get("upcoming_strategy"))
         b["renewals"].append(r)
+        b["completed"] += int(bool(r["actual"]["completed"]))
         f = r["fields"]
         b["flags"][ov.flag(f.get("overview_all"), f.get("overview_client_ready"))["state"]] += 1
         b["left"] += int(not r["in_latest_export"])
@@ -198,14 +210,18 @@ def explorer(client_id: int, bundle: str | None = None,
         stage_of = {r["id"]: renewal_service.stages(linked[r["id"]], today, r.get("upcoming_strategy"))
                     for r in selected["renewals"]}
         items = sorted((_with_stages(_enrich({**r, "details": details.get(r["id"]),
-                                              "freshness": fresh_of[r["id"]]}, today),
+                                              "freshness": fresh_of[r["id"]],
+                                              "actual": actuals.view(actual_rows.get(r["id"], []),
+                                                                     r.get("upcoming_strategy"),
+                                                                     stage_of[r["id"]])}, today),
                                      stage_of[r["id"]]) for r in selected["renewals"]),
                        key=lambda r: ((r["policy_name"] or "").casefold(), r["entity"] or ""))
         detail = {
             **selected, "renewals": items,
             "entities": sorted({r["entity"] for r in items if r["entity"]}),
             "insurers": sorted({r["insurer"] for r in items if r["insurer"]}),
-            "strategies": Counter(r["upcoming_strategy"] or "—" for r in items),
+            "strategies": Counter(r["actual"]["effective"] or "—" for r in items),
+            "open_ids": [r["id"] for r in items if not r["actual"]["completed"]],
             "statuses": Counter(r["workflow_status"] or "—" for r in items),
             "move_targets": move_targets(customs, bundles, selected["country"], selected["custom_id"]),
         }
