@@ -1,46 +1,112 @@
 {% extends "base.html" %}
+{% from "partials/deadline.html" import deadline_badge %}
 {% block title %}Home{% endblock %}
 {% block content %}
 <header class="page-head">
   <h1>Home</h1>
-  <p class="lead">{% if data.mine %}What MART knows about your renewals.{% else %}Your renewals will show up here once a tracker is uploaded.{% endif %}</p>
+  <p class="lead">{% if data.mine %}What needs you today, {{ t.today | dmy }}.{% else %}Your renewals will show up here once a tracker is uploaded.{% endif %}</p>
 </header>
 
 {% if welcome %}
 <div class="notice notice-ok" role="status">MART is set up. Your data lives in <code>{{ status_info.data_dir }}</code>, backups go to <code>{{ status_info.backup_dir }}</code>.</div>
 {% endif %}
 
-<div class="grid">
+{% macro more(block, label) %}{% if block.more %}<p class="small muted">… and {{ block.more }} more {{ label }} (on the client pages).</p>{% endif %}{% endmacro %}
+
+{% if data.mine %}
+{# ── Today: one list of what needs you (services/today) ─────────────────────── #}
+<section class="card today" aria-labelledby="today-h">
+  <h2 id="today-h">Today</h2>
+  {% if t.nothing %}<p class="muted">Nothing due, nothing stale, no new overview entries. A quiet day.</p>{% endif %}
+
+  {% if t.deadlines_passed.total %}
+  <div class="today-group tg-red">
+    <h3>Expected updates passed <span class="count">{{ t.deadlines_passed.total }}</span></h3>
+    <ul>{% for x in t.deadlines_passed["items"] %}
+      <li><a href="{{ x.url }}#deadline">{{ x.client }} · {{ x.country | flag }}{{ x.country }} · {{ x.label }}</a>
+        <span class="today-meta">expected {{ x.deadline.expected_date | dmy }} ({{ -x.deadline.days }} day{{ "s" if -x.deadline.days != 1 }} ago){% if x.deadline.promised_by %} · {{ x.deadline.promised_by }}{% endif %}{% if x.deadline.source == "bm" %} · from BM+{% endif %}</span></li>{% endfor %}
+    </ul>{{ more(t.deadlines_passed, "passed") }}
+  </div>
+  {% endif %}
+
+  {% if t.todos.total %}
+  <div class="today-group">
+    <h3>To-dos due or urgent <span class="count">{{ t.todos.total }}</span></h3>
+    <ul>{% for x in t.todos["items"] %}
+      <li>{% if x.urgency == "urgent" %}<span class="pill pill-urgent">urgent</span> {% endif %}<a href="{{ x.target.url }}#todo-{{ x.id }}">{{ x.title }}</a>
+        <span class="today-meta">{{ x.client_name }} · {{ x.target.country | flag }}{{ x.target.country }}{% if x.due_date %} · {% if x.overdue %}<strong class="warn">overdue since {{ x.due_date | dmy }}</strong>{% elif x.days == 0 %}due today{% else %}due {{ x.due_date | dmy }}{% endif %}{% endif %}{% if x.status == "waiting" %} · waiting on {{ todo_vocab.kinds.get(x.waiting_kind, "someone") }}{% if x.waiting_on %} {{ x.waiting_on }}{% endif %}{% endif %}</span></li>{% endfor %}
+    </ul>{{ more(t.todos, "to-dos") }}
+  </div>
+  {% endif %}
+
+  {% if t.deadlines_soon.total %}
+  <div class="today-group">
+    <h3>Updates expected this week <span class="count">{{ t.deadlines_soon.total }}</span></h3>
+    <ul>{% for x in t.deadlines_soon["items"] %}
+      <li><a href="{{ x.url }}#deadline">{{ x.client }} · {{ x.country | flag }}{{ x.country }} · {{ x.label }}</a>
+        <span class="today-meta">{% if x.deadline.days == 0 %}today{% else %}{{ x.deadline.expected_date | dmy }}, in {{ x.deadline.days }} day{{ "s" if x.deadline.days != 1 }}{% endif %}{% if x.deadline.promised_by %} · {{ x.deadline.promised_by }}{% endif %}</span></li>{% endfor %}
+    </ul>{{ more(t.deadlines_soon, "expected updates") }}
+  </div>
+  {% endif %}
+
+  {% if t.new.total %}
+  <div class="today-group tg-new">
+    <h3>New overview entries since yesterday <span class="count">{{ t.new.total }}</span></h3>
+    <ul>{% for x in t.new["items"] %}
+      <li><a href="{{ x.url }}#ov-h">{{ x.client }} · {{ x.country | flag }}{{ x.country }} · {{ x.policy }}</a>
+        <span class="today-meta">entry of {{ x.entry_date | dmy }}</span></li>{% endfor %}
+    </ul>{{ more(t.new, "new entries") }}
+  </div>
+  {% endif %}
+
+  {% if t.stale.total %}
+  <div class="today-group">
+    <h3>Gone quiet <span class="count">{{ t.stale.total }}</span> <span class="info" tabindex="0" role="note" aria-label="Bundles whose overview has no new entry for the stale limit (Settings → Time limits), and no expected update ahead.">i<span class="tip">Bundles whose overview has had no new entry for the stale limit (Settings → Time limits) and no expected update still ahead. Upcoming renewals first.</span></span></h3>
+    <ul>{% for x in t.stale["items"] %}
+      <li><a href="{{ x.url }}">{{ x.client }} · {{ x.country | flag }}{{ x.country }} · {{ x.label }}</a>
+        <span class="today-meta">newest entry {{ x.freshness.age_days }} days ago{% if x.of > 1 %} · {{ x.red }} of {{ x.of }} renewals stale{% endif %}</span></li>{% endfor %}
+    </ul>{{ more(t.stale, "quiet bundles") }}
+  </div>
+  {% endif %}
+</section>
+
+{# ── one card per client, those needing attention first ──────────────────── #}
+<h2 class="section-title">Your clients</h2>
+<div class="client-cards">
+  {% for c in t.clients %}
+  <a class="card client-card" href="/clients/{{ c.id }}">
+    <h3>{{ c.name }}</h3>
+    <p class="muted small">{{ c.renewals }} renewal{{ "s" if c.renewals != 1 }} in the export{% if c.next_renewal %} · next {{ c.next_renewal | dmy }}{% endif %}</p>
+    <ul class="cc-counts">
+      {% if c.counts.passed %}<li class="cc-red">{{ c.counts.passed }} expected update{{ "s" if c.counts.passed != 1 }} passed</li>{% endif %}
+      {% if c.counts.soon %}<li>{{ c.counts.soon }} update{{ "s" if c.counts.soon != 1 }} expected this week</li>{% endif %}
+      {% if c.counts.new %}<li class="cc-new">{{ c.counts.new }} new overview entr{{ "y" if c.counts.new == 1 else "ies" }}</li>{% endif %}
+      {% if c.counts.stale %}<li>{{ c.counts.stale }} bundle{{ "s" if c.counts.stale != 1 }} gone quiet</li>{% endif %}
+      {% if c.counts.todos %}<li>{{ c.counts.todos }} open to-do{{ "s" if c.counts.todos != 1 }}</li>{% endif %}
+      {% if not (c.counts.passed or c.counts.soon or c.counts.new or c.counts.stale or c.counts.todos) %}<li class="muted">nothing waiting</li>{% endif %}
+    </ul>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="grid spaced-card">
   {% if data.mine %}
   <section class="card" aria-labelledby="data-h">
-    <h2 id="data-h">Your renewals</h2>
+    <h2 id="data-h">Your data</h2>
     <div class="stats">
       <div><div class="stat-value">{{ data.totals.in_export }}</div><div class="stat-label">renewals in the latest export</div></div>
       <div><div class="stat-value">{{ data.mine | length }}</div><div class="stat-label">client{{ "s" if data.mine | length != 1 }}</div></div>
       {% if data.totals.left_export %}<div><div class="stat-value">{{ data.totals.left_export }}</div><div class="stat-label">no longer in the export (kept)</div></div>{% endif %}
     </div>
     {% if data.last_upload %}<p class="muted">Last upload {{ data.last_upload.committed_at | dmy(True) }}: {{ data.last_upload.filename }} (report date {{ data.last_upload.report_date | dmy }}).</p>{% endif %}
-    <p><a href="/clients">Explore your clients →</a> · <a href="/uploads">Uploads</a></p>
+    <p><a href="/clients">All clients →</a> · <a href="/todos">All to-dos →</a> · <a href="/uploads">Uploads</a></p>
   </section>
   {% else %}
   <section class="card empty">
     <h2>No trackers uploaded yet</h2>
     <p>Upload a <strong>Renewal Tracker</strong> export, pick <em>your</em> clients, and MART builds your renewal list from it.</p>
     <p><a class="btn btn-primary" href="/uploads">Upload a tracker</a></p>
-  </section>
-  {% endif %}
-
-  {% if data.mine %}
-  <section class="card" aria-labelledby="todo-h">
-    <h2 id="todo-h">To-dos</h2>
-    {% if todos.open %}
-    <p class="muted">{{ todos.open | length }} open{% if todos.overdue %} · <strong class="warn">{{ todos.overdue }} overdue</strong>{% endif %}{% if todos.this_week %} · {{ todos.this_week }} due in the next 7 days{% endif %}</p>
-    <ul class="todo-list todo-home">{% for t in todos.open[:5] %}
-      <li class="todo{% if t.overdue %} is-overdue{% endif %}">{% if t.urgency == "urgent" %}<span class="pill pill-urgent">urgent</span> {% endif %}<a href="{{ t.target.url }}#mine">{{ t.title }}</a>
-        <span class="todo-due">{{ t.client_name }} · {{ t.target.country | flag }}{{ t.target.country }}{% if t.due_date %} · due {{ t.due_date | dmy }}{% endif %}</span></li>
-    {% endfor %}</ul>
-    {% else %}<p class="muted">Nothing open. Add to-dos on a renewal or a bundle.</p>{% endif %}
-    <p><a href="/todos">All to-dos →</a></p>
   </section>
   {% endif %}
 

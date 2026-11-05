@@ -168,7 +168,7 @@ def test_upload_preview_commit_through_the_pages(app):
     page = get(app, dict(r.headers)["Location"]).body_bytes.decode()
     assert "Loaded 1 client (renewals): 2 new" in page and "Acme Group" in page
     home = get(app, "/").body_bytes.decode()
-    assert "Your renewals" in home and "renewals in the latest export" in home
+    assert "Your data" in home and "renewals in the latest export" in home and "Today" in home
 
 
 def test_a_wrong_file_shows_the_reason_on_the_page(app):

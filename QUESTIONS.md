@@ -129,6 +129,7 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 
 **G1** On a client card on Home, which 3–5 things matter most at a glance?
 → 04.11.2026: **not sure yet**, especially for clients. M2 starts Home with the "Today" list (what is due or overdue) and a simple client card, and we adjust it from use.
+→ 0.8.3 (05.11.2026): the card shows renewals in the export, the next renewal date, and counts of passed / near expected updates, new overview entries, quiet bundles and open to-dos. To be adjusted from use.
 
 **G2** Should the AI agent's day plan show up *inside* MART (a "Today" list it fills), or live in the agent's chat and only *read* MART?
 →
