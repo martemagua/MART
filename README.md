@@ -4,7 +4,7 @@ A local web app to run the renewal lifecycle: the real state of every
 renewal, broker deadlines, follow-ups, notes and to-dos, built on the BM+
 tracker exports. Runs on the work laptop with nothing installed.
 
-**Status:** M2 · day 3 (broker deadlines on bundles) — next: Home "Today". See `BUILD_PLAN_M2.md`.
+**Status:** M2 · day 4 (Home "Today") — next: hardening and the M2 review. See `BUILD_PLAN_M2.md`.
 
 ## Use it
 

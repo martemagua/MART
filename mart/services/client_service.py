@@ -181,6 +181,7 @@ def explorer(client_id: int, bundle: str | None = None,
         b["deadline_history"] = dl[key]["history"]
         for r in b["renewals"]:
             fresh_of[r["id"]] = freshness.pause(fresh_of[r["id"]], b["deadline"])
+            r["freshness"] = fresh_of[r["id"]]      # Home reads it from the bundles
         b["freshness"] = freshness.worst([fresh_of[r["id"]] for r in b["renewals"]])
     ordered = sorted(bundles.values(), key=lambda b: (b["renewal_date"] or "9999", b["country"], b["extra"]))
 
