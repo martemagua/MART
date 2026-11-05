@@ -70,23 +70,23 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 →it should be a bundle, but by the logic above, sometimes it might be that it's only one policy, others can be dozens. it depends
 
 **C3 ⭐** Which columns? Proposal: *Not started · Strategy · Proposals / Marketing · Decision · Update Policy · Post-renewal review · Done.*
-→
+→ **Answered 05.11.2026:** the proposal is fine. See BUILD_PLAN_M3.md.
 
 **C4** Swimlanes (client / renewal month / owner)? WIP limits?
-→
+→ **Answered 05.11.2026:** **one board per client**, with filters for **country**, **date** and **region**. Regions are set **per client** and can be changed: clients split the world differently (one has "Americas", another "LatAm" + "North America"). See BUILD_PLAN_M3.md, day 4.
 
 ---
 
 ## D. Actual state vs BM+ (discrepancies)
 
 **D1 ⭐** Which fields typically lag in BM+ besides the strategy: stage, workflow status, plan design changes, insurer, dates, other?
-→
+→ **Answered 05.11.2026:** most important: the **strategy** and **proposals received** (from whom, how many). Also: **mark a renewal completed** (only once all tasks are submitted and approved), and an overview of **suggested plan design changes, implemented or not**. Martin wants this to build up into a **backlog per client** for the yearly **stewardship meeting**. See BUILD_PLAN_M3.md.
 
 **D2** Should a "BM+ behind" discrepancy automatically become a follow-up for the broker ("please submit the strategy in BM+")?
-→
+→ **Answered 05.11.2026:** it must be **visible**; no automatic follow-up.
 
 **D3** Do you need a list or export of all discrepancies, e.g. to send to the brokers or COE?
-→
+→ **Answered 05.11.2026:** not needed for now. Exporting **to-dos** would be interesting, but is **not a priority**.
 
 ---
 
@@ -105,7 +105,7 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 → **Answered 04.11.2026:** **Martin confirms it himself.** (MART may point out that a new entry arrived, but never closes a deadline on its own.)
 
 **E5** When a deadline passes: just flag it, or start a chase (with a draft email) automatically?
-→
+→ **Answered 05.11.2026:** **keep it flagged** (as in M2).
 
 ---
 
@@ -118,7 +118,7 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 → **Answered 04.11.2026:** **inside MART** for sure (M2: Home's "Today"); over the AI agent some day (M4); and, if possible, an **email brief** (later, most likely through the agent).
 
 **F3** Do you want "waiting on X since Y" and simple dependencies, or is a checklist enough?
-→
+→ **Answered 05.11.2026:** "waiting on" (M2) is enough; **linked to-dos are not a priority**: subtasks work similarly.
 
 **F4** Should BM+ tasks only be mirrored, or should MART also hold your own sub-steps inside each BM+ stage (a playbook)?
 →
@@ -130,9 +130,10 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 **G1** On a client card on Home, which 3–5 things matter most at a glance?
 → 04.11.2026: **not sure yet**, especially for clients. M2 starts Home with the "Today" list (what is due or overdue) and a simple client card, and we adjust it from use.
 → 0.8.3 (05.11.2026): the card shows renewals in the export, the next renewal date, and counts of passed / near expected updates, new overview entries, quiet bundles and open to-dos. To be adjusted from use.
+→ **M2 review 05.11.2026:** still **not sure**. Martin goes straight to a client page or to the To-dos rather than Home. Home stays as it is; it is likely where the AI agent will work (G2, M4), so its shape is decided then.
 
 **G2** Should the AI agent's day plan show up *inside* MART (a "Today" list it fills), or live in the agent's chat and only *read* MART?
-→
+→ 05.11.2026 (M2 review): Martin sees Home as **a place for the AI to work in** in the future. To settle in M4.
 
 ---
 
@@ -260,3 +261,18 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 
 **M3c** Should a set of topics be suggested for every client (e.g. "Client requests", "Partner tracker", "Implementation – <country>"), or does each client start empty except "General"?
 → **Answered 05.11.2026:** no suggestions; Martin sets each topic up himself. A client starts with "General" only.
+
+**M3d** A bundle whose renewals are at different BM+ stages: until Martin drags its card, should it sit at the **least advanced** renewal's stage, with "2 of 3 at Proposals" on it?
+→
+
+**M3e** Is BM+'s *Region* column usually already in the client's own scheme, so prefilling the client's regions from it is mostly right? Or should regions start empty?
+→
+
+**M3f** Proposals: do they reach BM+'s Proposals sheet in time, or do you mostly want to record them yourself as the mails arrive?
+→
+
+**M3g** The stewardship meeting: which period does it cover (calendar year, the client's own stewardship year, since the last meeting)? Is it needed on screen only, or also as an Excel / PDF to send?
+→
+
+**M3h** "Completed": per renewal only, or also a whole bundle at once?
+→
