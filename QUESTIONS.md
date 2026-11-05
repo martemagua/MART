@@ -247,3 +247,16 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 
 **M2c** To-dos "regarding countries": a to-do sits today on a renewal, a bundle (country + date) or the client. Should a to-do also sit on a client's *country* as a whole, across its bundles there?
 → **Answered 04.11.2026:** no, **keep it with the bundle**. No country-wide target; to-dos stay on a renewal, a bundle or the client.
+
+---
+
+## N. For milestone M3 (05.11.2026)
+
+**M3a ⭐** **Client topics** (PLANNING §5b): named, coloured topics for the client's notes and to-dos, a topic board, pinned notes and repeating to-dos.
+→ **Agreed 05.11.2026:** in **M3** scope. Topics live **inside each client**: partner trackers are per client (one file per client, different partners and requirements). The existing client notes and to-dos start in a "General" topic.
+
+**M3b** Repeating to-dos: which rhythms are needed? Proposal: every N weeks, monthly on a day or on the Nth working day, quarterly. Does "working day" need a holiday calendar (which country)?
+→
+
+**M3c** Should a set of topics be suggested for every client (e.g. "Client requests", "Partner tracker", "Implementation – <country>"), or does each client start empty except "General"?
+→

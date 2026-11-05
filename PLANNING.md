@@ -302,6 +302,41 @@ forever. The MAPT audit plan already identified waivers as an open point.
 
 ---
 
+## 5b. Client topics — the client's notes and to-dos, organised (M3)
+
+Martin, 05.11.2026: the client's own notes and to-dos (not about one
+renewal) fill up with very different things: ad-hoc client requests,
+reminders to release the regular **network partner tracker** (one file
+per client, with that client's partners and requirements), notes on
+**implementation countries**, and topics in countries besides the
+renewals. He is very visual and wants organisation without losing the
+overview.
+
+- **Topic** = a named, coloured stream inside ONE client: a name, a
+  colour, an optional country (flag), and a status (active / on hold /
+  done; done ones are archived out of sight). Every client note and to-do
+  sits in exactly one topic; the existing ones start in **General**. One
+  topic per item: no tags, no sub-topics. (A topic's country is a label
+  on the client's topic, not a new target: renewal and bundle notes stay
+  where they are, QUESTIONS M2c.)
+- **Topic board** on the client notes page: a column per topic with its
+  colour as a top stripe; open to-dos first (urgent / overdue on top,
+  waiting on), then pinned notes, then the latest notes; a footer
+  "2 open · next due 08.11" so a collapsed column still tells its story.
+  This is the first piece of the to-do board planned for M3.
+- **Pinned notes** ("key facts": recipients of the partner file, a go-live
+  date, an agreed process) stay at the top of their topic; the rest is a
+  dated log, newest first.
+- **Repeating to-dos**, e.g. "release the partner tracker: monthly, 1st
+  working day". Ticking one creates the next with the next date.
+- **Optional, visual:** a country strip on the client page (flags of the
+  countries with topics, open / overdue counts, click to filter), and the
+  topic's colour chip on Home "Today" and the To-dos page.
+- **Not doing:** several tags per item, sub-topics, a project tool inside
+  MART.
+
+---
+
 ## 6. Sketch of the data model
 
 ```
