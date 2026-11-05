@@ -83,3 +83,16 @@ def test_three_new_time_limits_in_settings(app):
     page = get(app, "/settings").body_bytes.decode()
     for name in ("overview_amber_days", "overview_red_days", "overview_new_days"):
         assert f'name="{name}"' in page
+
+
+def test_overview_verdicts_are_cached_by_text():
+    """0.8.5: a big book re-reads the same texts on every page; the verdicts are
+    remembered per text (without today's date inside, so ages stay right)."""
+    from mart.ingestion import overview as ov
+    text = f"{_d(3)}:\nTerms in."
+    before = ov._flag.cache_info().hits
+    first, second = ov.flag(text, None), ov.flag(text, None)
+    assert first == second and first["state"] == "no_cr" and first["age_days"] == 3
+    assert ov._flag.cache_info().hits == before + 1
+    three_days_ago = (date.today() - timedelta(days=3)).isoformat()
+    assert ov.latest_date(text, None) == ov.latest_date(text, None) == three_days_ago

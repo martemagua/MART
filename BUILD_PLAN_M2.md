@@ -8,7 +8,7 @@ to-dos the detail real work needs, and open Home on what is due today.
 a zip and a short **"what to try"** list. Every change goes through a pull
 request with its docs.
 
-Status: **in progress.** Day 1 done (MART 0.8.0, 04.11.2026). Day 2 done (MART 0.8.1, 04.11.2026). Day 3 done (MART 0.8.2, 04.11.2026). Day 4 done (MART 0.8.3, 05.11.2026). The foundations of M1
+Status: **in progress.** Day 1 done (MART 0.8.0, 04.11.2026). Day 2 done (MART 0.8.1, 04.11.2026). Day 3 done (MART 0.8.2, 04.11.2026). Day 4 done (MART 0.8.3–0.8.4, 05.11.2026). Day 5's hardening done (MART 0.8.5, 05.11.2026); the M2 review comes after a day of real work. The foundations of M1
 (`BUILD_PLAN_M1.md`) hold unchanged: nothing installed, all SQL in
 `repository/`, append-only migrations, uploads never delete what you wrote.
 
@@ -75,7 +75,17 @@ on someone). Martin decided otherwise, and it fits how the work runs:
 
 ## M2 review (after a full day of real work)
 
-**M2's promise:** *start your day in MART.* Questions for the review:
+**M2's promise:** *start your day in MART.* What 0.8.5 gives you:
+
+| Goal | In M2 | Not yet (planned) |
+|---|---|---|
+| G1 Orient in minutes | Home "Today" (passed / near expected updates, due or urgent to-dos, new overview entries, quiet bundles) and a card per client | what a client card should show (G1, from your use) |
+| G4 What moved / what's quiet | amber after 7 days, red after 14, by the date on the newest entry; "new" marks; a bundle shows its quietest renewal | — |
+| G3 Never miss a promise | broker deadlines on bundles, prefilled from BM+, pausing the stale clock, red until you confirm | a chase with a draft mail when one passes (E5, later) |
+| To-dos | urgency, status, waiting on whom since when, description, subtasks | client topics, pinned notes, repeating to-dos, a to-do board (M3) |
+| Speed | Home under half a second on 4,500 renewals | — |
+
+**Questions for the review:**
 - Did Home show what you needed first thing, in the right order?
 - Were the amber / red limits right, or too noisy / too quiet?
 - Did the BM+ prefill create deadlines you wanted, or noise?
