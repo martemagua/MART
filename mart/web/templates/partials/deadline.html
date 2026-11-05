@@ -1,0 +1,63 @@
+{# Broker deadlines on bundles (services/deadlines): the date Martin expects
+   an update on the bundle's renewals. `d` = the current one (or none, maybe
+   a BM+ suggestion), `hist` = closed ones. Written in MART, so it carries
+   the mine look; BM+'s date is only ever a suggestion. #}
+
+{% macro dl_form(base, key, back, d=none, label="Save") %}
+<form method="post" action="{{ base }}/bundles/deadline" class="arrange-box stack-form">
+  <input type="hidden" name="key" value="{{ key }}"><input type="hidden" name="back" value="{{ back }}">
+  <label class="small muted">Expected update by <input type="date" name="date" required value="{{ d.expected_date if d else '' }}" data-focus-on-open></label>
+  <label class="small muted">Promised by (optional) <input type="text" name="promised_by" maxlength="120" value="{{ d.promised_by or '' if d else '' }}" placeholder="e.g. Broker A"></label>
+  <label class="small muted">Note (optional) <input type="text" name="note" maxlength="1000" value="{{ d.note or '' if d else '' }}" placeholder="e.g. final terms from PZU"></label>
+  {% if d and d.bm_dates %}<p class="hint">BM+ expects the final terms: {% for name, day in d.bm_dates %}{{ name }} {{ day | dmy }}{{ ", " if not loop.last }}{% endfor %}.</p>{% endif %}
+  <div class="actions"><button type="submit" class="btn btn-small btn-primary">{{ label }}</button></div>
+</form>
+{% endmacro %}
+
+{% macro deadline_line(base, s, back) %}
+{% set d = s.deadline %}
+<div class="dl-line{% if d %} dl-{{ d.state }}{% endif %}" id="deadline">
+  {% if d %}
+  <span class="dl-label">Expected update</span>
+  <strong class="dl-date">{{ d.expected_date | dmy }}</strong>
+  <span class="dl-when">{% if d.days > 0 %}in {{ d.days }} day{{ "s" if d.days != 1 }}{% elif d.days == 0 %}today{% else %}{{ -d.days }} day{{ "s" if -d.days != 1 }} ago — not confirmed{% endif %}</span>
+  {% if d.promised_by %}<span class="dl-who">· promised by {{ d.promised_by }}</span>{% endif %}
+  {% if d.source == "bm" %}<span class="pill pill-soft" title="BM+ Renewal Strategy sheet: expected date to receive the final renewal terms">from BM+</span>{% endif %}
+  {% if d.bm_differs %}<span class="muted small" title="BM+'s expected-terms date differs from yours; yours stays">· BM+ says {{ d.bm_date | dmy }}</span>{% endif %}
+  {% if d.new_entry %}<span class="pill pill-new" title="An overview entry dated on or after the day you set this">overview entry {{ d.new_entry | dmy }}: did the update arrive?</span>{% endif %}
+  <span class="dl-actions">
+    <form method="post" action="{{ base }}/bundles/deadline/close">
+      <input type="hidden" name="key" value="{{ s.key }}"><input type="hidden" name="back" value="{{ back }}">
+      <input type="hidden" name="outcome" value="confirmed"><input type="hidden" name="date" value="{{ d.expected_date }}">
+      <button type="submit" class="btn btn-small" title="The update came: close this deadline">✓ Update arrived</button>
+    </form>
+    <details class="arrange">
+      <summary class="icon-btn" title="Change the date" aria-label="Change the expected update"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M11.7 1.3a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4l-8.6 8.6-3.4.8.8-3.4 8.2-8.6zM3.6 11l-.4 1.8 1.8-.4L12.6 4.8 11.2 3.4 3.6 11z"/></svg></summary>
+      {{ dl_form(base, s.key, back, d, "Save the new date") }}
+    </details>
+    <form method="post" action="{{ base }}/bundles/deadline/close" data-confirm="Drop this expected update without confirming it?">
+      <input type="hidden" name="key" value="{{ s.key }}"><input type="hidden" name="back" value="{{ back }}">
+      <input type="hidden" name="outcome" value="dropped"><input type="hidden" name="date" value="{{ d.expected_date }}">
+      <button type="submit" class="icon-btn" title="Drop it (no update expected any more)" aria-label="Drop the expected update">×</button>
+    </form>
+  </span>
+  {% if d.note %}<div class="dl-note">{{ d.note }}</div>{% endif %}
+  {% else %}
+  <details class="arrange">
+    <summary class="btn btn-small">+ Expected update</summary>
+    {{ dl_form(base, s.key, back, none, "Set the date") }}
+  </details>
+  {% endif %}
+  {% if s.deadline_history %}
+  <details class="dl-history">
+    <summary class="small muted">Earlier deadlines ({{ s.deadline_history | length }})</summary>
+    <ul>{% for h in s.deadline_history %}<li class="small">{{ h.expected_date | dmy }} · {{ {"confirmed": "update arrived", "dropped": "dropped", "replaced": "changed"}[h.status] }}{% if h.closed_at %} {{ h.closed_at | dmy(True) }}{% endif %}{% if h.promised_by %} · {{ h.promised_by }}{% endif %}{% if h.source == "bm" %} · from BM+{% endif %}</li>{% endfor %}</ul>
+  </details>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{# Side panel: the bundle's deadline in a few characters. #}
+{% macro deadline_badge(d) %}
+{% if d %}<span class="dl-badge dl-{{ d.state }}" title="Expected update {{ d.expected_date | dmy }}{% if d.state == 'passed' %}, passed, not confirmed{% endif %}">{{ "⏰" if d.state == "passed" else "⏳" }} {{ (d.expected_date | dmy)[:6] }}</span>{% endif %}
+{% endmacro %}

@@ -76,6 +76,10 @@ _DETAIL_IDS: list[Col] = [
 # (Renewal Strategy, Proposals, Savings): read from the first that has one.
 POLICY_NUMBER = "Policy Number"
 
+# Where the broker's promised date for the final terms lives (Renewal
+# Strategy sheet); MART prefills a bundle's broker deadline from it (K4).
+EXPECTED_TERMS = "Expected date to receive the final renewal terms"
+
 DETAIL_SHEETS: dict[str, tuple[str, list[Col]]] = {
     # key        sheet name          columns
     "strategy": ("Renewal Strategy", _DETAIL_IDS),

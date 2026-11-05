@@ -243,6 +243,26 @@ MIGRATIONS: list[tuple[int, str]] = [
         );
         CREATE INDEX ix_todo_steps_todo ON todo_steps(todo_id, position);
     """),
+    (8, """
+        -- Broker deadlines (M2 day 3, Martin 04.11.2026): when Martin expects
+        -- an update on a BUNDLE's renewals. USER data, apart from to-dos. One
+        -- open row per bundle; confirmed / dropped / replaced ones are its
+        -- history. A deadline BM+ suggests (expected-terms date) is only
+        -- stored once Martin acts on it (source 'bm').
+        CREATE TABLE deadlines (
+            id            INTEGER PRIMARY KEY,
+            client_id     INTEGER NOT NULL REFERENCES clients(id),
+            bundle_key    TEXT NOT NULL,      -- services/bundles: <country>|<date> or custom|<id>
+            expected_date TEXT NOT NULL,      -- ISO date
+            promised_by   TEXT,
+            note          TEXT,
+            source        TEXT NOT NULL DEFAULT 'you',   -- you | bm
+            status        TEXT NOT NULL DEFAULT 'open',  -- open | confirmed | dropped | replaced
+            created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+            closed_at     TEXT
+        );
+        CREATE INDEX ix_deadlines_bundle ON deadlines(client_id, bundle_key, status);
+    """),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1][0]

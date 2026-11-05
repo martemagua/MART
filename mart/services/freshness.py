@@ -11,7 +11,8 @@ sometimes forgotten). Two steps, both in Settings → Time limits:
 * ``none``  — no dated entry at all
 
 An entry is **new** when it is dated within the last ``overview_new_days``.
-A broker deadline that is still ahead will pause the clock (M2 day 3).
+A broker deadline that is still ahead **pauses** the clock (``paused``,
+M2 day 3): no amber or red until its date has passed.
 """
 
 from __future__ import annotations
@@ -22,8 +23,9 @@ from typing import Any
 from mart.ingestion import overview as ov
 from mart.services import preferences
 
-RANK = {"none": 0, "fresh": 1, "amber": 2, "red": 3}
-LABEL = {"none": "no overview entry yet", "fresh": "recent", "amber": "getting old", "red": "stale"}
+RANK = {"none": 0, "fresh": 1, "paused": 1, "amber": 2, "red": 3}
+LABEL = {"none": "no overview entry yet", "fresh": "recent", "amber": "getting old", "red": "stale",
+         "paused": "waiting for the promised update"}
 
 
 def limits(today: date | None = None) -> dict[str, Any]:
@@ -55,3 +57,10 @@ def worst(items: list[dict[str, Any]]) -> dict[str, Any]:
     if not items:
         return {"state": "none", "age_days": None, "latest": None, "label": LABEL["none"]}
     return max(items, key=lambda f: (RANK[f["state"]], f["age_days"] or 0))
+
+
+def pause(f: dict[str, Any], deadline: dict[str, Any] | None) -> dict[str, Any]:
+    """Amber / red is paused while the bundle's broker deadline is ahead."""
+    if deadline and deadline["state"] == "ahead" and f["state"] in ("amber", "red"):
+        return {**f, "state": "paused", "label": LABEL["paused"]}
+    return f

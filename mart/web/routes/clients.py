@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from urllib.parse import quote
 
-from mart.services import bundle_service, client_service, notes_service, renewal_service
+from mart.services import bundle_service, client_service, deadlines, freshness, notes_service, renewal_service
 from mart.web.framework import HTTPError, Request, Response, Router
 from mart.web.templating import render
 
@@ -51,6 +51,8 @@ def renewal_page(request: Request, client_id: int, renewal_id: int) -> Response:
         raise HTTPError(404, str(exc)) from exc
     r = detail["renewal"]
     view = _explorer(request, client_id, renewal_id=renewal_id, show_all=not r["in_latest_export"])
+    if view["selected"]:                    # the bundle's broker deadline pauses the stale clock
+        detail["freshness"] = freshness.pause(detail["freshness"], view["selected"]["deadline"])
     mine = notes_service.for_renewal(r, view["selected"])
     return render("client_explorer.html", active="clients", detail=detail, here=request.url,
                   mine=mine, mine_counts={}, client_counts=_client_counts(client_id), **view)
@@ -90,3 +92,33 @@ def bundle_rename(request: Request, client_id: int) -> Response:
     except bundle_service.Invalid as exc:
         raise HTTPError(400, str(exc)) from exc
     return _to_bundle(client_id, key)
+
+
+# -- broker deadlines on bundles (services/deadlines) ----------------------------------
+def _after_deadline(request: Request, client_id: int, key: str) -> Response:
+    """Back to the page the form was on (a path on MART), else the bundle."""
+    back = request.arg("back") or ""
+    if back.startswith("/") and not back.startswith("//") and "\\" not in back:
+        return Response.redirect(back.split("#", 1)[0] + "#deadline")
+    return _to_bundle(client_id, key)
+
+
+@router.route("/clients/{client_id:int}/bundles/deadline", methods=("POST",))
+def deadline_set(request: Request, client_id: int) -> Response:
+    key = request.arg("key") or ""
+    try:
+        deadlines.set_deadline(client_id, key, request.arg("date"), request.arg("promised_by"),
+                               request.arg("note"))
+    except deadlines.Invalid as exc:
+        raise HTTPError(400, str(exc)) from exc
+    return _after_deadline(request, client_id, key)
+
+
+@router.route("/clients/{client_id:int}/bundles/deadline/close", methods=("POST",))
+def deadline_close(request: Request, client_id: int) -> Response:
+    key = request.arg("key") or ""
+    try:
+        deadlines.close(client_id, key, request.arg("outcome") or "", request.arg("date"))
+    except deadlines.Invalid as exc:
+        raise HTTPError(400, str(exc)) from exc
+    return _after_deadline(request, client_id, key)

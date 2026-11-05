@@ -497,3 +497,21 @@ h3 .fr-badge { vertical-align: 2px; margin-left: 4px; }
 .todo-edit-steps { margin: 8px 0; }
 .todo-edit-steps h5 { margin: 0 0 4px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 .step-del { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; margin: 0 0 2px; }
+
+/* Broker deadlines on bundles (M2 day 3): written in MART, so the blue rail. */
+.dl-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0 0 14px; padding: 8px 12px;
+  border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 8px; background: var(--surface);
+  font-size: 14px; }
+.dl-line.dl-passed { border-left-color: var(--err-ink); background: var(--err-bg); }
+.dl-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+.dl-line.dl-passed .dl-when { color: var(--err-ink); font-weight: 600; }
+.dl-when, .dl-who { color: var(--muted); }
+.dl-actions { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; }
+.dl-actions form { margin: 0; }
+.dl-note { flex-basis: 100%; font-size: 13px; color: var(--ink-2); }
+.dl-history { flex-basis: 100%; }
+.dl-history ul { margin: 4px 0 0; padding-left: 18px; }
+.rd-head .dl-line { margin-top: 10px; }
+.dl-badge { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 6px; white-space: nowrap;
+  background: var(--accent-soft); color: var(--accent); font-variant-numeric: tabular-nums; }
+.dl-badge.dl-passed { background: var(--err-bg); color: var(--err-ink); }
