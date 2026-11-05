@@ -25,6 +25,7 @@ from __future__ import annotations
 import difflib
 import re
 from datetime import date, datetime
+from functools import lru_cache
 from typing import Any
 
 # An entry header STARTS a line. (MAPT only required the colon, so "quotes are
@@ -73,6 +74,13 @@ def preamble(text: Any) -> str | None:
 
 def latest_date(*texts: Any) -> str | None:
     """Newest entry date across the given overview texts."""
+    return _latest_date(*(t if isinstance(t, str) or t is None else str(t) for t in texts))
+
+
+# The texts only change with an upload, but every page reads them: both
+# verdicts are cached by the texts themselves (bounded, so memory stays small).
+@lru_cache(maxsize=8192)
+def _latest_date(*texts: str | None) -> str | None:
     dates = [e["date"] for t in texts for e in entries(t)]
     return max(dates) if dates else None
 
@@ -160,6 +168,15 @@ def flag(all_text: Any, client_ready_text: Any) -> dict[str, Any]:
            "gaps"       client-ready misses some entries
            "ok"         everything in the full overview is client-ready
     """
+    state, internal, n, latest = _flag(*(t if isinstance(t, str) or t is None else str(t)
+                                         for t in (all_text, client_ready_text)))
+    age = (date.today() - datetime.fromisoformat(latest).date()).days if latest else None
+    return {"state": state, "internal_entries": internal, "entries": n, "latest": latest, "age_days": age}
+
+
+@lru_cache(maxsize=8192)
+def _flag(all_text: str | None, client_ready_text: str | None) -> tuple[str, int, int, str | None]:
+    """The verdict without today's date in it, so it can be cached."""
     t = timeline(all_text, client_ready_text)
     if not t["has_all"] and not t["has_client_ready"]:
         state = "empty"
@@ -169,5 +186,4 @@ def flag(all_text: Any, client_ready_text: Any) -> dict[str, Any]:
         state = "gaps"
     else:
         state = "ok"
-    return {"state": state, "internal_entries": t["internal_entries"],
-            "entries": len(t["entries"]), "latest": t["latest"], "age_days": t["age_days"]}
+    return state, t["internal_entries"], len(t["entries"]), t["latest"]

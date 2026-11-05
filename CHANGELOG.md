@@ -6,6 +6,24 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.8.5 — 05.11.2026 · M2 day 5 · hardening
+
+### Changed
+- **Faster pages on a big book.** Comparing each renewal's overview with
+  its client-ready version, and finding its newest entry, is now done once
+  per text and remembered: the texts only change with an upload. On a
+  synthetic book of 30 clients and 4,500 renewals: Home 1.2 s → 0.4 s, the
+  Clients list 0.7 s → 0.05 s, a client page 43 → 18 ms. The first page
+  after an upload still does the work once.
+
+### Checked (no change needed)
+- Home, the client pages, To-dos and Clients on a 1,200-renewal book
+  (15 clients): every page well under half a second.
+
+### What to try
+Use M2 for a full day and answer the M2 review questions in
+`BUILD_PLAN_M2.md`.
+
 ## 0.8.4 — 05.11.2026 · fix: the expected-update ✎ box
 
 ### Fixed
