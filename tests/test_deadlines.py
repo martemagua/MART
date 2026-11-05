@@ -122,6 +122,8 @@ def test_through_the_pages(app):
     cid = _book(terms_med=TODAY + timedelta(days=6))
     page = get(app, f"/clients/{cid}?bundle=Poland%7C2027-01-01").body_bytes.decode()
     assert 'class="dl-line dl-ahead"' in page and "from BM+" in page and 'class="dl-badge dl-ahead"' in page
+    # the ✎ sits at the right end of the line: its popover opens leftwards (Martin, 05.11.2026)
+    assert 'class="arrange-box stack-form arrange-right"' in page
     back = f"/clients/{cid}?bundle=Poland%7C2027-01-01"
     r = post(app, f"/clients/{cid}/bundles/deadline", {"key": POLAND, "date": _iso(12),
                                                          "promised_by": "Broker A", "back": back})

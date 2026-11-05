@@ -3,8 +3,10 @@
    a BM+ suggestion), `hist` = closed ones. Written in MART, so it carries
    the mine look; BM+'s date is only ever a suggestion. #}
 
-{% macro dl_form(base, key, back, d=none, label="Save") %}
-<form method="post" action="{{ base }}/bundles/deadline" class="arrange-box stack-form">
+{# `right`: the popover opens from a button at the right edge, so it is
+   anchored to the right and never runs off the window. #}
+{% macro dl_form(base, key, back, d=none, label="Save", right=false) %}
+<form method="post" action="{{ base }}/bundles/deadline" class="arrange-box stack-form{% if right %} arrange-right{% endif %}">
   <input type="hidden" name="key" value="{{ key }}"><input type="hidden" name="back" value="{{ back }}">
   <label class="small muted">Expected update by <input type="date" name="date" required value="{{ d.expected_date if d else '' }}" data-focus-on-open></label>
   <label class="small muted">Promised by (optional) <input type="text" name="promised_by" maxlength="120" value="{{ d.promised_by or '' if d else '' }}" placeholder="e.g. Broker A"></label>
@@ -33,7 +35,7 @@
     </form>
     <details class="arrange">
       <summary class="icon-btn" title="Change the date" aria-label="Change the expected update"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M11.7 1.3a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4l-8.6 8.6-3.4.8.8-3.4 8.2-8.6zM3.6 11l-.4 1.8 1.8-.4L12.6 4.8 11.2 3.4 3.6 11z"/></svg></summary>
-      {{ dl_form(base, s.key, back, d, "Save the new date") }}
+      {{ dl_form(base, s.key, back, d, "Save the new date", right=true) }}
     </details>
     <form method="post" action="{{ base }}/bundles/deadline/close" data-confirm="Drop this expected update without confirming it?">
       <input type="hidden" name="key" value="{{ s.key }}"><input type="hidden" name="back" value="{{ back }}">

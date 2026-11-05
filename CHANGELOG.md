@@ -6,6 +6,14 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.8.4 — 05.11.2026 · fix: the expected-update ✎ box
+
+### Fixed
+- **Changing an expected update**: the box behind ✎ opened to the right of
+  the button, which sits at the right end of the line, so it ran off the
+  window. It now opens leftwards from the button (bundle view and renewal
+  panel).
+
 ## 0.8.3 — 05.11.2026 · M2 day 4 · Home "Today"
 
 ### Added

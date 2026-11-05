@@ -110,7 +110,9 @@ before changing anything.
   view (`scrollTop`), never `scrollIntoView` (that scrolls the page too).
 - Keep pages light (Martin, 04.11.2026): input fields hide behind a button
   (`details.arrange` + `.arrange-box`), footnotes behind an ⓘ (`.info` +
-  `.tip`), edit actions are icons beside what they edit (`.icon-btn`).
+  `.tip`), edit actions are icons beside what they edit (`.icon-btn`). A
+  popover opened from a button at the RIGHT end of a line gets `.arrange-right`,
+  so it opens leftwards and never runs off the window.
 - CSS: `[hidden]` always wins (`display: none !important`), so filters work on flex/grid items.
 - Keep files under ~400 lines; one shared helper over duplicated logic.
 

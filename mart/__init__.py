@@ -10,7 +10,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-__version__ = "0.8.3"
+__version__ = "0.8.4"
 RELEASE_LABEL = "M2 · day 4 · Home"
 
 APP_ROOT = Path(__file__).resolve().parent.parent
