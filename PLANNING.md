@@ -104,6 +104,9 @@ Mercedes-Benz Group AG
   reason ("agreed with HR on call 28.10").
 - The cards could be bundles or individual renewals (see Q-B2).
 - Filters: client, country, owner, "only discrepancies", "only stale".
+- *Decided 05.11.2026 (BUILD_PLAN_M3):* the seven columns of §5; **one board
+  per client**, a card per bundle; filters **country, date, region**, with
+  **regions set per client** (clients split the world differently).
 
 ### Overview freshness
 - **New** = an overview entry whose own date (its `DD MMM YYYY:` header)

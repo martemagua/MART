@@ -103,5 +103,4 @@ on someone). Martin decided otherwise, and it fits how the work runs:
 | To-do extras | **all of them** used: description, subtasks, urgency (and status / waiting on) | kept; the to-do board (M3) builds on them |
 | Client card (G1) | not sure, as for Home | left open, revisited in M4 |
 
-**M2 is done.** Next: M3 (actual state + Kanban, the to-do board with the
-client topics).
+**M2 is done.** Next: M3, see `BUILD_PLAN_M3.md`.
