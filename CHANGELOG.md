@@ -6,6 +6,23 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.4 — 06.11.2026 · polish: the open dropdown lists
+
+### Changed
+- **The list a dropdown opens is no longer a square box.** It now has
+  rounded corners, MART's colours (light and dark), a soft shadow, rounded
+  rows, the chosen entry highlighted in blue, and an arrow that turns while
+  it is open. This covers every dropdown: the side panel's country filter,
+  your strategy, the to-do urgency / status / waiting-on, and the move bar.
+  It needs Edge or Chrome from 2025 on; an older browser keeps its own list,
+  which still works.
+- The **date filters' calendar** (from / until) is drawn by the browser
+  itself and can't be restyled; see QUESTIONS M3i.
+
+### What to try
+1. Open the country filter in a client's side panel, and ✎ on a
+   renewal's strategy: the lists are rounded and match MART.
+
 ## 0.9.3 — 06.11.2026 · fix: dropdowns look like the rest of MART
 
 ### Fixed
