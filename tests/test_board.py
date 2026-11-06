@@ -175,3 +175,14 @@ def test_the_bundle_header_moves_it_on_the_board(app):
     res = post(app, f"/clients/{cid}/board/stage", {"key": CANADA, "stage": "decision", "back": url})
     assert dict(res.headers)["Location"] == url
     assert "✎ Decision ▾" in get(app, url).body_bytes.decode()
+
+
+def test_each_column_says_what_it_means(app):
+    """Martin, 06.11.2026: the renewal pipeline's guideline, under each
+    column's title and with the stage picked in a stage form."""
+    cid, _ = _book()
+    assert board.HINTS["decision"].startswith("The final proposals from the insurer(s) are in")
+    page = get(app, f"/clients/{cid}/board").body_bytes.decode()
+    assert page.count('class="board-col-hint"') == 7
+    assert "check that the policy documents are uploaded to BM+" in page
+    assert 'data-hint="The renewal has not been kicked off."' in page and "data-hint-text" in page

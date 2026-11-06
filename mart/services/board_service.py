@@ -37,14 +37,15 @@ def board_of(client_id: int, today: date | None = None) -> dict[str, Any]:
         view = client_service.explorer(client_id, today=today, with_detail=False)
     except client_service.NotFound as exc:
         raise Invalid(str(exc)) from exc
-    cols: dict[str, list[dict[str, Any]]] = {k: [] for k, _ in board.COLUMNS}
+    cols: dict[str, list[dict[str, Any]]] = {k: [] for k in board.ORDER}
     for items in view["groups"].values():
         for b in items:
             if b["renewals"]:
                 cols[b["stage"]["column"]].append(_card(b))
     return {
         "client": view["client"], "filters": view["filters"], "has_task_data": view["has_task_data"],
-        "columns": [{"key": k, "label": label, "cards": cols[k]} for k, label in board.COLUMNS],
+        "columns": [{"key": k, "label": label, "hint": hint, "cards": cols[k]}
+                    for k, label, hint in board.COLUMNS],
         "card_count": sum(len(c) for c in cols.values()),
         "moved": sum(1 for c in cols.values() for b in c if b["stage"]["mine"]),
     }

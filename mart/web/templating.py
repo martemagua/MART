@@ -92,6 +92,7 @@ _env.globals["strategies"] = actuals.STRATEGIES
 _env.globals["tracker_label"] = lambda t: trackers.BY_TRACKER[t].label if t in trackers.BY_TRACKER else t
 _env.globals["plan_change_vocab"] = plan_changes.STATUSES
 _env.globals["board_labels"] = board.LABELS
+_env.globals["board_hints"] = board.HINTS
 _env.globals["proposal_vocab"] = {"rounds": proposals.ROUNDS, "designs": proposals.PLAN_DESIGNS}
 _env.globals["today_iso"] = lambda: date.today().isoformat()
 _env.globals.update(version=__version__, release=RELEASE_LABEL)

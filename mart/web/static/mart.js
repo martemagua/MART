@@ -282,6 +282,16 @@
     if (field) field.focus();
   }, true);
 
+  // <select data-hint-select>: the chosen option's data-hint in the form's
+  // [data-hint-text] (the board stage: what has to be true for that column).
+  document.addEventListener("change", function (e) {
+    var sel = e.target;
+    if (!sel.matches || !sel.matches("select[data-hint-select]")) return;
+    var out = sel.form && sel.form.querySelector("[data-hint-text]");
+    var opt = sel.options[sel.selectedIndex];
+    if (out && opt) out.textContent = opt.getAttribute("data-hint") || "";
+  });
+
   // [data-menu-toggle]: fold the main menu into icons, or open it again;
   // remembered in this browser (base.html applies it before the page shows).
   document.querySelectorAll("[data-menu-toggle]").forEach(function (btn) {

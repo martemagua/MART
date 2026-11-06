@@ -6,6 +6,33 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.15 — 06.11.2026 · what each board column means
+
+### Added
+- **Each board column says what it means** (Martin, 06.11.2026: the
+  guideline for the renewal pipeline), under its title, so you can see why
+  a card is there and when to move it on:
+  - **Not started**: the renewal has not been kicked off.
+  - **Strategy**: the renewal has been kicked off; the strategy is pending.
+  - **Proposals / Marketing**: the strategy is decided; terms and proposals
+    for the renewal are being collected.
+  - **Decision**: the final proposals from the insurer(s) are in; the
+    client's decision is pending.
+  - **Update Policy**: the renewal is confirmed with the client; the data
+    in BM+ needs to be updated.
+  - **Post-renewal review**: review all data, note key learnings, savings
+    and plan design changes, and check that the policy documents are
+    uploaded to BM+.
+  - **Done**: all tasks have been completed.
+- The same line shows when you move a card: in the window after dragging,
+  and under the stage you pick (⇄ on a card, or the bundle header's Board
+  stage).
+- The column heads line up, so the cards of every column start level.
+
+### What to try
+1. Open a board: read the columns' lines.
+2. ⇄ on a card → pick another stage: its line changes with it.
+
 ## 0.9.14 — 06.11.2026 · the board stage from the bundle itself
 
 ### Added

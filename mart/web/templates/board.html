@@ -85,7 +85,10 @@
 <div class="board" id="board" data-board data-dialog="#board-move">
   {% for col in columns %}
   <section class="board-col" data-col-drop="{{ col.key }}" data-filter-col aria-labelledby="col-{{ col.key }}">
-    <h2 class="board-col-title" id="col-{{ col.key }}">{{ col.label }} <span class="count" data-filter-count>{{ col.cards | length }}</span></h2>
+    <div class="board-col-head">
+      <h2 class="board-col-title" id="col-{{ col.key }}">{{ col.label }} <span class="count" data-filter-count>{{ col.cards | length }}</span></h2>
+      <p class="board-col-hint">{{ col.hint }}</p>
+    </div>
     <div class="board-cards" data-col-cards>
       {% for b in col.cards %}{{ card(b) }}{% endfor %}
     </div>
@@ -96,6 +99,7 @@
 <dialog id="board-move" class="board-dialog" aria-labelledby="board-move-h">
   <form method="post" action="{{ base }}/board/stage" class="stack-form">
     <h2 id="board-move-h" class="board-dialog-title">Move <span data-move-what></span> to <span data-move-to></span></h2>
+    <p class="hint" data-move-hint></p>
     <input type="hidden" name="key">
     <input type="hidden" name="stage">
     <input type="hidden" name="back" value="{{ here }}">

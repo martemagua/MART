@@ -7,9 +7,10 @@
 <form method="post" action="{{ base }}/board/stage" class="arrange-box stack-form{% if right %} arrange-right{% endif %}">
   <input type="hidden" name="key" value="{{ b.key }}">
   <input type="hidden" name="back" value="{{ back }}">
-  <label class="small muted">Stage on the board <select name="stage" data-focus-on-open>
-    {% for key, label in board_labels.items() %}<option value="{{ key }}" {% if key == b.stage.column %}selected{% endif %}>{{ label }}{% if key == b.bm_stage.column %} (BM+){% endif %}</option>{% endfor %}
+  <label class="small muted">Stage on the board <select name="stage" data-focus-on-open data-hint-select>
+    {% for key, label in board_labels.items() %}<option value="{{ key }}" data-hint="{{ board_hints[key] }}" {% if key == b.stage.column %}selected{% endif %}>{{ label }}{% if key == b.bm_stage.column %} (BM+){% endif %}</option>{% endfor %}
   </select></label>
+  <p class="hint" data-hint-text>{{ board_hints[b.stage.column] }}</p>
   <label class="small muted">Why (optional) <input type="text" name="reason" maxlength="200" placeholder="e.g. agreed with HR on the call of 28.10"></label>
   {% if b.open_ids %}<label class="small check"><input type="checkbox" name="complete" value="1"> Into Done: also mark its {{ b.open_ids | length }} open renewal{{ "s" if b.open_ids | length != 1 }} completed today</label>{% endif %}
   <div class="actions"><button type="submit" class="btn btn-small btn-primary">Move</button></div>
