@@ -1,6 +1,7 @@
 {# The proposals Martin records (services/proposals): written in MART, so the
    mine rail; BM+'s own Proposals sheet stays further down, for reference.
-   `pv` = proposals.view(). #}
+   `pv` = proposals.view(): one item per proposal (insurer + variant), each
+   with its quotes (first, revised…, final) in order. #}
 
 {% set _pen %}<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M11.7 1.3a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4l-8.6 8.6-3.4.8.8-3.4 8.2-8.6zM3.6 11l-.4 1.8 1.8-.4L12.6 4.8 11.2 3.4 3.6 11z"/></svg>{% endset %}
 
@@ -9,74 +10,120 @@
 {% if pv.count %}<span class="pill pill-soft prop-pill" title="Proposals you recorded: {{ pv.insurers | join(', ') }}">{{ pv.count }} proposal{{ "s" if pv.count != 1 }}: {{ pv.insurers | join(", ") }}</span>{% if pv.chosen %}<span class="pill pill-ok" title="The proposal you marked as chosen">★ {{ pv.chosen.insurer }}</span>{% endif %}{% endif %}
 {% endmacro %}
 
-{% macro proposal_form(action, back, insurers, p=none, label="Save", right=false) %}
-<form method="post" action="{{ action }}" class="arrange-box stack-form prop-form{% if right %} arrange-right{% endif %}">
-  <input type="hidden" name="back" value="{{ back }}">
-  <label class="small muted">Insurer <input type="text" name="insurer" required maxlength="120" list="insurer-options" value="{{ p.insurer if p else '' }}" data-focus-on-open placeholder="e.g. Allianz"></label>
-  <div class="pair">
-    <label class="small muted">Quote <select name="round">{% for k, v in proposal_vocab.rounds.items() %}<option value="{{ k }}" {% if p and p.round == k %}selected{% endif %}>{{ v }}</option>{% endfor %}</select></label>
-    <label class="small muted">Received on <input type="date" name="received_on" value="{{ p.received_on if p and p.received_on else today_iso() }}"></label>
-  </div>
-  <div class="pair">
-    <label class="small muted">Annual premium <input type="text" name="premium" inputmode="decimal" value="{{ p.premium | amount if p else '' }}" placeholder="e.g. 120'000"></label>
-    <label class="small muted">Currency <input type="text" name="currency" maxlength="3" list="currency-options" value="{{ p.currency or '' if p else '' }}" placeholder="EUR"></label>
-  </div>
-  <div class="pair">
-    <label class="small muted">Rate change % <input type="text" name="rate_change" inputmode="decimal" value="{{ p.rate_change if p and p.rate_change is not none else '' }}" placeholder="e.g. +8"></label>
-    <label class="small muted">Plan design <select name="plan_design">{% for k, v in proposal_vocab.designs.items() %}<option value="{{ k }}" {% if p and p.plan_design == k %}selected{% endif %}>{{ v }}</option>{% endfor %}</select></label>
-  </div>
-  <label class="small muted">Note (optional) <input type="text" name="note" maxlength="1000" value="{{ p.note or '' if p else '' }}" placeholder="e.g. incl. dental, 2-year rate guarantee"></label>
-  <div class="actions"><button type="submit" class="btn btn-small btn-primary">{{ label }}</button></div>
-</form>
-{% endmacro %}
-
-{# The renewal panel's section, right after the actual state. #}
 {# The networks behind an insurer (Insurer Capability Database), as pills. #}
 {% macro net_pills(nets) %}{% for n in nets or [] %}<span class="pill pill-net" title="Local partner of the {{ n }} network (Insurer Capability Database)">{{ n }}</span>{% endfor %}{% endmacro %}
 
+{# One quote's fields (a new proposal's first quote, a new quote, a change). #}
+{% macro quote_fields(q=none, rnd="first", currency=none, focus=false) %}
+  <div class="pair">
+    <label class="small muted">Quote <select name="round" {% if focus %}data-focus-on-open{% endif %}>{% for k, v in proposal_vocab.rounds.items() %}<option value="{{ k }}" {% if (q.round if q else rnd) == k %}selected{% endif %}>{{ v }}</option>{% endfor %}</select></label>
+    <label class="small muted">Received on <input type="date" name="received_on" value="{{ q.received_on if q and q.received_on else today_iso() }}"></label>
+  </div>
+  <div class="pair">
+    <label class="small muted">Annual premium <input type="text" name="premium" inputmode="decimal" value="{{ q.premium | amount if q else '' }}" placeholder="e.g. 120'000"></label>
+    <label class="small muted">Currency <input type="text" name="currency" maxlength="3" list="currency-options" value="{{ (q.currency if q else currency) or '' }}" placeholder="EUR"></label>
+  </div>
+  <label class="small muted">Rate change % <input type="text" name="rate_change" inputmode="decimal" value="{{ q.rate_change if q and q.rate_change is not none else '' }}" placeholder="e.g. +8"></label>
+  <label class="small muted">Note (optional) <input type="text" name="note" maxlength="1000" value="{{ q.note or '' if q else '' }}" placeholder="e.g. 2-year rate guarantee"></label>
+{% endmacro %}
+
+{# The proposal itself: insurer + variant. #}
+{% macro proposal_fields(p=none, focus=true) %}
+  <label class="small muted">Insurer <input type="text" name="insurer" required maxlength="120" list="insurer-options" value="{{ p.insurer if p else '' }}" {% if focus %}data-focus-on-open{% endif %} placeholder="e.g. Allianz"></label>
+  <div class="pair">
+    <label class="small muted">Plan design <select name="plan_design">{% for k, v in proposal_vocab.designs.items() %}<option value="{{ k }}" {% if p and p.plan_design == k %}selected{% endif %}>{{ v }}</option>{% endfor %}</select></label>
+    <label class="small muted">Label (optional) <input type="text" name="label" maxlength="80" value="{{ p.label or '' if p else '' }}" placeholder="e.g. with dental"></label>
+  </div>
+{% endmacro %}
+
+{% macro quote_line(q) %}{{ q.round_label }} · {{ q.received_on | dmy }}{% if q.premium is not none %} · {{ q.premium | amount }} {{ q.currency or "" }}{% endif %}{% if q.rate_change is not none %} · {{ q.rate_change | pct }}{% endif %}{% endmacro %}
+
+{# The renewal panel's section, right after the actual state. #}
 {% macro proposals_section(base, r, pv, back, insurers, bm_expiring=none, partners=[], nets={}) %}
 <section class="rd-section sec-mine" id="proposals" aria-labelledby="myprop-h">
   <div class="mine-head">
     <h3 id="myprop-h">Proposals received <span class="sec-src">written in MART · to compare them</span></h3>
     <details class="arrange">
       <summary class="btn btn-small">+ Proposal</summary>
-      {{ proposal_form(base ~ "/renewals/" ~ r.id ~ "/proposals", back, insurers, none, "Add proposal", right=true) }}
+      <form method="post" action="{{ base }}/renewals/{{ r.id }}/proposals" class="arrange-box stack-form prop-form arrange-right">
+        <input type="hidden" name="back" value="{{ back }}">
+        {{ proposal_fields() }}
+        {{ quote_fields() }}
+        <p class="hint">A quote for an insurer and variant you already have is added to that proposal.</p>
+        <div class="actions"><button type="submit" class="btn btn-small btn-primary">Add proposal</button></div>
+      </form>
     </details>
   </div>
   {# the country's network partners first (with their networks), then the client's other insurers #}
   <datalist id="insurer-options">{% for p in partners %}<option value="{{ p.insurer }}">{{ p.network_names | join(", ") }} network</option>{% endfor %}{% for i in insurers %}{% if not partners | selectattr("insurer", "equalto", i) | list %}<option value="{{ i }}">{% endif %}{% endfor %}</datalist>
+  <datalist id="currency-options">{% for c in ["EUR", "USD", "GBP", "CHF"] %}<option value="{{ c }}">{% endfor %}</datalist>
   {% set expiring = r.insurer %}
   <p class="muted small prop-context">
     {% if expiring %}Expiring insurer: {{ expiring }} {% if nets.get(expiring) %}{{ net_pills(nets[expiring]) }}{% elif partners %}<span title="Not found among the network partners in {{ r.country }}">(no network partner)</span>{% endif %}{% endif %}
     {% if partners %} · <a href="/insurers?country={{ r.country | urlencode }}">{{ partners | length }} network partner{{ "s" if partners | length != 1 }} in {{ r.country }} →</a>{% endif %}
   </p>
-  <datalist id="currency-options">{% for c in ["EUR", "USD", "GBP", "CHF"] %}<option value="{{ c }}">{% endfor %}</datalist>
-  {% if pv.items %}
-  {# no scroll box around this table: it wraps to fit, so the ✎ popovers are never clipped #}
+  {% if pv["items"] %}
+  {# no scroll box around this table: it wraps to fit, so the popovers are never clipped #}
   <div class="prop-wrap">
     <table class="table prop-table">
-      <thead><tr><th scope="col">Insurer · quote</th><th scope="col" class="num">Annual premium</th><th scope="col" class="num">Rate</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead>
+      <thead><tr><th scope="col">Proposal · latest quote</th><th scope="col" class="num">Annual premium</th><th scope="col" class="num">Rate</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead>
       <tbody>
       {% for p in pv["items"] %}
-        <tr class="{% if not p.current %}is-old{% endif %}{% if p.chosen %} is-chosen{% endif %}">
+        {% set q = p.latest %}
+        <tr class="{% if p.chosen %}is-chosen{% endif %}">
           <td><strong class="prop-insurer">{{ p.insurer }}</strong> {{ net_pills(nets.get(p.insurer)) }}{% if p.chosen %} <span class="pill pill-ok" title="Marked as chosen">★ chosen</span>{% endif %}
-            {% if p.plan_design == "changed" %}<span class="pill pill-warn" title="The quote is for a changed plan design, not the expiring one">plan design changed</span>{% endif %}
-            <div class="rc-sub">{{ p.round_label }} · {{ p.received_on | dmy }}{% if not p.current %} · <span title="A later quote from {{ p.insurer }} replaces it in the comparison">earlier</span>{% endif %}</div>
-            {% if p.note %}<div class="prop-note">{{ p.note }}</div>{% endif %}</td>
-          <td class="num nowrap">{% if p.premium is not none %}{{ p.premium | amount }} {{ p.currency or "" }}{% if p.lowest %}<div><span class="pill pill-ok" title="Lowest current quote in {{ p.currency or 'this currency' }}">lowest</span></div>{% endif %}{% else %}—{% endif %}</td>
-          <td class="num nowrap">{{ p.rate_change | pct or "—" }}</td>
+            {% if p.plan_design == "changed" %}<span class="pill pill-warn" title="For a changed plan design, not the expiring one">plan design changed</span>{% endif %}
+            {% if p.label %}<span class="pill pill-soft">{{ p.label }}</span>{% endif %}
+            <div class="rc-sub">{% if q %}{{ q.round_label }} · {{ q.received_on | dmy }}{% else %}no quote yet{% endif %}</div>
+            {% if q and q.note %}<div class="prop-note">{{ q.note }}</div>{% endif %}
+            {% if p.quotes | length > 1 %}
+            <details class="prop-trail">
+              <summary class="small">Negotiation: {{ p.quotes | length }} quotes{% if p.moved is not none %} · {{ p.moved | pct }} since the first{% endif %}</summary>
+              <ol class="trail">{% for t in p.quotes %}
+                <li class="{% if t.id == q.id %}is-latest{% endif %}"><span>{{ quote_line(t) }}{% if t.note %} <span class="muted">· {{ t.note }}</span>{% endif %}</span>
+                  {{ quote_actions(base, back, t, p) }}</li>{% endfor %}
+              </ol>
+            </details>
+            {% endif %}</td>
+          <td class="num nowrap">{% if q and q.premium is not none %}{{ q.premium | amount }} {{ q.currency or "" }}
+            {% if p.moved is not none %}<div class="rc-sub" title="Since the first quote: {{ p.first.premium | amount }} {{ p.first.currency or '' }}">{{ p.moved | pct }} from {{ p.first.premium | amount }}</div>{% endif %}
+            {% if p.lowest %}<div><span class="pill pill-ok" title="Lowest latest quote in {{ q.currency or 'this currency' }}">lowest</span></div>{% endif %}{% else %}—{% endif %}</td>
+          <td class="num nowrap">{{ (q.rate_change | pct) if q and q.rate_change is not none else "—" }}</td>
           <td class="prop-actions"><div>
+            <details class="arrange">
+              <summary class="btn btn-small" title="Add the next quote of this negotiation">+ Quote</summary>
+              <form method="post" action="{{ base }}/proposals/{{ p.id }}/quotes" class="arrange-box stack-form prop-form arrange-right">
+                <input type="hidden" name="back" value="{{ back }}">
+                <p class="small"><strong>{{ p.insurer }}</strong>{% if p.label %} · {{ p.label }}{% endif %} · {{ p.design_label | lower }}</p>
+                {{ quote_fields(none, p.next_round, q.currency if q else none, focus=true) }}
+                <div class="actions"><button type="submit" class="btn btn-small btn-primary">Add quote</button></div>
+              </form>
+            </details>
             <form method="post" action="{{ base }}/proposals/{{ p.id }}/chosen">
               <input type="hidden" name="back" value="{{ back }}"><input type="hidden" name="chosen" value="{{ '0' if p.chosen else '1' }}">
               <button type="submit" class="icon-btn{% if p.chosen %} is-on{% endif %}" title="{{ 'Not the chosen one after all' if p.chosen else 'Mark as the chosen proposal' }}" aria-label="{{ 'Unmark' if p.chosen else 'Mark' }} {{ p.insurer }} as chosen">★</button>
             </form>
             <details class="arrange">
-              <summary class="icon-btn" title="Change this proposal" aria-label="Change the proposal from {{ p.insurer }}">{{ _pen }}</summary>
-              {{ proposal_form(base ~ "/proposals/" ~ p.id ~ "/save", back, insurers, p, "Save", right=true) }}
+              <summary class="icon-btn" title="Change this proposal (insurer, plan design, label) or its latest quote" aria-label="Change the proposal from {{ p.insurer }}">{{ _pen }}</summary>
+              <div class="arrange-box arrange-right prop-form">
+                <form method="post" action="{{ base }}/proposals/{{ p.id }}/save" class="stack-form">
+                  <input type="hidden" name="back" value="{{ back }}">
+                  {{ proposal_fields(p) }}
+                  <div class="actions"><button type="submit" class="btn btn-small btn-primary">Save the proposal</button></div>
+                </form>
+                {% if q %}
+                <form method="post" action="{{ base }}/quotes/{{ q.id }}/save" class="stack-form prop-quote-edit">
+                  <input type="hidden" name="back" value="{{ back }}">
+                  <p class="small muted">Its latest quote</p>
+                  {{ quote_fields(q) }}
+                  <div class="actions"><button type="submit" class="btn btn-small">Save the quote</button></div>
+                </form>
+                {% endif %}
+              </div>
             </details>
-            <form method="post" action="{{ base }}/proposals/{{ p.id }}/delete" data-confirm="Delete the proposal from {{ p.insurer }}?">
+            <form method="post" action="{{ base }}/proposals/{{ p.id }}/delete" data-confirm="Delete the proposal from {{ p.insurer }} with its {{ p.quotes | length }} quote(s)?">
               <input type="hidden" name="back" value="{{ back }}">
-              <button type="submit" class="icon-btn" title="Delete this proposal" aria-label="Delete the proposal from {{ p.insurer }}">×</button>
+              <button type="submit" class="icon-btn" title="Delete this proposal and its quotes" aria-label="Delete the proposal from {{ p.insurer }}">×</button>
             </form>
           </div></td>
         </tr>
@@ -84,9 +131,27 @@
       </tbody>
     </table>
   </div>
-  <p class="hint">Each insurer's latest quote is compared (final before revised before first); earlier ones are greyed. Plan design as expiring unless marked.{% if bm_expiring is not none %} Expiring premium in BM+: {{ bm_expiring | amount }} (reporting currency).{% endif %}</p>
+  <p class="hint">One row per insurer and variant; its latest quote counts (final before revised before first). Open "Negotiation" for every quote. Plan design as expiring unless marked.{% if bm_expiring is not none %} Expiring premium in BM+: {{ bm_expiring | amount }} (reporting currency).{% endif %}</p>
   {% else %}
   <p class="muted">No proposals recorded yet. Add them as the mails come in{% if bm_expiring is not none %} (expiring premium in BM+: {{ bm_expiring | amount }}, reporting currency){% endif %}.</p>
   {% endif %}
 </section>
+{% endmacro %}
+
+{# ✎ and × for one quote in the negotiation trail. #}
+{% macro quote_actions(base, back, t, p) %}
+<span class="trail-actions">
+  <details class="arrange">
+    <summary class="icon-btn" title="Change this quote" aria-label="Change this quote">{{ _pen }}</summary>
+    <form method="post" action="{{ base }}/quotes/{{ t.id }}/save" class="arrange-box stack-form prop-form">
+      <input type="hidden" name="back" value="{{ back }}">
+      {{ quote_fields(t, focus=true) }}
+      <div class="actions"><button type="submit" class="btn btn-small btn-primary">Save</button></div>
+    </form>
+  </details>
+  <form method="post" action="{{ base }}/quotes/{{ t.id }}/delete" data-confirm="Delete this quote from {{ p.insurer }}?">
+    <input type="hidden" name="back" value="{{ back }}">
+    <button type="submit" class="icon-btn" title="Delete this quote" aria-label="Delete this quote">×</button>
+  </form>
+</span>
 {% endmacro %}

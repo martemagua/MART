@@ -6,6 +6,35 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.7 — 06.11.2026 · a proposal holds its negotiation
+
+From Martin's use of 0.9.5–0.9.6: every updated quote was its own row, so
+some renewals had a long list.
+
+### Changed
+- **One proposal = one insurer and variant**, holding its **quotes**:
+  first, revised…, final. A variant is the plan design (as expiring /
+  changed) plus an optional **label** ("higher deductible", "with
+  dental"), so the same insurer can have several proposals side by side.
+- **"+ Quote"** on a proposal adds its next quote (the form offers
+  "revised", then "final", with the last currency filled in). "+ Proposal"
+  for an insurer and variant you already have adds the quote there.
+- Each row shows the **latest quote** (premium, rate, note) and **how far it
+  moved** since the first ("−5.6 % from 1'250'000"); **Negotiation: 3
+  quotes** opens every quote in order, each with ✎ and ×. The comparison
+  ("lowest") goes by each proposal's latest quote. ✎ on the row changes the
+  proposal (insurer, plan design, label) and its latest quote.
+- **Your existing proposals are merged** on start-up: the quotes you
+  recorded for the same renewal, insurer and plan design become one
+  proposal with those quotes (a chosen one stays chosen).
+- Rates never break from their "%" across lines.
+
+### What to try
+1. Open a renewal where you recorded several quotes from one insurer: they
+   are one row now; open "Negotiation".
+2. "+ Quote" on a proposal for the next round; "+ Proposal" with a label
+   for a second variant of the same insurer.
+
 ## 0.9.6 — 06.11.2026 · M3 day 3 · the Insurer Capability Database
 
 ### Added

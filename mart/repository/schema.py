@@ -324,6 +324,41 @@ MIGRATIONS: list[tuple[int, str]] = [
         );
         CREATE INDEX ix_capabilities_country ON insurer_capabilities(country_key, insurer);
     """),
+    (12, """
+        -- M3 (Martin, 06.11.2026): a proposal = ONE insurer + variant (plan
+        -- design as expiring / changed, an optional label) holding its quotes
+        -- (first, revised…, final), so a negotiation is one entry. The quote
+        -- columns of `proposals` (round … note) are no longer used.
+        CREATE TABLE proposal_quotes (
+            id           INTEGER PRIMARY KEY,
+            proposal_id  INTEGER NOT NULL REFERENCES proposals(id),
+            round        TEXT NOT NULL DEFAULT 'first',   -- first | revised | final
+            received_on  TEXT,                            -- ISO date
+            premium      REAL,
+            currency     TEXT,
+            rate_change  REAL,
+            note         TEXT,
+            created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX ix_quotes_proposal ON proposal_quotes(proposal_id);
+        ALTER TABLE proposals ADD COLUMN label TEXT;
+        -- every quote recorded so far joins the first proposal of the same
+        -- renewal, insurer and plan design
+        INSERT INTO proposal_quotes (proposal_id, round, received_on, premium, currency, rate_change, note,
+                                     created_at, updated_at)
+            SELECT (SELECT MIN(p2.id) FROM proposals p2
+                     WHERE p2.renewal_id = p.renewal_id AND lower(trim(p2.insurer)) = lower(trim(p.insurer))
+                       AND p2.plan_design = p.plan_design),
+                   p.round, p.received_on, p.premium, p.currency, p.rate_change, p.note,
+                   p.created_at, p.updated_at
+              FROM proposals p ORDER BY p.id;
+        UPDATE proposals SET chosen = 1 WHERE id IN (
+            SELECT MIN(id) FROM proposals GROUP BY renewal_id, lower(trim(insurer)), plan_design
+            HAVING MAX(chosen) = 1);
+        DELETE FROM proposals WHERE id NOT IN (
+            SELECT MIN(id) FROM proposals GROUP BY renewal_id, lower(trim(insurer)), plan_design);
+    """),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1][0]

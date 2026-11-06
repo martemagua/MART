@@ -600,3 +600,12 @@ h3 .fr-badge { vertical-align: 2px; margin-left: 4px; }
 .country-list { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 4px 0 12px; }
 .country-list a { text-decoration: none; }
 .prop-context { margin: 2px 0 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+/* a proposal's negotiation: its quotes in order */
+.prop-trail { margin-top: 4px; }
+.prop-trail > summary { cursor: pointer; color: var(--accent); }
+.trail { margin: 4px 0 0; padding-left: 18px; font-size: 13px; color: var(--ink-2); }
+.trail li { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px; }
+.trail li.is-latest { font-weight: 600; color: var(--ink); }
+.trail-actions { display: inline-flex; align-items: center; gap: 0; }
+.trail-actions form, .trail-actions details { margin: 0; }
+.prop-quote-edit { border-top: 1px solid var(--border); margin-top: 10px; padding-top: 8px; }
