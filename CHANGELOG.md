@@ -6,6 +6,24 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.17 — 06.11.2026 · why a card was moved, shown
+
+### Added
+- **The reason you gave when moving a card is shown** (Martin,
+  06.11.2026: "where is this reason shown?"):
+  - on the card, as a short line ("✎ quotes in, HR deciding"), while
+    your stage applies;
+  - behind the card's **✎**: click it for every move of that bundle on the
+    board, newest first: when, to which column, where BM+ had it, and why.
+    The ✎ stays (greyed) once BM+ caught up or the card follows BM+
+    again, so the earlier moves can still be read;
+  - in the bundle header: the same list under the Board stage's form (on
+    the client page and in the board's pop-up).
+
+### What to try
+1. Drag a card to another column with a reason → the card shows it.
+2. Click its ✎: your moves, with dates and reasons.
+
 ## 0.9.16 — 06.11.2026 · the column meanings behind an ⓘ
 
 ### Changed

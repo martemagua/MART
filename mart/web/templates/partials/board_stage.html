@@ -3,7 +3,7 @@
    (Martin, 06.11.2026: change it from the open card too). `b` = a bundle of
    client_service.explorer (stage, bm_stage, open_ids), `back` = where to
    return. #}
-{% macro stage_form(base, b, back, right=true) %}
+{% macro stage_form(base, b, back, right=true, history=none) %}
 <form method="post" action="{{ base }}/board/stage" class="arrange-box stack-form{% if right %} arrange-right{% endif %}">
   <input type="hidden" name="key" value="{{ b.key }}">
   <input type="hidden" name="back" value="{{ back }}">
@@ -15,6 +15,7 @@
   {% if b.open_ids %}<label class="small check"><input type="checkbox" name="complete" value="1"> Into Done: also mark its {{ b.open_ids | length }} open renewal{{ "s" if b.open_ids | length != 1 }} completed today</label>{% endif %}
   <div class="actions"><button type="submit" class="btn btn-small btn-primary">Move</button></div>
   {% if b.stage.mine %}<p class="hint">Picking the stage BM+ has it in ({{ board_labels[b.bm_stage.column] }}) makes the card follow BM+ again.</p>{% endif %}
+  {{ stage_history(history) }}
 </form>
 {% endmacro %}
 
@@ -23,6 +24,24 @@
 {% set st = s.stage %}
 <details class="arrange">
   <summary class="pill pill-btn {{ 'st-mine' if st.mine else 'pill-soft' }}" title="{% if st.mine %}Stage set by you{% if st.row.reason %}: {{ st.row.reason }}{% endif %} · BM+: {{ board_labels[st.bm] }}{% else %}Where BM+'s tasks put it (the least advanced renewal){% endif %} · click to move it">{{ "✎ " if st.mine }}{{ board_labels[st.column] }} ▾</summary>
-  {{ stage_form(base, s, back, right=false) }}
+  {{ stage_form(base, s, back, right=false, history=s.stage_history) }}
 </details>
+{% endmacro %}
+
+{# Every move Martin made of a bundle on the board, newest first, with its
+   reason (Martin, 06.11.2026: "where is this reason shown?"). Behind the
+   card's ✎ and under the bundle header's stage form. #}
+{% macro stage_history(rows) %}
+{% if rows %}
+<div class="stage-history">
+  <p class="small muted sh-title">Your moves on the board</p>
+  <ol class="sh-list">
+    {% for m in rows %}
+    <li><span class="sh-when">{{ m.created_at | dmy(True) }}</span>
+      <span class="sh-what">{% if m.stage %}→ <strong>{{ board_labels[m.stage] }}</strong>{% else %}→ follows BM+ again{% endif %}{% if m.bm_stage %} <span class="muted">(BM+: {{ board_labels[m.bm_stage] }})</span>{% endif %}</span>
+      {% if m.reason %}<span class="sh-why">{{ m.reason }}</span>{% endif %}</li>
+    {% endfor %}
+  </ol>
+</div>
+{% endif %}
 {% endmacro %}

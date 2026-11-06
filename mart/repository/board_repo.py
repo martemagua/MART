@@ -34,3 +34,11 @@ def add(conn: sqlite3.Connection, client_id: int, bundle_key: str, stage: str | 
         "INSERT INTO bundle_stages (client_id, bundle_key, stage, bm_stage, reason) VALUES (?, ?, ?, ?, ?)",
         (client_id, bundle_key, stage, bm_stage, reason))
     return int(cur.lastrowid)
+
+
+def history_of_client(conn: sqlite3.Connection, client_id: int) -> dict[str, list[dict[str, Any]]]:
+    """bundle key -> every move Martin made on the board, newest first (one query)."""
+    out: dict[str, list[dict[str, Any]]] = {}
+    for r in conn.execute("SELECT * FROM bundle_stages WHERE client_id = ? ORDER BY id DESC", (client_id,)):
+        out.setdefault(r["bundle_key"], []).append(dict(r))
+    return out

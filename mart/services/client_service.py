@@ -164,6 +164,7 @@ def explorer(client_id: int, bundle: str | None = None,
         proposal_rows = proposals_repo.for_client(conn, client_id)
         change_rows = plan_changes_repo.for_client(conn, client_id)
         stage_rows = board_repo.current(conn, client_id)
+        stage_moves = board_repo.history_of_client(conn, client_id)
 
     lim = freshness.limits(today)
     fresh_of = {r["id"]: freshness.of(freshness.latest(r["fields"]), lim) for r in renewals}
@@ -225,6 +226,7 @@ def explorer(client_id: int, bundle: str | None = None,
         b["freshness"] = freshness.worst([fresh_of[r["id"]] for r in b["renewals"]])
         b["bm_stage"] = board.bundle_column(b["columns"])
         b["stage"] = board.place(b["bm_stage"]["column"], stage_rows.get(key))
+        b["stage_history"] = stage_moves.get(key, [])     # every move, with its reason (the ✎)
         b["proposal_insurers"] = sorted(b["proposal_insurers"], key=str.casefold)
     ordered = sorted(bundles.values(), key=lambda b: (b["renewal_date"] or "9999", b["country"], b["extra"]))
 

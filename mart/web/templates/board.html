@@ -8,7 +8,7 @@
 {% from "partials/deadline.html" import deadline_badge %}
 {% from "partials/stages.html" import stage_dots %}
 {% from "partials/actual.html" import strategy_pill %}
-{% from "partials/board_stage.html" import stage_form %}
+{% from "partials/board_stage.html" import stage_form, stage_history %}
 {% block title %}Board · {{ client.name }}{% endblock %}
 {% block head %}<link rel="stylesheet" href="/static/board.css">{% endblock %}
 {% block content_class %}content-board{% endblock %}
@@ -41,13 +41,17 @@
     {% if b.proposal_count %}<span title="Proposals you recorded">{{ b.proposal_count }} proposal{{ "s" if b.proposal_count != 1 }}: {{ b.proposal_insurers | join(", ") }}</span>{% endif %}
     {% if b.completed %}<span class="bc-done" title="Marked completed by you">✓ {{ b.completed }} of {{ n }} completed</span>{% endif %}
   </div>
+  {% if st.mine and st.row.reason %}<div class="bc-why" title="Why you moved it here ({{ st.row.created_at | dmy(True) }})">✎ {{ st.row.reason }}</div>{% endif %}
   <div class="bc-foot">
     {% if has_task_data %}{{ stage_dots(b.dots) }}{% endif %}
     {% if st.state == "behind" %}<span class="pill pill-warn" title="You moved it here{% if st.row.reason %}: {{ st.row.reason }}{% endif %} ({{ st.row.created_at | dmy(True) }}). BM+'s tasks are still behind.">BM+: {{ board_labels[st.bm] }}</span>
     {% elif st.state == "held" %}<span class="pill pill-warn" title="You moved it back here{% if st.row.reason %}: {{ st.row.reason }}{% endif %} ({{ st.row.created_at | dmy(True) }}). BM+'s tasks say more.">BM+: {{ board_labels[st.bm] }}</span>
     {% elif st.state == "conflict" %}<span class="pill pill-err" title="BM+ moved on since you set this stage{% if st.row.reason %} ({{ st.row.reason }}){% endif %}: have a look">≠ BM+ moved to {{ board_labels[st.bm] }}</span>
     {% elif st.state == "caught_up" and st.column != "done" %}<span class="pill pill-ok" title="BM+ now has it where you put it">✓ BM+ caught up</span>{% endif %}
-    {% if st.mine %}<span class="bc-mine" title="Stage set by you{% if st.row.reason %}: {{ st.row.reason }}{% endif %} ({{ st.row.created_at | dmy(True) }})">✎</span>{% endif %}
+    {% if b.stage_history %}<details class="arrange bc-moves">
+      <summary class="bc-mine{% if not st.mine %} is-past{% endif %}" title="{% if st.mine %}Stage set by you{% if st.row.reason %}: {{ st.row.reason }}{% endif %} ({{ st.row.created_at | dmy(True) }}){% else %}Your earlier moves on the board{% endif %} · click for all your moves" aria-label="Your moves of this bundle on the board">✎</summary>
+      <div class="arrange-box">{{ stage_history(b.stage_history) }}</div>
+    </details>{% endif %}
     {% if b.differs %}<span class="pill pill-warn" title="Your strategy differs from BM+'s on {{ b.differs }} renewal{{ 's' if b.differs != 1 }}">≠ {{ b.differs }}</span>{% endif %}
     {% if st.column != "done" %}{{ fresh_badge(b.freshness, short=true) }}{{ deadline_badge(b.deadline) }}{% endif %}
   </div>
