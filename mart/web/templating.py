@@ -60,7 +60,7 @@ def pct(value: Any) -> str:
     if not isinstance(value, (int, float)):
         return str(value)
     num = f"{abs(value):.1f}".rstrip("0").rstrip(".")
-    return ("+" if value > 0 else "−" if value < 0 else "±") + num + " %"
+    return ("+" if value > 0 else "−" if value < 0 else "±") + num + "\u00a0%"   # never split from its %
 
 
 def filesize(n: int | None) -> str:

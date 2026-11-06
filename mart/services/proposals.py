@@ -1,12 +1,16 @@
 """The proposals Martin receives (M3 day 2; Martin 05.11.2026, QUESTIONS D1,
 M3f): mostly recorded by him as the mails arrive, and used to COMPARE them.
 
-* One row per quote: insurer, round (first / revised / final), the date it
+* A **proposal** = one insurer + one variant: plan design as expiring or
+  changed, and an optional label ("with dental"). It holds its **quotes**
+  (Martin, 06.11.2026): first, revised…, final, each with the date it
   arrived, the annual premium + currency, the rate change the insurer quoted
-  (%), whether the plan design is as expiring or changed, a note.
-* **Compare**: per insurer, its LATEST quote counts (final > revised > first,
-  then the newer date); among those, the lowest premium per currency is
-  marked. One proposal can be marked **chosen**.
+  (%) and a note — so a negotiation is one entry, not a long list. Adding a
+  quote for an insurer + variant that already has a proposal adds it there.
+* **Compare**: each proposal's LATEST quote counts (final > revised >
+  first, then the newer date); among those, the lowest premium per currency
+  is marked, and each shows how far it moved from its first priced quote.
+  One proposal can be marked **chosen**.
 * BM+'s own Proposals sheet stays apart, for reference (BM+ data, read-only):
   it often fills late.
 * USER data: an upload never touches it.
@@ -24,6 +28,7 @@ from mart.repository.db import connection
 ROUNDS = {"first": "First quote", "revised": "Revised quote", "final": "Final quote"}
 PLAN_DESIGNS = {"as_expiring": "As expiring", "changed": "Changed"}
 INSURER_MAX = 120
+LABEL_MAX = 80
 NOTE_MAX = 1_000
 _ROUND_RANK = {"first": 0, "revised": 1, "final": 2}
 _CURRENCY = re.compile(r"^[A-Z]{3}$")
@@ -62,18 +67,25 @@ def parse_number(text: str | None, thousands: bool = True) -> float | None:
     return -value if neg else value
 
 
-def _clean(form: dict[str, str | None]) -> dict[str, Any]:
+def _clean_proposal(form: dict[str, str | None]) -> dict[str, Any]:
     insurer = (form.get("insurer") or "").strip()
     if not insurer:
         raise Invalid("Which insurer is the proposal from?")
     if len(insurer) > INSURER_MAX:
         raise Invalid(f"The insurer's name is too long (at most {INSURER_MAX} characters).")
-    rnd = (form.get("round") or "first").strip()
-    if rnd not in ROUNDS:
-        raise Invalid("Pick first, revised or final quote.")
     design = (form.get("plan_design") or "as_expiring").strip()
     if design not in PLAN_DESIGNS:
         raise Invalid("Pick the plan design: as expiring or changed.")
+    label = (form.get("label") or "").strip() or None
+    if label and len(label) > LABEL_MAX:
+        raise Invalid(f"The label is too long (at most {LABEL_MAX} characters).")
+    return {"insurer": insurer, "plan_design": design, "label": label}
+
+
+def _clean_quote(form: dict[str, str | None]) -> dict[str, Any]:
+    rnd = (form.get("round") or "first").strip()
+    if rnd not in ROUNDS:
+        raise Invalid("Pick first, revised or final quote.")
     received = (form.get("received_on") or "").strip()
     try:
         received = date.fromisoformat(received).isoformat() if received else date.today().isoformat()
@@ -88,44 +100,53 @@ def _clean(form: dict[str, str | None]) -> dict[str, Any]:
     note = (form.get("note") or "").strip() or None
     if note and len(note) > NOTE_MAX:
         raise Invalid(f"The note is too long (at most {NOTE_MAX} characters).")
-    return {"insurer": insurer, "round": rnd, "received_on": received, "premium": premium,
-            "currency": currency if premium is not None or currency else None,
-            "rate_change": parse_number(form.get("rate_change"), thousands=False),
-            "plan_design": design, "note": note}
+    return {"round": rnd, "received_on": received, "premium": premium, "currency": currency,
+            "rate_change": parse_number(form.get("rate_change"), thousands=False), "note": note}
 
 
 # -- reading (pure) ----------------------------------------------------------------------
-def _latest_key(p: dict[str, Any]) -> tuple:
-    return (_ROUND_RANK.get(p["round"], 0), p.get("received_on") or "", p["id"])
+def _quote_key(q: dict[str, Any]) -> tuple:
+    return (_ROUND_RANK.get(q["round"], 0), q.get("received_on") or "", q["id"])
+
+
+def next_round(latest: str | None) -> str:
+    """What the "+ Quote" form offers after the latest quote."""
+    return "final" if latest == "final" else "revised" if latest else "first"
+
+
+def _one(p: dict[str, Any]) -> dict[str, Any]:
+    quotes = [{**q, "round_label": ROUNDS.get(q["round"], q["round"])}
+              for q in sorted(p.get("quotes") or [], key=_quote_key)]
+    latest = quotes[-1] if quotes else None
+    first = next((q for q in quotes if q["premium"] is not None), None)
+    moved = None
+    if (latest and first and latest is not first and latest["premium"] is not None and first["premium"]
+            and latest["currency"] == first["currency"]):
+        moved = round((latest["premium"] - first["premium"]) / first["premium"] * 100, 1)
+    return {**p, "quotes": quotes, "latest": latest, "first": first, "moved": moved,
+            "design_label": PLAN_DESIGNS.get(p["plan_design"], p["plan_design"]),
+            "next_round": next_round(latest["round"] if latest else None)}
 
 
 def view(rows: list[dict[str, Any]]) -> dict[str, Any]:
-    """The comparison for one renewal: every quote, each insurer's latest one
-    marked `current`, the lowest current premium per currency marked `lowest`;
-    plus the short summary the cards show."""
-    latest: dict[str, dict[str, Any]] = {}
-    for p in rows:
-        key = p["insurer"].casefold()
-        if key not in latest or _latest_key(p) > _latest_key(latest[key]):
-            latest[key] = p
-    current_ids = {p["id"] for p in latest.values()}
+    """The comparison for one renewal: one item per proposal with its quotes
+    in order, the latest one counting; the lowest latest premium per currency
+    marked `lowest` (with two or more priced); plus the cards' summary."""
+    items = [_one(p) for p in rows]
+    priced = [i for i in items if i["latest"] and i["latest"]["premium"] is not None]
     lowest: dict[str | None, dict[str, Any]] = {}
-    for p in latest.values():
-        if p["premium"] is not None and (p["currency"] not in lowest
-                                         or p["premium"] < lowest[p["currency"]]["premium"]):
-            lowest[p["currency"]] = p
-    multi = len([p for p in latest.values() if p["premium"] is not None]) > 1
-    lowest_ids = {p["id"] for p in lowest.values()} if multi else set()
-    items = sorted(({**p, "current": p["id"] in current_ids, "lowest": p["id"] in lowest_ids,
-                     "round_label": ROUNDS.get(p["round"], p["round"]),
-                     "design_label": PLAN_DESIGNS.get(p["plan_design"], p["plan_design"])}
-                    for p in rows),
-                   key=lambda p: (not p["current"], p["premium"] is None, p["premium"] or 0,
-                                  p["insurer"].casefold()))
-    chosen = next((p for p in items if p["chosen"]), None)
-    return {"items": items, "count": len(rows),
-            "insurers": sorted({p["insurer"] for p in rows}, key=str.casefold),
-            "chosen": chosen}
+    for i in priced:
+        cur = i["latest"]["currency"]
+        if cur not in lowest or i["latest"]["premium"] < lowest[cur]["latest"]["premium"]:
+            lowest[cur] = i
+    lowest_ids = {i["id"] for i in lowest.values()} if len(priced) > 1 else set()
+    for i in items:
+        i["lowest"] = i["id"] in lowest_ids
+    items.sort(key=lambda i: (not (i["latest"] and i["latest"]["premium"] is not None),
+                              (i["latest"] or {}).get("premium") or 0, i["insurer"].casefold()))
+    return {"items": items, "count": len(items), "quotes": sum(len(i["quotes"]) for i in items),
+            "insurers": sorted({i["insurer"] for i in items}, key=str.casefold),
+            "chosen": next((i for i in items if i["chosen"]), None)}
 
 
 # -- writing ----------------------------------------------------------------------------
@@ -145,15 +166,30 @@ def _proposal_of_mine(conn, client_id: int, proposal_id: int) -> dict[str, Any]:
     return p
 
 
+def _quote_of_mine(conn, client_id: int, quote_id: int) -> dict[str, Any]:
+    q = proposals_repo.get_quote(conn, quote_id)
+    if q is None:
+        raise Invalid("This quote doesn't exist any more.")
+    _proposal_of_mine(conn, client_id, q["proposal_id"])
+    return q
+
+
 def add(client_id: int, renewal_id: int, form: dict[str, str | None]) -> int:
-    values = _clean(form)
+    """A new proposal with its first quote; for an insurer + variant that
+    already has one, the quote joins it. Returns the proposal's id."""
+    proposal, quote = _clean_proposal(form), _clean_quote(form)
     with connection() as conn:
         _renewal_of_mine(conn, client_id, renewal_id)
-        return proposals_repo.add(conn, renewal_id, values)
+        existing = proposals_repo.find(conn, renewal_id, proposal["insurer"], proposal["plan_design"],
+                                       proposal["label"])
+        pid = existing["id"] if existing else proposals_repo.add(conn, renewal_id, proposal)
+        proposals_repo.add_quote(conn, pid, quote)
+        return pid
 
 
 def edit(client_id: int, proposal_id: int, form: dict[str, str | None]) -> None:
-    values = _clean(form)
+    """The proposal itself: insurer, plan design, label (its quotes stay)."""
+    values = _clean_proposal(form)
     with connection() as conn:
         _proposal_of_mine(conn, client_id, proposal_id)
         proposals_repo.update(conn, proposal_id, values)
@@ -165,10 +201,29 @@ def delete(client_id: int, proposal_id: int) -> None:
         proposals_repo.delete(conn, proposal_id)
 
 
+def add_quote(client_id: int, proposal_id: int, form: dict[str, str | None]) -> int:
+    values = _clean_quote(form)
+    with connection() as conn:
+        _proposal_of_mine(conn, client_id, proposal_id)
+        return proposals_repo.add_quote(conn, proposal_id, values)
+
+
+def edit_quote(client_id: int, quote_id: int, form: dict[str, str | None]) -> None:
+    values = _clean_quote(form)
+    with connection() as conn:
+        _quote_of_mine(conn, client_id, quote_id)
+        proposals_repo.update_quote(conn, quote_id, values)
+
+
+def delete_quote(client_id: int, quote_id: int) -> None:
+    """Delete one quote; the proposal stays (even without quotes)."""
+    with connection() as conn:
+        _quote_of_mine(conn, client_id, quote_id)
+        proposals_repo.delete_quote(conn, quote_id)
+
+
 def choose(client_id: int, proposal_id: int, chosen: bool) -> None:
     """Mark this proposal as the chosen one of its renewal (or un-mark it)."""
     with connection() as conn:
         p = _proposal_of_mine(conn, client_id, proposal_id)
         proposals_repo.set_chosen(conn, p["renewal_id"], proposal_id if chosen else None)
-
-
