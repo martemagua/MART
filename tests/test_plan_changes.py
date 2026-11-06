@@ -107,7 +107,7 @@ def test_panel_and_routes(app):
     base, back = f"/clients/{cid}", f"/clients/{cid}/renewals/{ids['Medical']}"
     panel = get(app, back).body_bytes.decode()
     assert "Plan design changes" in panel and "BM+ suggests" in panel and "Dental removed" in panel
-    assert panel.index('id="pdc-h"') < panel.index('id="facts-h"')                  # in the "yours" slot
+    assert panel.index('id="strat-h"') < panel.index('id="pdc-h"') < panel.index('id="myprop-h"')  # Strategy
     res = post(app, f"{base}/renewals/{ids['Medical']}/plan-changes/bm", {"keep": "0", "back": back})
     assert res.status == 303
     panel = get(app, back).body_bytes.decode()

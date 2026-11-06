@@ -164,10 +164,10 @@ def test_pages_and_routes(app):
     assert res.status == 303
     post(app, f"{base}/renewals/{ids['Medical']}/proposals", {**_q("AXA", "first", "121000"), "back": back})
     panel = get(app, back).body_bytes.decode()
-    assert "Proposals received" in panel and "118&#39;000 EUR" in panel and "+2\u00a0%" in panel
+    assert 'id="myprop-h"' in panel and "118&#39;000 EUR" in panel and "+2\u00a0%" in panel
     assert "Negotiation: 2 quotes" in panel and "−5.6\u00a0% from 125&#39;000" in panel
-    assert "Proposals in BM+" in panel
-    assert panel.index("Proposals received") < panel.index('id="facts-h"')      # in the "yours" slot
+    assert ("<h4>In BM+" in panel) == bool(rs.detail(cid, ids["Medical"])["proposals"])  # BM+'s sheet too
+    assert panel.index('id="strat-h"') < panel.index('id="myprop-h"') < panel.index('id="facts-h"')
     card = get(app, f"{base}?bundle=Poland%7C2027-01-01").body_bytes.decode()
     assert "2 proposals: Allianz, AXA" in card and "2 from 2 insurers" in card
     assert post(app, f"{base}/proposals/{pid}/chosen", {"chosen": "1", "back": back}).status == 303

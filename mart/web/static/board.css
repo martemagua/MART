@@ -39,6 +39,12 @@
 .bc-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
 .bc-foot .pill { font-size: 11px; padding: 1px 6px; }
 .bc-mine { color: var(--accent); font-size: 12px; }
+.bc-why { font-size: 12px; color: var(--accent); font-style: italic; overflow-wrap: anywhere; }
+.bc-moves > summary { list-style: none; cursor: pointer; padding: 0 3px; border-radius: 4px; }
+.bc-moves > summary::-webkit-details-marker { display: none; }
+.bc-moves > summary:hover, .bc-moves[open] > summary { background: var(--accent-soft); }
+.bc-moves > summary.is-past { color: var(--muted); }
+.board-card .bc-moves .arrange-box { width: 300px; }
 .board-card .arrange-box { cursor: auto; width: 280px; }
 .board-card .arrange-box label.check, .board-dialog label.check { flex-direction: row; align-items: flex-start; margin-top: 2px; }
 .board-dialog label.small { display: flex; flex-direction: column; gap: 4px; }

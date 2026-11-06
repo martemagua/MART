@@ -5,28 +5,26 @@
 </span>
 {% endmacro %}
 
-{% macro stage_strip(stages) %}
-<ol class="stage-strip">
+{# The renewal panel's slim strip (Martin, 06.11.2026: leaner, more room for
+   BM+): one cell per stage, its state and the one fact that matters (done
+   on / due when, with whom); the rest (peer review, due-date moves) on hover. #}
+{% macro stage_line(stages) %}
+<ol class="stage-line">
 {% for s in stages %}
-  <li class="stage stage-{{ s.state }}{% if s.past_due %} is-late{% endif %}">
-    <div class="stage-name">{{ s.name }}</div>
-    <div class="stage-state">{{ s.label }}{% if s.past_due %} · <strong>past due</strong>{% endif %}</div>
-    {% if s.state not in ("missing", "skipped") %}
-    <div class="stage-facts">
-      {% if s.state == "done" %}
-        {% if s.completed_date %}done {{ s.completed_date | dmy }}{% endif %}{% if s.completed_by %} by {{ s.completed_by }}{% endif %}
-      {% else %}
-        {% if s.due_date %}due {{ s.due_date | dmy }}{% if s.days_to_due is not none %} ({% if s.days_to_due >= 0 %}in {{ s.days_to_due }} d{% else %}{{ -s.days_to_due }} d ago{% endif %}){% endif %}{% endif %}
-        {% if s.assignee %}<br>with {{ s.assignee }}{% if s.delegated_to %} → {{ s.delegated_to }}{% endif %}{% endif %}
-      {% endif %}
-      {% if s.due_changed_count %}<br>due date moved {{ s.due_changed_count }}×{% if s.original_due_date %} (was {{ s.original_due_date | dmy }}){% endif %}{% endif %}
-    </div>
-    <div class="stage-review">
-      {% if s.review_approved_date %}peer review ✓ {{ s.review_approved_date | dmy }}{% if s.review_approved_by %} · {{ s.review_approved_by }}{% endif %}
-      {% elif s.state == "review" %}peer review pending{% if s.review_pending_days %} {{ s.review_pending_days }} d{% endif %}{% endif %}
-      {% if s.review_rejected_count %} · rejected {{ s.review_rejected_count }}×{% endif %}
-    </div>
-    {% endif %}
+  {% set tip %}{{ s.name }}: {{ s.label }}{% if s.past_due %}, past due{% endif %}{% if s.state not in ("missing", "skipped") %}{% if s.completed_date %}
+done {{ s.completed_date | dmy }}{% if s.completed_by %} by {{ s.completed_by }}{% endif %}{% endif %}{% if s.due_date and s.state != "done" %}
+due {{ s.due_date | dmy }}{% endif %}{% if s.assignee %}
+with {{ s.assignee }}{% if s.delegated_to %} → {{ s.delegated_to }}{% endif %}{% endif %}{% if s.review_approved_date %}
+peer review ✓ {{ s.review_approved_date | dmy }}{% if s.review_approved_by %} · {{ s.review_approved_by }}{% endif %}{% elif s.state == "review" %}
+peer review pending{% if s.review_pending_days %} {{ s.review_pending_days }} d{% endif %}{% endif %}{% if s.review_rejected_count %}
+rejected {{ s.review_rejected_count }}×{% endif %}{% if s.due_changed_count %}
+due date moved {{ s.due_changed_count }}×{% if s.original_due_date %} (was {{ s.original_due_date | dmy }}){% endif %}{% endif %}{% endif %}{% endset %}
+  <li class="sl sl-{{ s.state }}{% if s.past_due %} is-late{% endif %}" title="{{ tip }}">
+    <span class="sdot sdot-{{ s.state }}{% if s.past_due %} is-late{% endif %}" aria-hidden="true"></span>
+    <span class="sl-name">{{ s.name }}</span>
+    <span class="sl-state">{{ s.label }}{% if s.past_due %} · <strong>past due</strong>{% endif %}</span>
+    {% if s.state == "done" and s.completed_date %}<span class="sl-fact">{{ s.completed_date | dmy }}</span>
+    {% elif s.state not in ("missing", "skipped", "done") %}<span class="sl-fact">{% if s.due_date %}due {{ s.due_date | dmy }}{% if s.days_to_due is not none %} ({% if s.days_to_due >= 0 %}in {{ s.days_to_due }} d{% else %}{{ -s.days_to_due }} d ago{% endif %}){% endif %}{% endif %}{% if s.assignee %}{% if s.due_date %} · {% endif %}{{ s.assignee }}{% endif %}</span>{% endif %}
   </li>
 {% endfor %}
 </ol>

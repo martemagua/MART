@@ -1,5 +1,5 @@
-{# The proposals Martin records (services/proposals): written in MART, so the
-   mine rail; BM+'s own Proposals sheet stays further down, for reference.
+{# The proposals Martin records (services/proposals): written in MART, so
+   marked with the mine edge; BM+'s own Proposals sheet below them.
    `pv` = proposals.view(): one item per proposal (insurer + variant), each
    with its quotes (first, revised…, final) in order. #}
 
@@ -38,11 +38,13 @@
 
 {% macro quote_line(q) %}{{ q.round_label }} · {{ q.received_on | dmy }}{% if q.premium is not none %} · {{ q.premium | amount }} {{ q.currency or "" }}{% endif %}{% if q.rate_change is not none %} · {{ q.rate_change | pct }}{% endif %}{% endmacro %}
 
-{# The renewal panel's section, right after the actual state. #}
-{% macro proposals_section(base, r, pv, back, insurers, bm_expiring=none, partners=[], nets={}) %}
-<section class="rd-section sec-mine" id="proposals" aria-labelledby="myprop-h">
+{# The renewal panel's ONE proposals section (Martin, 06.11.2026: leaner):
+   the ones he records (✎, blue edge) to compare them, then BM+'s Proposals
+   sheet (`bm_rows`) for reference. #}
+{% macro proposals_section(base, r, pv, back, insurers, bm_expiring=none, partners=[], nets={}, bm_rows=[], bm_older="") %}
+<section class="rd-section" id="proposals" aria-labelledby="myprop-h">
   <div class="mine-head">
-    <h3 id="myprop-h">Proposals received <span class="sec-src">written in MART · to compare them</span></h3>
+    <h3 id="myprop-h">Proposals <span class="sec-src">✎ = recorded by you · BM+'s Proposals sheet below</span> {{ bm_older }}</h3>
     <details class="arrange">
       <summary class="btn btn-small">+ Proposal</summary>
       <form method="post" action="{{ base }}/renewals/{{ r.id }}/proposals" class="arrange-box stack-form prop-form arrange-right">
@@ -57,14 +59,14 @@
   {# the country's network partners first (with their networks), then the client's other insurers #}
   <datalist id="insurer-options">{% for p in partners %}<option value="{{ p.insurer }}">{{ p.network_names | join(", ") }} network</option>{% endfor %}{% for i in insurers %}{% if not partners | selectattr("insurer", "equalto", i) | list %}<option value="{{ i }}">{% endif %}{% endfor %}</datalist>
   <datalist id="currency-options">{% for c in ["EUR", "USD", "GBP", "CHF"] %}<option value="{{ c }}">{% endfor %}</datalist>
-  {% set expiring = r.insurer %}
   <p class="muted small prop-context">
-    {% if expiring %}Expiring insurer: {{ expiring }} {% if nets.get(expiring) %}{{ net_pills(nets[expiring]) }}{% elif partners %}<span title="Not found among the network partners in {{ r.country }}">(no network partner)</span>{% endif %}{% endif %}
+    {% if not pv["items"] %}None recorded by you yet{% if not bm_rows %}, none in BM+{% endif %}.{% endif %}
+    {% if bm_expiring is not none %}{% if not pv["items"] %} · {% endif %}Expiring premium {{ bm_expiring | amount }} <span title="BM+'s closing premium, in the client's reporting currency">(BM+, reporting currency)</span>{% endif %}
     {% if partners %} · <a href="/insurers?country={{ r.country | urlencode }}">{{ partners | length }} network partner{{ "s" if partners | length != 1 }} in {{ r.country }} →</a>{% endif %}
   </p>
   {% if pv["items"] %}
   {# no scroll box around this table: it wraps to fit, so the popovers are never clipped #}
-  <div class="prop-wrap">
+  <div class="prop-wrap mine-block">
     <table class="table prop-table">
       <thead><tr><th scope="col">Proposal · latest quote</th><th scope="col" class="num">Annual premium</th><th scope="col" class="num">Rate</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead>
       <tbody>
@@ -131,9 +133,20 @@
       </tbody>
     </table>
   </div>
-  <p class="hint">One row per insurer and variant; its latest quote counts (final before revised before first). Open "Negotiation" for every quote. Plan design as expiring unless marked.{% if bm_expiring is not none %} Expiring premium in BM+: {{ bm_expiring | amount }} (reporting currency).{% endif %}</p>
-  {% else %}
-  <p class="muted">No proposals recorded yet. Add them as the mails come in{% if bm_expiring is not none %} (expiring premium in BM+: {{ bm_expiring | amount }}, reporting currency){% endif %}.</p>
+  <p class="hint">One row per insurer and variant; its latest quote counts (final before revised before first). Open "Negotiation" for every quote. Plan design as expiring unless marked.</p>
+  {% endif %}
+  {% if bm_rows %}
+  <h4>In BM+ <span class="sec-src">first and final quote per insurer, reporting currency</span></h4>
+  <div class="table-scroll">
+    <table class="table">
+      <thead><tr>{% for label in bm_rows[0].keys() %}<th scope="col" {% if label in ("Closing premium", "First quote", "Final quote") %}class="num"{% endif %}>{{ label }}</th>{% endfor %}</tr></thead>
+      <tbody>
+      {% for p in bm_rows %}
+        <tr>{% for label, val in p.items() %}<td {% if label in ("Closing premium", "First quote", "Final quote") %}class="num"{% endif %}>{% if val is number %}{{ val | amount }}{% else %}{{ val if val is not none else "—" }}{% endif %}</td>{% endfor %}</tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
   {% endif %}
 </section>
 {% endmacro %}

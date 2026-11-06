@@ -158,8 +158,25 @@ def test_renewal_panel_stacks_renewal_and_strategy(app):
         rid = conn.execute("SELECT id FROM renewals WHERE policy_name = 'Medical'").fetchone()["id"]
     page = get(app, f"/clients/{cid}/renewals/{rid}").body_bytes.decode()
     assert "rd-cols" not in page and '<dl class="facts facts-2col">' in page
-    assert page.index('id="facts-h"') < page.index('id="strat-h"')
+    assert page.index('id="strat-h"') < page.index('id="facts-h"')            # strategy first since 0.9.19
     assert "group=" not in page
+
+
+def test_renewal_panel_is_lean_with_bm_first(app):
+    """Martin, 06.11.2026: the MART cards took the room; his actual state
+    sits in the header, to-dos and notes at the top (one slim line when
+    empty), then BM+'s stages, the overview, Strategy (with his plan design
+    changes), Proposals (his and BM+'s), the renewal's facts."""
+    cid = _load(_book())
+    with connection() as conn:
+        rid = conn.execute("SELECT id FROM renewals WHERE policy_name = 'Medical'").fetchone()["id"]
+    page = get(app, f"/clients/{cid}/renewals/{rid}").body_bytes.decode()
+    order = ['id="actual"', 'id="mine"', 'id="st-h"', 'id="ov-h"', 'id="strat-h"', 'id="pdc-h"',
+             'id="myprop-h"', 'id="facts-h"', 'id="sav-h"']
+    assert [page.index(x) for x in order] == sorted(page.index(x) for x in order)
+    assert "Actual state" not in page and "Proposals in BM+" not in page
+    assert "Nothing written here yet" not in page
+    assert 'class="rd-section sec-mine is-empty"' in page and "No Task Tracker loaded" in page
 
 
 def test_lines_of_coverage_are_a_list_in_the_panel(app):

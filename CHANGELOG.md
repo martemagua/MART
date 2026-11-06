@@ -6,6 +6,70 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.19 — 06.11.2026 · a leaner renewal page, BM+ to the fore
+
+### Changed
+- **The renewal page is leaner** (Martin, 06.11.2026: the MART cards took
+  the room; he wants more of BM+). New order: header → to-dos and notes →
+  BM+ stages → **renewal overview** → Strategy → Proposals → Renewal →
+  Savings → the folded rest.
+- **The header carries your actual state**: the strategy that counts (✎
+  yours, else BM+'s) with "≠ BM+: …" when they differ and a ✎ to set or
+  change it (your earlier changes are listed under its form); **✓ Mark
+  completed** (green when BM+'s three stages are all done) or the
+  completed badge; and the bundle's **Board** stage, which opens the same
+  move form as on the board. The "Actual state" card is gone.
+- The header also names the **expiring insurer** (with its networks, or
+  "no network partner") and the **expiring premium** (BM+). The bundle line
+  became the back link with a ⇄ beside it to move the renewal.
+- **To-dos and notes** come first, as one slim line when there are none.
+- **BM+ stages** in one slim row: state, due date and who; peer review and
+  due-date moves on hover.
+- **Renewal overview** right after the stages, the newest three entries
+  open.
+- **Strategy**: your strategy (✎, with why) above BM+'s Renewal Strategy
+  sheet, and **plan design changes** inside it: BM+'s "considered /
+  comments", its suggestion and your changes.
+- **Proposals**: one section, yours first (to compare), BM+'s Proposals
+  sheet below as "In BM+"; with none, one line.
+- An empty Savings is one line too.
+- Inside a BM+ section, what you wrote carries ✎ and a blue edge on its
+  left, so MART and BM+ stay told apart without separate cards.
+
+### What to try
+1. Open a renewal: the overview is on the first screen.
+2. ✎ beside the strategy pill → set yours; it shows in the header and at
+   the top of Strategy.
+3. "+ Change" in Strategy; "+ Proposal" in Proposals.
+
+## 0.9.18 — 06.11.2026 · the renewal overview starts closed
+
+### Changed
+- In a bundle with only one renewal, the card's **Renewal overview** no
+  longer starts open (Martin, 06.11.2026): like in every other bundle, it
+  is closed when the page opens; click it to read it.
+
+### What to try
+1. Open a bundle with one renewal: its overview is closed.
+
+## 0.9.17 — 06.11.2026 · why a card was moved, shown
+
+### Added
+- **The reason you gave when moving a card is shown** (Martin,
+  06.11.2026: "where is this reason shown?"):
+  - on the card, as a short line ("✎ quotes in, HR deciding"), while
+    your stage applies;
+  - behind the card's **✎**: click it for every move of that bundle on the
+    board, newest first: when, to which column, where BM+ had it, and why.
+    The ✎ stays (greyed) once BM+ caught up or the card follows BM+
+    again, so the earlier moves can still be read;
+  - in the bundle header: the same list under the Board stage's form (on
+    the client page and in the board's pop-up).
+
+### What to try
+1. Drag a card to another column with a reason → the card shows it.
+2. Click its ✎: your moves, with dates and reasons.
+
 ## 0.9.16 — 06.11.2026 · the column meanings behind an ⓘ
 
 ### Changed

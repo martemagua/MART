@@ -187,3 +187,36 @@ def test_each_column_says_what_it_means(app):
     assert 'data-col-label="Decision"' in page
     assert "check that the policy documents are uploaded to BM+" in page
     assert 'data-hint="The renewal has not been kicked off."' in page and "data-hint-text" in page
+
+
+def test_the_reason_shows_and_every_move_is_listed(app):
+    """Martin, 06.11.2026: where is the "Why" shown? On the card while your
+    stage applies, and behind the ✎ (also after BM+ caught up), and under the
+    bundle header's stage form."""
+    cid, _ = _book()
+    board_service.set_stage(cid, CANADA, "proposals", "broker asked for quotes")
+    board_service.set_stage(cid, CANADA, "decision", "quotes in, HR deciding")
+    hist = cs.explorer(cid, bundle=CANADA)["selected"]["stage_history"]
+    assert [(m["stage"], m["reason"]) for m in hist] == [("decision", "quotes in, HR deciding"),
+                                                         ("proposals", "broker asked for quotes")]
+    page = get(app, f"/clients/{cid}/board").body_bytes.decode()
+    assert 'class="bc-why"' in page and "✎ quotes in, HR deciding" in page
+    assert "Your moves on the board" in page and "broker asked for quotes" in page
+    board_service.set_stage(cid, CANADA, "not_started", "")          # back to BM+'s: follows BM+
+    page = get(app, f"/clients/{cid}/board").body_bytes.decode()
+    assert 'class="bc-why"' not in page and "follows BM+ again" in page and "bc-mine is-past" in page
+    header = get(app, f"/clients/{cid}?bundle=Canada%7C2027-01-01").body_bytes.decode()
+    assert "Your moves on the board" in header and "quotes in, HR deciding" in header
+
+
+def test_a_lone_renewals_overview_starts_closed(app):
+    """Martin, 06.11.2026: a bundle with one renewal opens like any other,
+    its renewal overview closed."""
+    _commit(renewal_tracker([R(n=1, policy="Medical", renewal_date=JAN,
+                               overview="01 Nov 2026: broker asked for claims data")],
+                            cross_overview=True), "rt.xlsx")
+    with connection() as conn:
+        cid = conn.execute("SELECT id FROM clients").fetchone()["id"]
+    page = get(app, f"/clients/{cid}?bundle=Poland%7C2027-01-01").body_bytes.decode()
+    assert "broker asked for claims data" in page
+    assert '<details class="rc-overview">' in page and '<details class="rc-overview" open' not in page
