@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{# The preview of a REFERENCE list (the Insurer Capability Database): for all
+   clients, so no client ticks; committing replaces the stored list whole. #}
+{% block title %}Preview · {{ upload.filename }}{% endblock %}
+{% block content %}
+{% set p = upload.preview %}
+{% set s = upload.summary or {} %}
+<header class="page-head">
+  <p class="crumbs"><a href="/uploads">Uploads</a> / {{ upload.filename }}</p>
+  <h1>{% if upload.status == "staged" %}Preview{% elif upload.status == "committed" %}Loaded{% else %}Discarded{% endif %}: {{ upload.filename }}</h1>
+  <p class="lead">{{ adapter.label }} · {{ p["items"] }} partner rows · {{ p.networks | length }} networks ({{ p.networks | join(", ") }}) · {{ p.countries }} countries · {{ p.insurers }} local partners</p>
+</header>
+
+{% if notice %}<div class="notice notice-ok" role="status">{{ notice }}</div>{% endif %}
+{% if error %}<div class="notice notice-error" role="alert">{{ error }}</div>{% endif %}
+
+{% if upload.status == "committed" %}
+<div class="notice notice-ok" role="status">Loaded {{ upload.committed_at | dmy(True) }}: {{ s.rows }} partner rows ({{ s.new }} new, {{ s.changed }} changed, {{ s.unchanged }} unchanged, {{ s.removed }} no longer in the list). <a href="/insurers">Open Insurers</a></div>
+{% elif upload.status == "discarded" %}
+<div class="notice" role="status">This upload was discarded {{ upload.discarded_at | dmy(True) }}. Nothing was changed.</div>
+{% else %}
+<div class="notice notice-info" role="status"><ul>
+  <li>This list is for <strong>all clients</strong>: loading it <strong>replaces</strong> the Insurer Capability Database MART has{% if stored_rows %} ({{ stored_rows }} rows){% endif %}. Nothing you wrote is touched.</li>
+  <li>Only the sheet “{{ (p.sheets_read or {}).keys() | join(", ") }}” is read; any other sheet in the file is ignored.</li>
+  {% if same_file %}<li>This exact file was already loaded ({{ same_file.committed_at | dmy(True) }}). Committing it again changes nothing.</li>{% endif %}
+</ul></div>
+<form method="post" action="/uploads/{{ upload.id }}/commit">
+  <section class="card" aria-labelledby="ref-h">
+    <h2 id="ref-h">Compared with what MART has</h2>
+    <dl class="facts facts-2col">
+      <dt>New partner rows</dt><dd>{{ changes.new }}</dd>
+      <dt>Changed</dt><dd>{{ changes.changed }}</dd>
+      <dt>Unchanged</dt><dd>{{ changes.unchanged }}</dd>
+      <dt>No longer in the list</dt><dd>{{ changes.removed }}</dd>
+    </dl>
+    <div class="actions spaced">
+      <button type="submit" class="btn btn-primary">Commit: load this list</button>
+      <button type="submit" class="btn" formaction="/uploads/{{ upload.id }}/discard">Discard</button>
+      {% if waiting %}<span class="muted small">{{ waiting | length }} more upload{{ "s" if waiting | length != 1 }} waiting after this one.</span>{% endif %}
+    </div>
+  </section>
+</form>
+{% endif %}
+{% endblock %}

@@ -55,7 +55,7 @@
 
 {{ actual_section(base, r, detail.actual, here) }}
 
-{{ proposals_section(base, r, detail.my_proposals, here, detail.insurer_options, detail.bm_expiring) }}
+{{ proposals_section(base, r, detail.my_proposals, here, detail.insurer_options, detail.bm_expiring, detail.partners, detail.networks_of) }}
 
 {{ mine_section(mine, here, earlier=mine.earlier, also=mine.bundle, also_url="/clients/" ~ client.id ~ "?bundle=" ~ (selected.key | urlencode) ~ "#mine") }}
 

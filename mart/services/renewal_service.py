@@ -29,7 +29,7 @@ from mart.repository import (
     uploads_repo,
 )
 from mart.repository.db import connection
-from mart.services import actuals, freshness, history, proposals
+from mart.services import actuals, capabilities, freshness, history, proposals
 
 _STAGE_KEYS = {norm(s): s for s in tspec.STAGES}
 
@@ -152,7 +152,7 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
         changes = history_repo.for_items(conn, items)
         actual_rows = actuals_repo.for_renewal(conn, r["id"])
         my_proposals = proposals_repo.for_renewal(conn, r["id"])
-        insurer_options = proposals_repo.insurers_of_client(conn, client_id)
+        insurer_options = proposals_repo.insurers_of_client(conn, client_id, r["country"])
     mine = mine_tasks
     f, d = r["fields"], r["details"]
     strategy = (d.get("strategy") or [{}])[0]
@@ -165,12 +165,18 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
                     key=lambda t: t.get("due_date") or "")
     days = (datetime.fromisoformat(r["renewal_date"]).date() - today).days if r["renewal_date"] else None
     stages_ = stages(mine, today, r.get("upcoming_strategy"))
+    partners = capabilities.for_country(r["country"])["partners"] if r.get("country") else []
     return {
         "client": client, "renewal": r, "fields": f, "days_until": days,
         "coverage_lines": values.coverage_lines(f.get("lines_of_coverage")),
         "stages": stages_, "has_task_data": has_task_data, "other_tasks": others,
         "actual": actuals.view(actual_rows, r.get("upcoming_strategy"), stages_),
         "my_proposals": proposals.view(my_proposals), "insurer_options": insurer_options,
+        # the Insurer Capability Database: the country's network partners, and
+        # which networks stand behind the insurers named here
+        "partners": partners,
+        "networks_of": capabilities.networks_of(r["country"], [p["insurer"] for p in my_proposals]
+                                                + [r.get("insurer"), f.get("insurer_upcoming")], partners),
         "bm_expiring": next((p["Closing premium"] for p in proposals_ if isinstance(p.get("Closing premium"),
                                                                                     (int, float))), None),
         "strategy": _facts(strategy, rspec.STRATEGY_FIELDS),

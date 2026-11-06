@@ -65,3 +65,20 @@ def test_real_tasks_find_their_renewal():
                      "expiring_policy_id": r.ids.get("expiring_policy_id")} for i, r in enumerate(p.renewals)]
         linked = link_tasks(renewals, [t for t in tasks if t["client"] == p.renewals[0].client_key])
         assert sum(1 for v in linked.values() if v) > len(renewals) // 2
+
+
+CAPABILITY_FILES = sorted(Path(FOLDER).glob("*Capability*.xlsx")) if FOLDER else []
+
+
+@pytest.mark.parametrize("path", CAPABILITY_FILES, ids=[p.name for p in CAPABILITY_FILES])
+def test_real_capability_database_reads_completely(path):
+    from mart.ingestion import countries
+    from mart.ingestion import insurer_capability as ic
+
+    p = ic.parse(path.read_bytes())
+    assert p.sheet == "Database" and p.skipped == 0 and len(p.networks) >= 5
+    assert all(r["network"] and r["country"] and r["line"] for r in p.rows)
+    assert len({r["line"] for r in p.rows}) <= 8                        # one spelling per line of risk
+    # every place is a country MART knows, except the few that aren't countries
+    unknown = {r["country"] for r in p.rows if not countries.code(r["country"])}
+    assert unknown <= {"Channel Islands", "International", "Offshore Programs (TCN / Expat)"}, unknown

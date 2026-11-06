@@ -294,6 +294,26 @@ filled?" and compare it with Proposals (closing premium vs final quote).
 
 ---
 
+## 5b. Insurer Capability Database ("All Networks", 06.11.2026)
+
+Not a BM+ tracker: a list of the international networks' local partners,
+the same for all clients, updated now and then (the file Martin has is
+"2025 Insurer Capability Database - All Networks.xlsx"). MART reads ONE
+sheet, **Database**; other sheets a version may carry are ignored.
+
+| What | Found in the 2025 file |
+|---|---|
+| Layout | header in row 1, autofilter A1:M; 12,281 rows, 13 columns |
+| Columns | Region · Country of cover issuance · *(network, header cell holds a stray `6`)* · Insurer name · Line of risk · Is cover offered locally on a fully insured basis? · Can cover be included within a multinational pool? · … pool quota share · Can cover be included within a global insurance program (global underwriting approach)? · … its quota share · Can cover be ceded to a captive? · … maximum captive quota share · Comments |
+| Networks | AIA, Allianz, Generali, IGP, Insurope, MAXIS (also written "Maxis"), Swiss Life, Zurich |
+| Countries | 243 spellings, 230 countries; 3 places that aren't countries ("Channel Islands", "International", "Offshore Programs (TCN / Expat)") |
+| Regions | APAC · Africa · Europe · LATAM · Middle East · North America · EXPAT · Global (the database's own scheme, not a client's) |
+| Lines of risk | 7: Accident/AD&D · Disability (long-term annuity / lump sum) · Life/Survivor's · Medical/Healthcare · Retirement/Pension · Worker's Compensation (once "Workers Compensation") |
+| Insurer | the local partner's legal name; **"None"** = the network has no partner in that country; one insurer is often written differently per network |
+| Yes / no | mostly Yes / No, also "yes", "No ", "N0", "NO", "No (CI:Yes)" |
+| Quota shares | fractions 0–1, a few short texts (ranges such as "80% to 99%", or a condition) |
+| Repeats | 64 network × country × insurer × line pairs twice, 62 identical; the other 2 are "None" rows (Allianz, Russia) |
+
 ## 6. MART features → where BM+ has the data → what MART adds
 
 | MART feature | BM+ source | What MART adds |

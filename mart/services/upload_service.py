@@ -22,9 +22,10 @@ from pathlib import Path
 from typing import Any
 
 from mart import settings as settings_mod
+from mart.ingestion import insurer_capability as ic
 from mart.ingestion import renewal_tracker as rt
 from mart.ingestion import task_tracker as tt
-from mart.repository import clients_repo, renewals_repo, uploads_repo
+from mart.repository import capabilities_repo, clients_repo, renewals_repo, uploads_repo
 from mart.repository.db import connection
 from mart.services import backup_service, trackers
 
@@ -39,13 +40,14 @@ def stage(filename: str, data: bytes) -> int:
     try:
         adapter = trackers.detect(data)
         parsed = adapter.parse(data)
-    except (trackers.UnknownFile, rt.NotThisTracker, tt.NotThisTracker) as exc:
+    except (trackers.UnknownFile, rt.NotThisTracker, tt.NotThisTracker, ic.NotThisTracker) as exc:
         raise UploadError(str(exc)) from exc
     if not parsed.items:
         raise UploadError(f"No {adapter.nouns} found in this export.")
     clients: dict[str, str] = {}
     for item in parsed.items:
-        clients.setdefault(item["client_key"], item["client_name"])
+        if item["client_key"]:                  # a reference list has none
+            clients.setdefault(item["client_key"], item["client_name"])
     preview = {"clients": clients, "items": len(parsed.items), "title": parsed.title, **parsed.extra}
     rows = [(item["key"], item["client_key"], item) for item in parsed.items]
     with connection() as conn:
@@ -71,6 +73,8 @@ def preview(upload_id: int) -> dict[str, Any]:
             raise UploadError("This upload doesn't exist.")
         adapter = trackers.BY_TRACKER[upload["tracker"]]
         rows = uploads_repo.staged_rows(conn, upload_id) if upload["status"] == "staged" else []
+        if getattr(adapter, "reference", False):
+            return _reference_preview(conn, upload, adapter, rows)
         p = upload["preview"]
         p.setdefault("items", p.get("renewals", 0))
         known = clients_repo.by_keys(conn, list(p["clients"]))
@@ -124,6 +128,23 @@ def preview(upload_id: int) -> dict[str, Any]:
     }
 
 
+def _reference_preview(conn, upload, adapter, rows) -> dict[str, Any]:
+    """A reference list (the Insurer Capability Database) is for every client
+    and replaces the stored one as a whole: the preview compares the two."""
+    stored = capabilities_repo.hashes(conn)
+    keys = {r["key"]: r["content_hash"] for r in rows}
+    changes = {"new": sum(1 for k in keys if k not in stored),
+               "changed": sum(1 for k, h in keys.items() if k in stored and stored[k] != h),
+               "unchanged": sum(1 for k, h in keys.items() if stored.get(k) == h),
+               "removed": sum(1 for k in stored if k not in keys)} if rows else {}
+    return {"upload": upload, "adapter": adapter, "reference": True, "clients": [], "filters": {},
+            "changes": changes, "stored_rows": len(stored),
+            "same_file": uploads_repo.committed_same_file(conn, upload["file_sha256"], upload["id"]),
+            "newer": None, "mine_count": 0, "carries_overview": False,
+            "waiting": [u for u in uploads_repo.staged(conn) if u["id"] != upload["id"]],
+            "skipped": 0, "renewals_waiting": False}
+
+
 def _by_client(rows: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
     out: dict[str, list[dict[str, Any]]] = {}
     for r in rows:
@@ -139,6 +160,15 @@ def commit(upload_id: int, mine_keys: set[str], allow_older: bool = False) -> di
     if view["newer"] and not allow_older:
         raise UploadError("A newer export of these clients is already loaded. Tick "
                           "“load it anyway” if you really want this older one.")
+    if view.get("reference"):
+        with connection() as conn:
+            rows = uploads_repo.staged_rows(conn, upload_id)
+            capabilities_repo.replace_all(conn, rows, upload_id)
+            summary = {**view["changes"], "rows": len(rows), "tracker": adapter.tracker,
+                       "clients_loaded": [], "clients_ignored": []}
+            uploads_repo.mark_committed(conn, upload_id, summary)
+        _backup()
+        return summary
     with connection() as conn:
         rows = uploads_repo.staged_rows(conn, upload_id)
         stored = adapter.stored(conn, [_key(r) for r in rows])
@@ -169,11 +199,14 @@ def commit(upload_id: int, mine_keys: set[str], allow_older: bool = False) -> di
             summary["left_export"] += len(gone)
             adapter.after_client(conn, client_id, kept, ctx, upload)
         uploads_repo.mark_committed(conn, upload_id, summary)
+    _backup()
+    return summary
 
+
+def _backup() -> None:
     s = settings_mod.load()
     if s is not None:
         backup_service.make_backup(s.db_path, Path(s.backup_dir), s.backups_keep)
-    return summary
 
 
 def discard(upload_id: int) -> None:
@@ -201,4 +234,7 @@ def overview() -> dict[str, Any]:
         totals = renewals_repo.totals(conn)
         mine = clients_repo.mine_summary(conn)
         last = uploads_repo.last_committed(conn)
-    return {"totals": totals, "mine": mine, "last_upload": last}
+        caps = capabilities_repo.summary(conn)
+        if caps.get("upload_id"):
+            caps["loaded_at"] = (uploads_repo.get(conn, caps["upload_id"]) or {}).get("committed_at")
+    return {"totals": totals, "mine": mine, "last_upload": last, "capabilities": caps}

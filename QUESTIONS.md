@@ -279,3 +279,9 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 
 **M3i** The date filters' calendar (from / until in the side panel) is drawn by the browser and can't be rounded with CSS like the dropdown lists (0.9.4). Is it worth replacing with MART's own small calendar (rounded, MART's colours, Monday first, DD.MM.YYYY), or keep the browser's?
 → **Answered 06.11.2026:** keep the browser's calendar: "it is fine".
+
+**M3j** The Insurer Capability Database (0.9.6): MART matches a proposal's insurer to the network partners of the renewal's country by name ("Allianz" = "Allianz Lebensversicherungs-AG"). Does it find the right ones on your real renewals, or do you see wrong / missing matches?
+→
+
+**M3k** Is the Insurers page enough to choose whom to invite for a remarketing, or would you like more there, e.g. only partners that can pool the renewal's lines, or the countries of a whole bundle at once?
+→

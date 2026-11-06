@@ -29,14 +29,15 @@ def get(conn: sqlite3.Connection, proposal_id: int) -> dict[str, Any] | None:
     return dict(r) if r else None
 
 
-def insurers_of_client(conn: sqlite3.Connection, client_id: int) -> list[str]:
+def insurers_of_client(conn: sqlite3.Connection, client_id: int, country: str | None) -> list[str]:
     """Every insurer name already used on this client's renewals or proposals
-    (the add form's suggestions)."""
+    IN THIS COUNTRY (the add form's suggestions, after the network partners)."""
     return [r[0] for r in conn.execute(
-        """SELECT name FROM (SELECT insurer AS name FROM renewals WHERE client_id = ?
+        """SELECT name FROM (SELECT insurer AS name FROM renewals WHERE client_id = ? AND country IS ?
                              UNION SELECT p.insurer FROM proposals p JOIN renewals r ON r.id = p.renewal_id
-                                    WHERE r.client_id = ?)
-            WHERE name IS NOT NULL AND name <> '' ORDER BY name COLLATE NOCASE""", (client_id, client_id))]
+                                    WHERE r.client_id = ? AND r.country IS ?)
+            WHERE name IS NOT NULL AND name <> '' ORDER BY name COLLATE NOCASE""",
+        (client_id, country, client_id, country))]
 
 
 def add(conn: sqlite3.Connection, renewal_id: int, values: dict[str, Any]) -> int:

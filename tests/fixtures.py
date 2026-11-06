@@ -337,3 +337,34 @@ def task_tracker(tasks: list[T], flavour: str = CROSS, report_date: str = "03 No
     out = io.BytesIO()
     wb.save(out)
     return out.getvalue()
+
+
+# -- the Insurer Capability Database ("All Networks") ------------------------------------
+CAP_HEADERS = ["Region", "Country of cover issuance", 6, "Insurer name", "Line of risk",
+               "Is cover offered locally on a fully insured basis? ",
+               "Can cover be included within a multinational pool? ",
+               "What share of the cover can be included within a multinational pool (quota share)?",
+               "Can cover be included within a global insurance program (global underwriting approach)? ",
+               "What share of the cover can be included within a global insurance program (quota share)?",
+               "Can cover be ceded to a captive? ",
+               "What is the maximum quota share that the captive can hold? ",
+               "Comments"]
+
+
+def capability_db(rows: list[tuple], network_header=6,
+                  other_sheets: tuple[str, ...] = ("Read me",)) -> bytes:
+    """The real layout: one "Database" sheet, the network column's header a
+    stray number (as BM+ exports it). Each row: (region, country, network,
+    insurer, line, fully insured, pool, pool share, gip, gip share, captive,
+    captive share, comments). Synthetic data only."""
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Database"
+    ws.append([network_header if i == 2 else h for i, h in enumerate(CAP_HEADERS)])
+    for r in rows:
+        ws.append([r[0], r[1], r[2], r[3], r[4], *r[5:]])
+    for name in other_sheets:
+        wb.create_sheet(name).append(["Country", "Insurer name", "Line of risk", "Something else"])
+    buf = io.BytesIO()
+    wb.save(buf)
+    return buf.getvalue()

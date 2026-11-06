@@ -15,10 +15,12 @@ from typing import Any
 
 import openpyxl
 
+from mart.ingestion import insurer_capability as ic
 from mart.ingestion import renewal_tracker as rt
 from mart.ingestion import task_tracker as tt
 from mart.ingestion import values as v
 from mart.ingestion.sheet import norm
+from mart.ingestion.specs import insurer_capability as ic_spec
 from mart.ingestion.specs import renewal_tracker as rt_spec
 from mart.ingestion.specs import task_tracker as tt_spec
 from mart.repository import clients_repo, history_repo, renewals_repo, tasks_repo
@@ -219,7 +221,27 @@ def _wanted(index, task: dict[str, Any]) -> bool:
 _PERIOD_COLUMN = {norm("Renewal Date"): "review_date", norm("Task Start Date"): "start_date",
                   norm("Task Due Date"): "due_date", norm("Task Complete Date"): "completed_date"}
 
-ADAPTERS = [RenewalAdapter(), TaskAdapter()]
+class CapabilityAdapter:
+    """The Insurer Capability Database: a REFERENCE list for all clients
+    (`reference = True`), so the upload pipeline skips the per-client steps
+    and replaces the stored list as a whole (upload_service)."""
+    tracker, label, noun, nouns = ic_spec.TRACKER, ic_spec.LABEL, "partner row", "partner rows"
+    export_filters: tuple[str, ...] = ()
+    flag_label = ""
+    reference = True
+
+    def recognises(self, sheets: list[str]) -> bool:
+        return ic_spec.DETECT_SHEET in sheets
+
+    def parse(self, data: bytes) -> Parsed:
+        p = ic.parse(data)
+        items = [{**r, "client_key": "", "client_name": ""} for r in p.rows]
+        return Parsed("reference", None, {}, None, None, items, {
+            "sheets_read": {p.sheet: p.header_row}, "sheets_missing": [], "networks": p.networks,
+            "countries": p.countries, "insurers": p.insurers, "skipped_rows": p.skipped})
+
+
+ADAPTERS = [RenewalAdapter(), TaskAdapter(), CapabilityAdapter()]
 BY_TRACKER = {a.tracker: a for a in ADAPTERS}
 _OTHER = {"Benefit Details": "a Benefit Tracker (its upload comes in v2)"}
 
@@ -238,5 +260,5 @@ def detect(data: bytes):
     for sheet, what in _OTHER.items():
         if sheet in sheets:
             raise UnknownFile(f"This looks like {what}.")
-    raise UnknownFile("This is neither a Renewal Tracker nor a Task Tracker export "
-                      "(no “Renewal Overview” or “Task Summary” sheet).")
+    raise UnknownFile("This is not a Renewal Tracker, a Task Tracker or the Insurer Capability Database "
+                      "(no “Renewal Overview”, “Task Summary” or “Database” sheet).")
