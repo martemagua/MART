@@ -535,3 +535,12 @@ h3 .fr-badge { vertical-align: 2px; margin-left: 4px; }
 .cc-counts { list-style: none; margin: 8px 0 0; padding: 0; font-size: 13px; display: flex; flex-direction: column; gap: 2px; }
 .cc-red { color: var(--err-ink); font-weight: 600; }
 .cc-new { color: var(--ok-ink); font-weight: 600; }
+
+/* -- the actual state of a renewal (partials/actual.html) -- */
+.pill-err { background: var(--err-bg); color: var(--err-ink); }
+.act-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 4px 0; }
+.act-label { min-width: 90px; font-size: 13px; color: var(--muted); }
+.act-note { margin: 0 0 6px 100px; font-size: 13px; color: var(--ink-2); }
+.act-differs { color: var(--warn-ink); font-weight: 600; }
+.mix dd details.arrange { display: inline-block; }
+.bundle-meta .count.is-done { background: var(--ok-bg); color: var(--ok-ink); }

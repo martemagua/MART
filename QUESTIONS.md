@@ -263,16 +263,16 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 → **Answered 05.11.2026:** no suggestions; Martin sets each topic up himself. A client starts with "General" only.
 
 **M3d** A bundle whose renewals are at different BM+ stages: until Martin drags its card, should it sit at the **least advanced** renewal's stage, with "2 of 3 at Proposals" on it?
-→
+→ **Answered 05.11.2026:** yes, the **least advanced** renewal's stage, but Martin can **move the card freely**.
 
 **M3e** Is BM+'s *Region* column usually already in the client's own scheme, so prefilling the client's regions from it is mostly right? Or should regions start empty?
-→
+→ **Answered 05.11.2026:** **use the existing regions** (BM+'s Region column) as the prefill; still editable per client (C4).
 
 **M3f** Proposals: do they reach BM+'s Proposals sheet in time, or do you mostly want to record them yourself as the mails arrive?
-→
+→ **Answered 05.11.2026:** Martin will **mostly record them himself** and use them **for comparison**.
 
 **M3g** The stewardship meeting: which period does it cover (calendar year, the client's own stewardship year, since the last meeting)? Is it needed on screen only, or also as an Excel / PDF to send?
-→
+→ **Answered 05.11.2026:** **it depends on the client**: the period is set **per client**.
 
 **M3h** "Completed": per renewal only, or also a whole bundle at once?
-→
+→ **Answered 05.11.2026:** **also for the whole bundle** (built in 0.9.0).

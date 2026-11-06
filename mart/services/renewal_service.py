@@ -19,9 +19,9 @@ from mart.ingestion.ids import bm_link
 from mart.ingestion.sheet import lookup, norm, section_items
 from mart.ingestion.specs import renewal_tracker as rspec
 from mart.ingestion.specs import task_tracker as tspec
-from mart.repository import clients_repo, history_repo, renewals_repo, tasks_repo, uploads_repo
+from mart.repository import actuals_repo, clients_repo, history_repo, renewals_repo, tasks_repo, uploads_repo
 from mart.repository.db import connection
-from mart.services import freshness, history
+from mart.services import actuals, freshness, history
 
 _STAGE_KEYS = {norm(s): s for s in tspec.STAGES}
 
@@ -142,6 +142,7 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
         mine_tasks = link_tasks([r], tasks)[r["id"]]
         items = [("renewal", r["id"])] + [("task", t["id"]) for t in mine_tasks]
         changes = history_repo.for_items(conn, items)
+        actual_rows = actuals_repo.for_renewal(conn, r["id"])
     mine = mine_tasks
     f, d = r["fields"], r["details"]
     strategy = (d.get("strategy") or [{}])[0]
@@ -158,6 +159,7 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
         "client": client, "renewal": r, "fields": f, "days_until": days,
         "coverage_lines": values.coverage_lines(f.get("lines_of_coverage")),
         "stages": stages_, "has_task_data": has_task_data, "other_tasks": others,
+        "actual": actuals.view(actual_rows, r.get("upcoming_strategy"), stages_),
         "strategy": _facts(strategy, rspec.STRATEGY_FIELDS),
         "last_renewal": _facts(strategy, rspec.LAST_RENEWAL_FIELDS),
         "claims": _facts(strategy, rspec.CLAIMS_FIELDS),
