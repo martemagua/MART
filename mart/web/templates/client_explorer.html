@@ -4,7 +4,7 @@
 {% from "partials/stages.html" import stage_dots %}
 {% from "partials/links.html" import links_menu %}
 {% from "partials/mine.html" import mine_section, mine_badges %}
-{% from "partials/actual.html" import strategy_cell, completed_badge, completed_form %}
+{% from "partials/actual.html" import strategy_cell, strategy_pill, completed_badge, completed_form %}
 {% block title %}{{ client.name }}{% endblock %}
 {% block content_class %}content-explorer{% endblock %}
 {% block content %}
@@ -68,7 +68,7 @@
           <span class="bundle-meta">
             {{ deadline_badge(b.deadline) }}{{ fresh_badge(b.freshness, short=true) }}
             {% if b.flags.no_cr or b.flags.gaps %}<span class="dot dot-warn" title="Overview: client-ready version missing or incomplete"></span>{% endif %}
-            <span class="st-dots">{% for st in b.renewals | map(attribute="actual") | map(attribute="effective") | unique %}<span class="st-dot {{ st | strategy_class }}" title="{{ st or 'no strategy' }}"></span>{% endfor %}</span>
+            <span class="st-dots">{% for st, mine in b.renewals | map(attribute="actual") | map(attribute="key") | unique %}<span class="st-dot {{ 'st-mine' if mine else st | strategy_class }}" title="{{ ('your strategy: ' if mine else '') ~ (st or 'no strategy') }}"></span>{% endfor %}</span>
             {% set all_done = b.renewals and b.completed == b.renewals | length %}
             <span class="count{% if all_done %} is-done{% endif %}"{% if all_done %} title="All renewals completed"{% endif %}>{{ b.renewals | length }}</span>
           </span>
@@ -122,7 +122,7 @@
       </div>
       {% if s.renewals %}
       <dl class="mix">
-        <div><dt>Strategy</dt><dd>{% for k, n in s.strategies.most_common() %}<span class="pill pill-st {{ k | strategy_class }}">{{ k }}{% if n > 1 %} ×{{ n }}{% endif %}</span>{% endfor %}</dd></div>
+        <div><dt>Strategy</dt><dd>{% for (k, mine), n in s.strategies.most_common() %}{{ strategy_pill(k, mine, n) }}{% endfor %}</dd></div>
         <div><dt>BM+ workflow</dt><dd>{% for k, n in s.statuses.most_common() %}<span class="pill pill-soft">{{ k }}{% if n > 1 %} ×{{ n }}{% endif %}</span>{% endfor %}</dd></div>
         <div id="completed"><dt>Completed</dt><dd><span class="muted small">{{ s.completed }} of {{ s.renewals | length }}</span>
           {% if s.open_ids %}
@@ -148,7 +148,7 @@
 
     <div class="renewal-list">
       {% for r in s.renewals %}
-      <article class="renewal-card {{ r.actual.effective | strategy_class }}{% if not r.in_latest_export %} is-left{% endif %}{% if editing %} is-picking{% endif %}" id="r{{ r.id }}">
+      <article class="renewal-card {{ 'st-mine' if r.actual.strategy else r.actual.effective | strategy_class }}{% if not r.in_latest_export %} is-left{% endif %}{% if editing %} is-picking{% endif %}" id="r{{ r.id }}">
         <div class="rc-name-row">
           {% if editing %}<input type="checkbox" name="renewal" value="{{ r.id }}" form="move-form" class="rc-pick" aria-label="Select {{ r.policy_name }} to move" title="Select to move to another bundle">{% endif %}
           <a class="rc-name" href="/clients/{{ client.id }}/renewals/{{ r.id }}{{ q_all1 }}" title="Open the renewal: {{ r.policy_name }}">{{ r.policy_name or "—" }}</a>

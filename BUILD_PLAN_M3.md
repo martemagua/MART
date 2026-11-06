@@ -11,7 +11,7 @@ organised into topics.
 ending with a zip and a short **"what to try"** list. Every change goes
 through a pull request with its docs.
 
-Status: **in progress.** Day 1 done (MART 0.9.0, 05.11.2026). The foundations of M1
+Status: **in progress.** Day 1 done (MART 0.9.0, 05.11.2026; 0.9.1 after Martin's notes: his strategy drawn neutral with a ✎, picked from one dropdown with "Canceled"). The foundations of M1
 (`BUILD_PLAN_M1.md`) hold unchanged: nothing installed, all SQL in
 `repository/`, append-only migrations, uploads never delete what you
 wrote. Everything Martin records in M3 is USER data beside BM+'s data:

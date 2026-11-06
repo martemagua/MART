@@ -6,6 +6,25 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.1 — 06.11.2026 · M3 day 1 · your strategy looks like yours
+
+From Martin's notes on 0.9.0.
+
+### Changed
+- **Your strategy no longer looks like BM+'s.** Wherever it shows (the
+  card, the renewal panel, the bundle's strategy mix, the side panel's dots
+  and the card's left edge) it is drawn **neutral, with a dashed border and
+  a ✎**: "✎ Remarketing". BM+'s strategies keep their colours.
+- **One dropdown, no free text.** Your strategy is picked from a single list:
+  Remarketing · Incumbent without Rate Guarantee · Incumbent with Rate
+  Guarantee · Non-expiring · **Canceled** (in place of "Unknown / New
+  Policy") · TBC. The first entry, "go by BM+", drops yours.
+
+### What to try
+1. Set a strategy on a renewal and check it reads as yours at a glance, on
+   the card and in the bundle header.
+2. Open the ✎ again: the list, with "Canceled".
+
 ## 0.9.0 — 05.11.2026 · M3 day 1 · actual state
 
 ### Added
