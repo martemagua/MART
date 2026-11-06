@@ -1,0 +1,77 @@
+{# The bundle view's EDIT MODE bar (Martin, 06.11.2026): tick renewals on the
+   cards (or "Select all" for the whole bundle) and act on all of them at
+   once: move them, set your strategy, add a proposal or quote, mark them
+   completed. ONE form (#bulk-form) that wraps nothing: the cards' tick
+   boxes join it with form="bulk-form", and each action's button posts it to
+   its own route (formaction), which reads only its own fields. No field is
+   `required`, so one action's empty fields never block another's; the
+   services check. Plan design changes join here on day 4. #}
+{% from "partials/move.html" import move_fields %}
+{% from "partials/proposals.html" import proposal_fields %}
+
+{% macro bulk_bar(base, s, back, done) %}
+<form method="post" action="{{ base }}/bundles/move" id="bulk-form" class="move-bar bulk-bar is-editing" data-move-form data-bulk-form>
+  <input type="hidden" name="back" value="{{ back }}">
+  <div class="move-pick">
+    <strong>Edit renewals</strong>
+    <span class="muted small" data-pick-count data-pick-empty="Tick renewals on the cards, or select all.">Tick renewals on the cards, or select all.</span>
+    <button type="button" class="link-btn small" data-check-all="renewal" data-value="on">Select all</button>
+    <button type="button" class="link-btn small" data-check-all="renewal" data-value="off">None</button>
+    <a class="btn btn-small move-done" href="{{ done }}">Done</a>
+  </div>
+  <div class="bulk-actions">
+    <details class="arrange">
+      <summary class="btn btn-small" data-pick-needed>Strategy…</summary>
+      <div class="arrange-box stack-form">
+        <label class="small muted">Your strategy for the selected renewals <select name="strategy">
+          <option value="">— go by BM+ (drop yours) —</option>
+          {% for st in strategies %}<option value="{{ st }}">{{ st }}</option>{% endfor %}
+        </select></label>
+        <label class="small muted">Why (optional) <input type="text" name="reason" maxlength="500" placeholder="e.g. agreed with HR on the call of 28.10"></label>
+        <div class="actions"><button type="submit" class="btn btn-small btn-primary" formaction="{{ base }}/bulk/strategy" data-pick-submit>Set the strategy</button></div>
+      </div>
+    </details>
+    <details class="arrange">
+      <summary class="btn btn-small" data-pick-needed>Proposal / quote…</summary>
+      <div class="arrange-box stack-form prop-form bulk-prop">
+        {{ proposal_fields(none, focus=false, required=false) }}
+        <div class="pair">
+          <label class="small muted">Quote <select name="round">{% for k, v in proposal_vocab.rounds.items() %}<option value="{{ k }}">{{ v }}</option>{% endfor %}</select></label>
+          <label class="small muted">Received on <input type="date" name="received_on" value="{{ today_iso() }}"></label>
+        </div>
+        <div class="pair">
+          <label class="small muted">Currency <input type="text" name="currency" maxlength="3" list="currency-options" placeholder="EUR"></label>
+          <label class="small muted">Rate change % <input type="text" name="rate_change" inputmode="decimal" placeholder="e.g. +8"></label>
+        </div>
+        <label class="small muted">Note (optional) <input type="text" name="note" maxlength="1000" placeholder="e.g. one offer for the whole bundle"></label>
+        <fieldset class="bulk-premiums">
+          <legend class="small muted">Annual premium per renewal (optional)</legend>
+          {% for r in s.renewals %}
+          <label class="small bulk-premium" data-bulk-row="{{ r.id }}"><span title="{{ r.policy_name }}">{{ r.policy_name or "—" }}{% if r.entity %} <span class="muted">· {{ r.entity }}</span>{% endif %}</span>
+            <input type="text" name="premium_{{ r.id }}" inputmode="decimal" placeholder="e.g. 120'000"></label>
+          {% endfor %}
+        </fieldset>
+        <p class="hint">Added to each selected renewal. Where that insurer and variant already has a proposal, it becomes its next quote.</p>
+        <div class="actions"><button type="submit" class="btn btn-small btn-primary" formaction="{{ base }}/bulk/proposals" data-pick-submit>Add to the selected</button></div>
+      </div>
+    </details>
+    <details class="arrange">
+      <summary class="btn btn-small" data-pick-needed>Completed…</summary>
+      <div class="arrange-box stack-form">
+        <label class="small muted">Completed on <input type="date" name="date" value="{{ today_iso() }}"></label>
+        <label class="small muted">Note (optional) <input type="text" name="completed_note" maxlength="500" placeholder="e.g. all tasks approved in BM+"></label>
+        <div class="actions"><button type="submit" class="btn btn-small btn-primary" formaction="{{ base }}/bulk/completed" data-pick-submit>Mark completed</button></div>
+      </div>
+    </details>
+    <details class="arrange">
+      <summary class="btn btn-small" data-pick-needed>Move…</summary>
+      <div class="arrange-box move-in-bulk">
+        {{ move_fields(s) }}
+        <div class="actions"><button type="submit" class="btn btn-small btn-primary" formaction="{{ base }}/bundles/move" data-pick-submit>Move</button></div>
+        <p class="hint">Only bundles of {{ s.country }} are offered: a bundle keeps to one country.</p>
+      </div>
+    </details>
+  </div>
+</form>
+<datalist id="currency-options">{% for c in ["EUR", "USD", "GBP", "CHF"] %}<option value="{{ c }}">{% endfor %}</datalist>
+{% endmacro %}

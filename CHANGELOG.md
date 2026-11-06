@@ -6,6 +6,32 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.8 — 06.11.2026 · act on several renewals at once
+
+### Added
+- **"Edit renewals…"** (it was "Move renewals…") opens the bundle's edit
+  mode: tick renewals on the cards, or **Select all** for the whole bundle,
+  and act on all of them at once:
+  - **Strategy…**: your strategy (or "go by BM+") with a reason, for each
+    ticked renewal;
+  - **Proposal / quote…**: one insurer and variant, quote round, date,
+    currency, rate change and note, with **a premium per renewal** (only the
+    ticked ones are listed). Where that insurer and variant already has a
+    proposal on a renewal, it becomes its next quote, so a bundle's
+    negotiation can be followed in one go. All or nothing: a wrong premium
+    changes none of them;
+  - **Completed…**: a date and a note;
+  - **Move…**: as before.
+  The actions wait until something is ticked; afterwards the bundle stays
+  in edit mode and says what was done ("Strategy set to Remarketing for 3
+  renewals."). The insurer field suggests the country's network partners,
+  as on a renewal. Plan design changes will join here (day 4).
+
+### What to try
+1. Open a bundle → "Edit renewals…" → Select all → Strategy… .
+2. Tick two renewals → Proposal / quote… with a premium for each; later the
+   final quote the same way.
+
 ## 0.9.7 — 06.11.2026 · a proposal holds its negotiation
 
 From Martin's use of 0.9.5–0.9.6: every updated quote was its own row, so

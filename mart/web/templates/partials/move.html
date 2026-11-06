@@ -15,6 +15,14 @@
   </div>
   {% endif %}
   {% if one %}<input type="hidden" name="renewal" value="{{ one }}">{% endif %}
+  {{ move_fields(s, one) }}
+  <button type="submit" class="btn btn-small{% if done %} btn-primary{% endif %}"{% if done %} data-pick-submit{% endif %}>Move</button>
+  <span class="info" tabindex="0" role="note" aria-label="Only bundles of {{ s.country }} are offered: a bundle keeps to one country.">i<span class="tip">Only bundles of {{ s.country }} are offered: a bundle keeps to one country.{% if done %} Tick renewals on the cards to select them.{% endif %}</span></span>
+</form>
+{% endmacro %}
+
+{# Where to move to: also the edit-mode bar's "Move" (partials/bulk.html). #}
+{% macro move_fields(s, one=none) %}
   <span class="move-label">{% if one %}Move this renewal to{% else %}Move the selected renewals to{% endif %}</span>
   <select name="target" aria-label="Bundle to move to" data-move-target>
     {% for t in s.move_targets %}<option value="{{ t.id }}">{{ t.name }} ({{ t.count }} renewal{{ "s" if t.count != 1 }})</option>{% endfor %}
@@ -22,7 +30,4 @@
     {% if s.custom_id %}<option value="default">their own bundle (country + date)</option>{% endif %}
   </select>
   <input type="text" name="name" placeholder="Name of the new bundle" maxlength="120" aria-label="Name of the new bundle" data-move-name>
-  <button type="submit" class="btn btn-small{% if done %} btn-primary{% endif %}"{% if done %} data-pick-submit{% endif %}>Move</button>
-  <span class="info" tabindex="0" role="note" aria-label="Only bundles of {{ s.country }} are offered: a bundle keeps to one country.">i<span class="tip">Only bundles of {{ s.country }} are offered: a bundle keeps to one country.{% if done %} Tick renewals on the cards to select them.{% endif %}</span></span>
-</form>
 {% endmacro %}

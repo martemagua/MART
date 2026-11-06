@@ -12,6 +12,7 @@ from mart.services import (
     deadlines,
     freshness,
     notes_service,
+    proposals,
     renewal_service,
 )
 from mart.web.framework import HTTPError, Request, Response, Router
@@ -45,9 +46,12 @@ def client_explorer(request: Request, client_id: int) -> Response:
     bundle_mine = notes_service.for_bundle(client_id, s) if s else None
     # opened from the Clients list (no bundle asked for): the side panel starts
     # at the top, without the filters set earlier in this browser tab
+    editing = request.arg("edit") == "1" and bool(s)
+    bulk_insurers = proposals.insurer_choices(client_id, s["country"]) if editing else None
     return render("client_explorer.html", active="clients", here=request.url, bundle_mine=bundle_mine,
                   client_counts=_client_counts(client_id), mine_counts=notes_service.counts(client_id),
-                  fresh=not request.arg("bundle"), editing=request.arg("edit") == "1" and bool(s), **view)
+                  fresh=not request.arg("bundle"), editing=editing, notice=request.arg("done"),
+                  bulk_insurers=bulk_insurers, **view)
 
 
 @router.route("/clients/{client_id:int}/renewals/{renewal_id:int}")

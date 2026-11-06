@@ -124,15 +124,21 @@
       if (!window.confirm(f.getAttribute("data-confirm"))) e.preventDefault();
     });
   });
-  // Edit mode's move bar: "N selected", and Move only once something is ticked.
+  // Edit mode's bar: "N selected"; its actions only once something is
+  // ticked; the bulk proposal's premium rows only for the ticked renewals.
   document.querySelectorAll("[data-move-form]").forEach(function (f) {
-    var count = f.querySelector("[data-pick-count]"), submit = f.querySelector("[data-pick-submit]");
+    var count = f.querySelector("[data-pick-count]"), submits = f.querySelectorAll("[data-pick-submit]");
     if (!count || !f.id) return;
     var boxes = document.querySelectorAll('input[type=checkbox][form="' + f.id + '"]');
+    var empty = count.getAttribute("data-pick-empty") || "Tick the renewals to move.";
     function sync() {
-      var n = Array.prototype.filter.call(boxes, function (b) { return b.checked; }).length;
-      count.textContent = n ? n + " selected" : "Tick the renewals to move.";
-      if (submit) submit.disabled = n === 0;
+      var picked = Array.prototype.filter.call(boxes, function (b) { return b.checked; });
+      var ids = picked.map(function (b) { return b.value; });
+      count.textContent = picked.length ? picked.length + " selected" : empty;
+      submits.forEach(function (s) { s.disabled = picked.length === 0; });
+      f.querySelectorAll("[data-bulk-row]").forEach(function (row) {
+        row.hidden = ids.indexOf(row.getAttribute("data-bulk-row")) < 0;
+      });
     }
     boxes.forEach(function (b) { b.addEventListener("change", sync); });
     f.querySelectorAll("[data-check-all]").forEach(function (b) { b.addEventListener("click", sync); });
@@ -142,7 +148,9 @@
   document.querySelectorAll("[data-move-form]").forEach(function (f) {
     var target = f.querySelector("[data-move-target]"), name = f.querySelector("[data-move-name]");
     if (!target || !name) return;
-    function sync() { var isNew = target.value === "new"; name.hidden = !isNew; name.required = isNew; }
+    // in the edit bar the form also carries other actions: never make them wait for a name
+    var bulk = f.hasAttribute("data-bulk-form");
+    function sync() { var isNew = target.value === "new"; name.hidden = !isNew; name.required = isNew && !bulk; }
     target.addEventListener("change", sync);
     sync();
   });

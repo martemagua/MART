@@ -122,16 +122,27 @@ def _renewals_of_mine(conn, client_id: int, renewal_ids: list[int]) -> list[dict
 def set_strategy(client_id: int, renewal_id: int, value: str | None, reason: str | None = None) -> None:
     """Martin's strategy for a renewal, one of STRATEGIES; empty clears it
     (BM+'s shows again)."""
+    set_strategy_many(client_id, [renewal_id], value, reason)
+
+
+def set_strategy_many(client_id: int, renewal_ids: list[int], value: str | None,
+                      reason: str | None = None) -> int:
+    """The same strategy for several renewals at once (the bundle's edit mode,
+    Martin 06.11.2026). Returns how many changed."""
     value = (value or "").strip() or None
     if value is not None and value not in STRATEGIES:
         raise Invalid("Pick one of the strategies in the list.")
     reason = _clean(reason, REASON_MAX, "The reason")
+    changed = 0
     with connection() as conn:
-        r = _renewals_of_mine(conn, client_id, [renewal_id])[0]
-        now = current(actuals_repo.for_renewal(conn, renewal_id)).get("strategy")
-        if (now["value"] if now else None) == value and (value is None or (now and now["reason"] == reason)):
-            return                                  # nothing changed
-        actuals_repo.add(conn, renewal_id, "strategy", value, r.get("upcoming_strategy"), reason)
+        for r in _renewals_of_mine(conn, client_id, renewal_ids):
+            now = current(actuals_repo.for_renewal(conn, r["id"])).get("strategy")
+            same = (now["value"] if now else None) == value
+            if same and (value is None or (now and now["reason"] == reason)):
+                continue                                # nothing changed
+            actuals_repo.add(conn, r["id"], "strategy", value, r.get("upcoming_strategy"), reason)
+            changed += 1
+    return changed
 
 
 def set_completed(client_id: int, renewal_ids: list[int], on: str | None,

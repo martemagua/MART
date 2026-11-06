@@ -28,8 +28,8 @@
 {% endmacro %}
 
 {# The proposal itself: insurer + variant. #}
-{% macro proposal_fields(p=none, focus=true) %}
-  <label class="small muted">Insurer <input type="text" name="insurer" required maxlength="120" list="insurer-options" value="{{ p.insurer if p else '' }}" {% if focus %}data-focus-on-open{% endif %} placeholder="e.g. Allianz"></label>
+{% macro proposal_fields(p=none, focus=true, required=true) %}
+  <label class="small muted">Insurer <input type="text" name="insurer" {% if required %}required{% endif %} maxlength="120" list="insurer-options" value="{{ p.insurer if p else '' }}" {% if focus %}data-focus-on-open{% endif %} placeholder="e.g. Allianz"></label>
   <div class="pair">
     <label class="small muted">Plan design <select name="plan_design">{% for k, v in proposal_vocab.designs.items() %}<option value="{{ k }}" {% if p and p.plan_design == k %}selected{% endif %}>{{ v }}</option>{% endfor %}</select></label>
     <label class="small muted">Label (optional) <input type="text" name="label" maxlength="80" value="{{ p.label or '' if p else '' }}" placeholder="e.g. with dental"></label>

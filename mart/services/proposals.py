@@ -24,6 +24,7 @@ from typing import Any
 
 from mart.repository import clients_repo, proposals_repo, renewals_repo
 from mart.repository.db import connection
+from mart.services import capabilities
 
 ROUNDS = {"first": "First quote", "revised": "Revised quote", "final": "Final quote"}
 PLAN_DESIGNS = {"as_expiring": "As expiring", "changed": "Changed"}
@@ -174,17 +175,48 @@ def _quote_of_mine(conn, client_id: int, quote_id: int) -> dict[str, Any]:
     return q
 
 
+def _add(conn, renewal_id: int, proposal: dict[str, Any], quote: dict[str, Any]) -> int:
+    existing = proposals_repo.find(conn, renewal_id, proposal["insurer"], proposal["plan_design"],
+                                   proposal["label"])
+    pid = existing["id"] if existing else proposals_repo.add(conn, renewal_id, proposal)
+    proposals_repo.add_quote(conn, pid, quote)
+    return pid
+
+
 def add(client_id: int, renewal_id: int, form: dict[str, str | None]) -> int:
     """A new proposal with its first quote; for an insurer + variant that
     already has one, the quote joins it. Returns the proposal's id."""
     proposal, quote = _clean_proposal(form), _clean_quote(form)
     with connection() as conn:
         _renewal_of_mine(conn, client_id, renewal_id)
-        existing = proposals_repo.find(conn, renewal_id, proposal["insurer"], proposal["plan_design"],
-                                       proposal["label"])
-        pid = existing["id"] if existing else proposals_repo.add(conn, renewal_id, proposal)
-        proposals_repo.add_quote(conn, pid, quote)
-        return pid
+        return _add(conn, renewal_id, proposal, quote)
+
+
+def add_many(client_id: int, renewal_ids: list[int], form: dict[str, str | None],
+             premiums: dict[int, str | None]) -> int:
+    """The same proposal / quote for several renewals at once (the bundle's
+    edit mode, Martin 06.11.2026): one insurer, variant, round, date, rate
+    and note, each renewal with its own premium (`premiums`, as typed).
+    Where that insurer + variant already has a proposal, the quote joins it.
+    All or nothing. Returns how many renewals got one."""
+    if not renewal_ids:
+        raise Invalid("Tick at least one renewal first.")
+    proposal = _clean_proposal(form)
+    quotes = {rid: _clean_quote({**form, "premium": premiums.get(rid)}) for rid in renewal_ids}
+    with connection() as conn:
+        for rid in renewal_ids:
+            _renewal_of_mine(conn, client_id, rid)
+            _add(conn, rid, proposal, quotes[rid])
+    return len(renewal_ids)
+
+
+def insurer_choices(client_id: int, country: str | None) -> dict[str, Any]:
+    """What the insurer field suggests for a country: its network partners
+    (Insurer Capability Database) first, then this client's insurers there."""
+    with connection() as conn:
+        mine = proposals_repo.insurers_of_client(conn, client_id, country)
+    partners = capabilities.for_country(country)["partners"] if country else []
+    return {"partners": partners, "insurers": mine}
 
 
 def edit(client_id: int, proposal_id: int, form: dict[str, str | None]) -> None:

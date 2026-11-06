@@ -609,3 +609,19 @@ h3 .fr-badge { vertical-align: 2px; margin-left: 4px; }
 .trail-actions { display: inline-flex; align-items: center; gap: 0; }
 .trail-actions form, .trail-actions details { margin: 0; }
 .prop-quote-edit { border-top: 1px solid var(--border); margin-top: 10px; padding-top: 8px; }
+
+/* -- the bundle's edit mode bar (partials/bulk.html) -- */
+.bulk-bar { flex-direction: column; align-items: stretch; }
+.bulk-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.bulk-actions details.arrange { position: relative; }
+.bulk-prop { min-width: 380px; }
+.bulk-premiums { border: 0; padding: 0; margin: 4px 0 0; display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; }
+.bulk-premium { display: grid; grid-template-columns: 1fr 140px; align-items: center; gap: 8px; font-weight: 400; }
+.bulk-premium span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.move-in-bulk { display: flex; flex-direction: column; gap: 8px; min-width: 300px; }
+.move-in-bulk select, .move-in-bulk input[type=text] { width: 100%; }
+.bulk-bar .arrange-box input[type=text], .bulk-bar .arrange-box input[type=date],
+.bulk-bar .arrange-box select { width: 100%; min-height: 36px; font-size: 14px; }
+.bulk-bar .bulk-premium input[type=text] { min-height: 32px; }
+.bulk-bar .arrange-box label.bulk-premium { display: grid; grid-template-columns: minmax(0, 1fr) 130px; align-items: center; text-align: left; }
+.bulk-bar .bulk-premium input[type=text] { width: 130px; }
