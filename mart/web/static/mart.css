@@ -574,3 +574,16 @@ h3 .fr-badge { vertical-align: 2px; margin-left: 4px; }
   select option:checked { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
   select option:disabled { color: var(--muted); }
 }
+
+/* -- proposals received (partials/proposals.html) -- */
+.prop-form { min-width: 360px; }
+.prop-form .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; }
+.prop-table tr.is-old td { color: var(--muted); }
+.prop-table tr.is-chosen td { background: var(--ok-bg); }
+.prop-wrap { margin: 8px 0 12px; }
+.prop-note { overflow-wrap: anywhere; font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+.prop-actions { width: 1%; }
+.prop-actions > div { display: flex; align-items: center; justify-content: flex-end; gap: 2px; white-space: nowrap; }
+.prop-actions form { margin: 0; }
+.icon-btn.is-on { color: var(--ok-ink); }
+.prop-pill { white-space: normal; }

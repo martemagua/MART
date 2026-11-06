@@ -5,6 +5,7 @@
 {% from "partials/links.html" import links_menu %}
 {% from "partials/mine.html" import mine_section, mine_badges %}
 {% from "partials/actual.html" import strategy_cell, strategy_pill, completed_badge, completed_form %}
+{% from "partials/proposals.html" import proposals_line %}
 {% block title %}{{ client.name }}{% endblock %}
 {% block content_class %}content-explorer{% endblock %}
 {% block content %}
@@ -124,6 +125,7 @@
       <dl class="mix">
         <div><dt>Strategy</dt><dd>{% for (k, mine), n in s.strategies.most_common() %}{{ strategy_pill(k, mine, n) }}{% endfor %}</dd></div>
         <div><dt>BM+ workflow</dt><dd>{% for k, n in s.statuses.most_common() %}<span class="pill pill-soft">{{ k }}{% if n > 1 %} ×{{ n }}{% endif %}</span>{% endfor %}</dd></div>
+        <div><dt>Proposals</dt><dd>{% if s.proposal_count %}<span class="muted small" title="{{ s.proposal_insurers | join(', ') }}">{{ s.proposal_count }} from {{ s.proposal_insurers | length }} insurer{{ "s" if s.proposal_insurers | length != 1 }}</span>{% else %}<span class="muted small">none yet</span>{% endif %}</dd></div>
         <div id="completed"><dt>Completed</dt><dd><span class="muted small">{{ s.completed }} of {{ s.renewals | length }}</span>
           {% if s.open_ids %}
           <details class="arrange">
@@ -170,6 +172,7 @@
         </div>
         <div class="rc-flags">
           {{ completed_badge(r.actual) }}
+          {{ proposals_line(r.proposals) }}
           {{ mine_badges(mine_counts.get("renewal:" ~ r.id)) }}
           {% if not r.in_latest_export %}<span class="pill pill-soft">no longer in the export since {{ r.left_export_at | dmy }}</span>{% endif %}
           {% if r.id_missing %}<span class="pill pill-soft" title="BM+ gave no id; recognised by client, country, entity, policy and date">no BM+ id</span>{% endif %}
