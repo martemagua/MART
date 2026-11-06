@@ -650,3 +650,8 @@ h3 .fr-badge { vertical-align: 2px; margin-left: 4px; }
 .region-form input[type=text] { max-width: 260px; min-height: 34px; }
 .region-form td { vertical-align: middle; }
 .board-link { margin-left: 8px; }
+/* a page inside the board's pop-up (board.js): no menus, only the page */
+.is-embedded .sidebar, .is-embedded .bundle-nav { display: none; }
+.is-embedded .explorer { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+.is-embedded .content { padding: 20px 24px 32px; }
+.is-embedded .content.content-explorer { padding: 0; }

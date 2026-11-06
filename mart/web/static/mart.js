@@ -3,6 +3,29 @@
 (function () {
   "use strict";
 
+  // A page inside the board's pop-up (board.js; base.html marks it
+  // .is-embedded, and the CSS drops the menus): links to this client's pages
+  // stay in the pop-up, a link back to the board closes it, any other link
+  // opens in the whole window; Esc (with nothing open) closes the pop-up.
+  var embedded = document.documentElement.classList.contains("is-embedded");
+  function toParent(name) {
+    try { window.parent.document.dispatchEvent(new CustomEvent(name)); } catch (e) { /* not ours */ }
+  }
+  if (embedded) {
+    document.addEventListener("click", function (e) {
+      var a = e.target.closest ? e.target.closest("a[href]") : null;
+      if (!a || a.target || a.origin !== location.origin) return;
+      var path = a.pathname;
+      if (/^\/clients\/\d+\/board$/.test(path) || path === "/board") {
+        e.preventDefault();
+        toParent("mart-pop-close");
+      } else if (!/^\/clients\/\d+/.test(path)) {
+        a.target = "_top";
+      }
+    });
+    document.addEventListener("submit", function () { toParent("mart-pop-changed"); }, true);
+  }
+
   // <input data-filter-rows="#tbody-id">: hide table rows that don't contain the text.
   document.querySelectorAll("[data-filter-rows]").forEach(function (input) {
     var body = document.querySelector(input.getAttribute("data-filter-rows"));
@@ -124,7 +147,12 @@
   document.addEventListener("click", function (e) {
     closeMenus(e.target.closest ? e.target.closest("details.menu, details.arrange") : null);
   });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeMenus(null); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    var hadOpen = document.querySelector("details.menu[open], details.arrange[open], dialog[open]");
+    closeMenus(null);
+    if (embedded && !hadOpen) toParent("mart-pop-close");
+  });
   // <form data-confirm="Question?">: ask before submitting (deletes).
   document.querySelectorAll("form[data-confirm]").forEach(function (f) {
     f.addEventListener("submit", function (e) {

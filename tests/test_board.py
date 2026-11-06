@@ -3,9 +3,11 @@ client, a card per bundle at its least advanced renewal's stage until Martin
 moves it, his stage kept beside BM+'s."""
 
 from datetime import datetime
+from pathlib import Path
 
 import pytest
 
+import mart
 from mart.repository.db import connection
 from mart.services import board, board_service
 from mart.services import client_service as cs
@@ -135,3 +137,17 @@ def test_pages(app):
     assert f'href="/clients/{cid}/board"' in explorer and "✎ Proposals / Marketing" in explorer
     assert 'href="/board"' in explorer                                   # in the main menu
     assert "/static/board.css" in get(app, f"/clients/{cid}/board").body_bytes.decode()
+
+
+def test_a_card_opens_its_bundle_over_the_board(app):
+    """Martin, 06.11.2026: click a card → its bundle in a pop-up over the
+    board; a click outside shrinks it back (board.js). The page inside is the
+    client page itself, without the menus (base.html → .is-embedded)."""
+    cid, _ = _book()
+    page = get(app, f"/clients/{cid}/board").body_bytes.decode()
+    assert 'id="board-pop"' in page and "data-pop-iframe" in page and "data-pop-close" in page
+    assert f'href="/clients/{cid}?bundle=Poland%7C2027-01-01"' in page               # what the card opens
+    inside = get(app, f"/clients/{cid}?bundle=Poland%7C2027-01-01").body_bytes.decode()
+    assert 'classList.add("is-embedded")' in inside
+    css = (Path(mart.__file__).parent / "web" / "static" / "mart.css").read_text(encoding="utf-8")
+    assert ".is-embedded .sidebar, .is-embedded .bundle-nav { display: none; }" in css

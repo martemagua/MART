@@ -68,7 +68,7 @@
   <div>
     <p class="crumbs"><a href="/clients">Clients</a> › <a href="{{ base }}">{{ client.name }}</a></p>
     <h1>Board · {{ client.name }}</h1>
-    <p class="muted small">{{ card_count }} bundle{{ "s" if card_count != 1 }}{% if moved %} · {{ moved }} moved by you{% endif %}.
+    <p class="muted small" data-board-summary>{{ card_count }} bundle{{ "s" if card_count != 1 }}{% if moved %} · {{ moved }} moved by you{% endif %}.
       A card sits at its least advanced renewal's stage until you drag it; your stage is kept beside BM+'s.
       {% if not has_task_data %}<strong>No Task Tracker uploaded yet:</strong> without BM+'s stages every card starts in Not started.{% endif %}</p>
   </div>
@@ -114,6 +114,21 @@
     <div class="actions"><button type="submit" class="btn btn-small btn-primary">Move</button>
       <button type="button" class="btn btn-small" data-move-cancel>Cancel</button></div>
   </form>
+</dialog>
+
+{# A card opens its bundle here, over the board (Martin, 06.11.2026): the
+   bundle page itself in a frame, so everything on it works as on the client
+   page; mart.js drops the menus when a page runs inside it. A click outside,
+   × or Esc shrinks it back into its card, and the board refreshes what changed. #}
+<dialog id="board-pop" class="board-pop" aria-label="Bundle">
+  <div class="board-pop-frame">
+    <div class="board-pop-bar">
+      <strong class="board-pop-title" data-pop-title></strong>
+      <a class="small" href="" target="_top" data-pop-full title="Leave the board and open this on the client page">Open the full page ↗</a>
+      <button type="button" class="icon-btn" data-pop-close autofocus title="Back to the board (or click outside, or Esc)" aria-label="Back to the board">×</button>
+    </div>
+    <iframe title="Bundle" data-pop-iframe></iframe>
+  </div>
 </dialog>
 {% endblock %}
 {% block scripts %}<script src="/static/board.js"></script>{% endblock %}

@@ -45,3 +45,15 @@
 
 .board-clients { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .board-clients li { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+
+/* the pop-up: the bundle page over the board (board.js). The dialog fills the
+   window and is see-through, so a click beside the frame lands on it. */
+.board-pop { width: 100vw; height: 100vh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: transparent; }
+.board-pop[open] { display: flex; align-items: center; justify-content: center; }
+.board-pop::backdrop { background: rgba(0, 0, 0, 0.35); }
+.board-pop-frame { width: min(1180px, 92vw); height: 90vh; display: flex; flex-direction: column; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25); transform-origin: top left; }
+.board-pop-bar { display: flex; align-items: center; gap: 14px; padding: 8px 10px 8px 16px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.board-pop-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-pop iframe { flex: 1; width: 100%; border: 0; background: var(--bg); }
+.board-card { cursor: pointer; }
+.board-card:active { cursor: grabbing; }

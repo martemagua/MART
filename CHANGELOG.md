@@ -6,6 +6,26 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.12 — 06.11.2026 · the board's cards open over it
+
+### Added
+- **A card opens its bundle over the board** (Martin, 06.11.2026). Click a
+  card: the bundle page opens in a pop-up on top of the board, and works
+  as on the client page: edit renewals, proposals, plan design, completed,
+  the expected update, notes and to-dos, and its renewals (← back to the
+  bundle stays in the pop-up).
+- **A click outside** (or ×, or Esc) shrinks it back into its card. If you
+  changed something in it, the board is refreshed first, so the card
+  already shows it, in its new column if it moved.
+- "Open the full page ↗" leaves the board for the page shown in the
+  pop-up. Ctrl-click on a card still opens it in a new tab; dragging a card
+  works as before.
+
+### What to try
+1. Board → click a card → mark a renewal's strategy or add a proposal in
+   the pop-up → click beside it: the card shows the change.
+2. In the pop-up, open a renewal, then go back to the bundle.
+
 ## 0.9.11 — 06.11.2026 · M3 day 6 · the board
 
 ### Added
