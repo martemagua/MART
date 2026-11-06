@@ -6,6 +6,21 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.3 — 06.11.2026 · fix: dropdowns look like the rest of MART
+
+### Fixed
+- **The strategy dropdown was a slim grey rectangle** (the browser's own
+  look). Every dropdown now has the same height, border, corners and
+  colours as MART's text fields, including the urgency dropdown when you
+  add a to-do; the smaller ones (side panel, move bar, to-do edit row) keep
+  their size.
+
+### What to try
+1. Unpack 0.9.3 **while MART 0.9.2 is still open**: the page should ask
+   you to start MART again (the check added in 0.9.2). Close MART, start it.
+2. Open ✎ on a renewal's strategy, and "+ To-do": the dropdowns match the
+   fields around them.
+
 ## 0.9.2 — 06.11.2026 · fix: a new version unpacked while MART runs
 
 ### Fixed
