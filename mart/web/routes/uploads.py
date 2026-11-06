@@ -57,8 +57,8 @@ def _preview_page(upload_id: int, error: str | None = None, status: int = 200,
         view = upload_service.preview(upload_id)
     except UploadError as exc:
         raise HTTPError(404, str(exc)) from exc
-    return render("upload_preview.html", status=status, active="uploads", error=error,
-                  notice=notice, **view)
+    page = "upload_reference.html" if view.get("reference") else "upload_preview.html"
+    return render(page, status=status, active="uploads", error=error, notice=notice, **view)
 
 
 @router.route("/uploads/{upload_id:int}")
@@ -73,6 +73,10 @@ def upload_commit(request: Request, upload_id: int) -> Response:
         summary = upload_service.commit(upload_id, mine, allow_older=bool(request.arg("allow_older")))
     except UploadError as exc:
         return _preview_page(upload_id, str(exc), 400)
+    if "rows" in summary:                    # a reference list (Insurer Capability Database)
+        msg = (f"Insurer Capability Database loaded: {summary['rows']} partner rows ({summary['new']} new, "
+               f"{summary['changed']} changed, {summary['removed']} no longer in the list).")
+        return _after_commit(msg)
     loaded = len(summary["clients_loaded"])
     nouns = "tasks" if summary.get("tracker") == "task_tracker" else "renewals"
     msg = (f"Loaded {loaded} client{'s' if loaded != 1 else ''} ({nouns}): {summary['new']} new, "
@@ -81,6 +85,10 @@ def upload_commit(request: Request, upload_id: int) -> Response:
     if summary.get("skipped"):
         msg += (f" {summary['skipped']} not loaded (implementation / contract tasks, "
                 "or no renewal in MART).")
+    return _after_commit(msg)
+
+
+def _after_commit(msg: str) -> Response:
     waiting = upload_service.waiting_uploads()
     if waiting:     # several files uploaded at once: straight on to the next one
         return Response.redirect(f"/uploads/{waiting[0]['id']}?done=" + quote(msg))

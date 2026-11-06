@@ -172,6 +172,3 @@ def choose(client_id: int, proposal_id: int, chosen: bool) -> None:
         proposals_repo.set_chosen(conn, p["renewal_id"], proposal_id if chosen else None)
 
 
-def insurer_suggestions(client_id: int) -> list[str]:
-    with connection() as conn:
-        return proposals_repo.insurers_of_client(conn, client_id)

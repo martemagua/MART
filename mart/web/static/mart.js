@@ -186,6 +186,11 @@
       document.addEventListener(t, function (e) { e.preventDefault(); });
     });
   });
+  // <select data-autosubmit>: choosing sends its form (the Insurers filters).
+  document.querySelectorAll("select[data-autosubmit]").forEach(function (sel) {
+    sel.addEventListener("change", function () { if (sel.form) sel.form.submit(); });
+  });
+
   // <select data-shows="#id" data-shows-value="v">: #id is shown only while v is chosen.
   document.querySelectorAll("select[data-shows]").forEach(function (sel) {
     var target = document.querySelector(sel.getAttribute("data-shows"));

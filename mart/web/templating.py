@@ -14,7 +14,7 @@ from typing import Any
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from mart import RELEASE_LABEL, __version__
-from mart.services import actuals, proposals, todo_details
+from mart.services import actuals, proposals, todo_details, trackers
 from mart.web import colors, countries
 from mart.web.framework import Response
 
@@ -89,6 +89,7 @@ _env.filters["flag"] = countries.flag
 _env.globals["todo_vocab"] = {"urgencies": todo_details.URGENCIES, "statuses": todo_details.STATUSES,
                               "kinds": todo_details.WAITING_KINDS}
 _env.globals["strategies"] = actuals.STRATEGIES
+_env.globals["tracker_label"] = lambda t: trackers.BY_TRACKER[t].label if t in trackers.BY_TRACKER else t
 _env.globals["proposal_vocab"] = {"rounds": proposals.ROUNDS, "designs": proposals.PLAN_DESIGNS}
 _env.globals["today_iso"] = lambda: date.today().isoformat()
 _env.globals.update(version=__version__, release=RELEASE_LABEL)

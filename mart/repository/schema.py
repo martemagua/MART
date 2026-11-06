@@ -299,6 +299,31 @@ MIGRATIONS: list[tuple[int, str]] = [
         );
         CREATE INDEX ix_proposals_renewal ON proposals(renewal_id);
     """),
+    (11, """
+        -- M3: the Insurer Capability Database ("All Networks"): a GLOBAL
+        -- reference list (not per client), replaced as a whole by each upload.
+        CREATE TABLE insurer_capabilities (
+            id             INTEGER PRIMARY KEY,
+            cap_key        TEXT NOT NULL UNIQUE,  -- network|country key|insurer|line
+            network        TEXT NOT NULL,
+            region         TEXT,
+            country        TEXT NOT NULL,
+            country_key    TEXT NOT NULL,         -- ISO code, else name:<normalised>
+            insurer        TEXT,                  -- NULL = no partner of this network there
+            line           TEXT NOT NULL,
+            fully_insured  INTEGER, fully_insured_text TEXT,   -- 1 / 0 / NULL + an unusual answer
+            pool           INTEGER, pool_text TEXT,
+            pool_share     REAL,    pool_share_text TEXT,      -- fraction 0-1, or the text given
+            gip            INTEGER, gip_text TEXT,
+            gip_share      REAL,    gip_share_text TEXT,
+            captive        INTEGER, captive_text TEXT,
+            captive_share  REAL,    captive_share_text TEXT,
+            comments       TEXT,
+            content_hash   TEXT NOT NULL,
+            upload_id      INTEGER REFERENCES uploads(id)
+        );
+        CREATE INDEX ix_capabilities_country ON insurer_capabilities(country_key, insurer);
+    """),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1][0]

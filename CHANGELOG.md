@@ -6,6 +6,47 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.6 — 06.11.2026 · M3 day 3 · the Insurer Capability Database
+
+### Added
+- **A new tracker: the Insurer Capability Database** ("All Networks"). Drop
+  it on Uploads like the other trackers. It is a **reference list for all
+  clients**: the preview shows how it compares with the one MART has (new /
+  changed / unchanged / no longer in the list), and loading it **replaces**
+  it as a whole, so a newer version can be loaded at any time. Only the
+  "Database" sheet is read; other sheets a version may carry are ignored.
+  Like every export, the file itself is never kept and never in git.
+- **Insurers** (new in the menu): pick a country to see its local partners
+  of the international networks (AIA, Allianz, Generali, IGP, Insurope,
+  MAXIS, Swiss Life, Zurich), each with its networks and "fully insured on
+  5 of 7 lines · pooling on 3"; open one for each line of risk: fully
+  insured, multinational pool, global insurance program, captive (with the
+  quota shares) and the comments. Filter by network and line of risk. The
+  same insurer written differently per network ("Manulife" / "Manulife
+  Financial Corporation – Canadian Division") is shown once.
+- **Choosing insurers for a remarketing**: the "+ Proposal" insurer field
+  now suggests the country's network partners first, each with its
+  networks, then the insurers this client already has in that country.
+- **The networks behind an insurer**: each proposal shows the networks its
+  insurer partners with in that country, and the section names the
+  expiring insurer's networks ("Expiring insurer: Desjardins … MAXIS"),
+  with a link to all network partners of the country.
+- Home → Your data says which Insurer Capability Database is loaded.
+
+### Changed
+- Insurer names are matched within the country, ignoring case, accents,
+  punctuation and legal / generic words ("Allianz" = "Allianz
+  Lebensversicherungs-AG", "AXA" = "AXA Seguros S.A. de C.V.").
+- Country names: Bonaire, Palestine and Sint Maarten (Dutch Part), as the
+  database writes them, now get their flags.
+
+### What to try
+1. Upload `2025 Insurer Capability Database - All Networks.xlsx` on Uploads,
+   check the preview, commit.
+2. Open **Insurers**, pick a country you renew in, open a partner.
+3. On a renewal in that country: "+ Proposal" → the insurer field suggests
+   the network partners; the expiring insurer's networks show above.
+
 ## 0.9.5 — 06.11.2026 · M3 day 2 · proposals received
 
 ### Added

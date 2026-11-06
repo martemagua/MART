@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{# The Insurer Capability Database by country: which local insurers partner
+   with which international network, and what they can do there. A reference
+   list for all clients (Uploads replaces it). #}
+{% block title %}Insurers{% endblock %}
+{% macro yn(v, text, share=none, share_text=none) %}
+{% if v == 1 %}<span class="cap cap-yes" title="{{ text or 'Yes' }}">✓{% if share is not none and share < 1 %} {{ (share * 100) | round(1) | string | replace(".0", "") }} %{% elif share_text %} {{ share_text }}{% endif %}</span>
+{% elif v == 0 %}<span class="cap cap-no" title="{{ text or 'No' }}">–{% if text %} ⓘ{% endif %}</span>
+{% else %}<span class="muted" title="{{ text or 'Not given' }}">?</span>{% endif %}
+{% endmacro %}
+{% block content %}
+{% set s = browse.summary %}
+<header class="page-head">
+  <h1>Insurers</h1>
+  <p class="lead">{% if s.rows %}Local partners of the international networks, from the Insurer Capability Database: {{ s.networks }} networks, {{ s.countries }} countries, {{ s.partners }} local partners.{% else %}No Insurer Capability Database loaded yet: upload the “All Networks” file on <a href="/uploads">Uploads</a>.{% endif %}</p>
+</header>
+
+{% if s.rows %}
+<form method="get" action="/insurers" class="card filter-bar">
+  <label class="small muted">Country
+    <select name="country" data-autosubmit>
+      <option value="">— choose a country —</option>
+      {% for c in browse.countries %}<option value="{{ c }}" {% if c == country %}selected{% endif %}>{{ c }}</option>{% endfor %}
+    </select></label>
+  <label class="small muted">Network
+    <select name="network" data-autosubmit>
+      <option value="">All networks</option>
+      {% for n in options.networks %}<option value="{{ n }}" {% if n == network %}selected{% endif %}>{{ n }}</option>{% endfor %}
+    </select></label>
+  <label class="small muted">Line of risk
+    <select name="line" data-autosubmit>
+      <option value="">All lines</option>
+      {% for l in options.lines %}<option value="{{ l }}" {% if l == line %}selected{% endif %}>{{ l }}</option>{% endfor %}
+    </select></label>
+  <noscript><button type="submit" class="btn">Show</button></noscript>
+</form>
+
+{% if view %}
+<section class="card spaced-card" aria-labelledby="c-h">
+  <h2 id="c-h">{{ country | flag }}{{ country }}: {{ view.partners | length }} local partner{{ "s" if view.partners | length != 1 }}{% if network %} of {{ network }}{% endif %}{% if line %} · {{ line }}{% endif %}</h2>
+  {% if view.without and not network %}<p class="muted small">No partner here: {{ view.without | join(", ") }}.</p>{% endif %}
+  {% for p in view.partners %}
+  <details class="ins-card" {% if view.partners | length <= 2 %}open{% endif %}>
+    <summary class="ins-name"><strong>{{ p.insurer }}</strong> {% for n in p.network_names %}<span class="pill pill-net">{{ n }}</span>{% endfor %}
+      <span class="muted small">fully insured on {{ p.local_lines }} of {{ p.lines }} lines · pooling on {{ p.pool_lines }}</span></summary>
+    {% if p.names | length > 1 %}<p class="muted small">Also written as: {{ p.names[1:] | join(" · ") }}</p>{% endif %}
+    <div class="table-scroll">
+      <table class="table cap-table">
+        <thead><tr>{% if p.networks | length > 1 %}<th scope="col">Network</th>{% endif %}<th scope="col">Line of risk</th>{% for _, label, _ in caps %}<th scope="col">{{ label }}</th>{% endfor %}<th scope="col">Comments</th></tr></thead>
+        <tbody>
+        {% for n in p.networks %}{% for r in n["lines"] %}
+          <tr>
+            {% if p.networks | length > 1 %}<td class="nowrap">{{ n.network if loop.first else "" }}</td>{% endif %}
+            <td>{{ r.line }}</td>
+            {% for f, _, sf in caps %}<td class="nowrap">{{ yn(r[f], r[f ~ "_text"], r[sf] if sf else none, r[sf ~ "_text"] if sf else none) }}</td>{% endfor %}
+            <td class="cap-comment">{{ r.comments or "" }}</td>
+          </tr>
+        {% endfor %}{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </details>
+  {% else %}<p class="muted">No local partner {% if network or line %}for this choice{% else %}in this country{% endif %}.</p>{% endfor %}
+  <p class="hint">Open a partner for its lines of risk. ✓ = yes (with the quota share when it is below 100 %), – = no, ? = not given. From the Insurer Capability Database (Uploads).</p>
+</section>
+{% else %}
+<section class="card spaced-card" aria-labelledby="r-h">
+  <h2 id="r-h">Countries</h2>
+  {% for region, items in browse.regions.items() %}
+  <h3 class="small muted">{{ region }}</h3>
+  <p class="country-list">{% for c in items %}<a href="/insurers?country={{ c.country | urlencode }}">{{ c.country | flag }}{{ c.country }} <span class="muted">({{ c.partners }})</span></a>{% endfor %}</p>
+  {% endfor %}
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}

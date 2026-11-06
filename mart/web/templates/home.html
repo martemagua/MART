@@ -99,7 +99,8 @@
       <div><div class="stat-value">{{ data.mine | length }}</div><div class="stat-label">client{{ "s" if data.mine | length != 1 }}</div></div>
       {% if data.totals.left_export %}<div><div class="stat-value">{{ data.totals.left_export }}</div><div class="stat-label">no longer in the export (kept)</div></div>{% endif %}
     </div>
-    {% if data.last_upload %}<p class="muted">Last upload {{ data.last_upload.committed_at | dmy(True) }}: {{ data.last_upload.filename }} (report date {{ data.last_upload.report_date | dmy }}).</p>{% endif %}
+    {% if data.last_upload %}<p class="muted">Last upload {{ data.last_upload.committed_at | dmy(True) }}: {{ data.last_upload.filename }}{% if data.last_upload.report_date %} (report date {{ data.last_upload.report_date | dmy }}){% endif %}.</p>{% endif %}
+    {% if data.capabilities.rows %}<p class="muted">Insurer Capability Database: {{ data.capabilities.partners }} local partners of {{ data.capabilities.networks }} networks in {{ data.capabilities.countries }} countries{% if data.capabilities.loaded_at %}, loaded {{ data.capabilities.loaded_at | dmy(True) }}{% endif %} · <a href="/insurers">Insurers →</a></p>{% endif %}
     <p><a href="/clients">All clients →</a> · <a href="/todos">All to-dos →</a> · <a href="/uploads">Uploads</a></p>
   </section>
   {% else %}

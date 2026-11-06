@@ -14,13 +14,13 @@
     <h2 id="up-h">Upload a tracker</h2>
     <form method="post" action="/uploads" enctype="multipart/form-data" class="form" data-dropzone>
       <div class="field">
-        <label for="file">Renewal Tracker or Task Tracker exports (.xlsx)</label>
+        <label for="file">Renewal Tracker, Task Tracker or Insurer Capability Database (.xlsx)</label>
         <div class="dropzone" data-drop-area>
           <p class="dropzone-text"><strong>Drop tracker files here</strong> or choose them:</p>
           <input id="file" name="file" type="file" accept=".xlsx" multiple required>
           <p class="dropzone-status small" data-drop-status role="status" hidden></p>
         </div>
-        <p class="hint">Drop or select one file or several at once (e.g. all your single-client exports). Cross-client and single-client exports both work; MART recognises the tracker. The files themselves are not kept, only what MART reads from them.</p>
+        <p class="hint">Drop or select one file or several at once (e.g. all your single-client exports). Cross-client and single-client exports both work; MART recognises the tracker, and also takes the Insurer Capability Database (“All Networks”). The files themselves are not kept, only what MART reads from them.</p>
       </div>
       <div class="actions"><button type="submit" class="btn btn-primary">Upload and preview</button></div>
     </form>
@@ -58,8 +58,8 @@
       {% for u in waiting %}
         <tr>
           <td class="col-text" title="{{ u.filename }}">{{ u.filename }}</td>
-          <td class="nowrap">{{ "Task Tracker" if u.tracker == "task_tracker" else "Renewal Tracker" }}</td>
-          <td class="nowrap">{{ "Cross-client" if u.flavour == "cross_client" else (u.preview.title or "One client") }}</td>
+          <td class="nowrap">{{ tracker_label(u.tracker) }}</td>
+          <td class="nowrap">{{ "All clients" if u.flavour == "reference" else "Cross-client" if u.flavour == "cross_client" else (u.preview.title or "One client") }}</td>
           <td class="nowrap">{{ u.report_date | dmy }}</td>
           <td class="num">{{ u.preview["items"] or u.preview.renewals }}</td>
           <td class="nowrap"><a href="/uploads/{{ u.id }}">Open the preview →</a></td>
@@ -85,12 +85,13 @@
         <tr>
           <td class="nowrap">{{ u.staged_at | dmy(True) }}</td>
           <td class="col-text" title="{{ u.filename }}"><a href="/uploads/{{ u.id }}">{{ u.filename }}</a></td>
-          <td class="nowrap">{{ "Task Tracker" if u.tracker == "task_tracker" else "Renewal Tracker" }}</td>
-          <td class="nowrap">{{ "Cross-client" if u.flavour == "cross_client" else "One client" }}</td>
+          <td class="nowrap">{{ tracker_label(u.tracker) }}</td>
+          <td class="nowrap">{{ "All clients" if u.flavour == "reference" else "Cross-client" if u.flavour == "cross_client" else "One client" }}</td>
           <td class="nowrap">{{ u.report_date | dmy }}</td>
           <td><span class="pill pill-{{ u.status }}">{{ {"staged": "waiting for you", "committed": "loaded", "discarded": "discarded"}[u.status] }}</span></td>
           <td class="col-text">
-            {% if u.status == "committed" %}{{ u.summary.clients_loaded | length }} clients · {{ u.summary.new }} new · {{ u.summary.changed + u.summary.returned }} changed
+            {% if u.status == "committed" and u.summary.rows is defined %}{{ u.summary.rows }} partner rows · {{ u.summary.new }} new · {{ u.summary.changed }} changed
+            {% elif u.status == "committed" %}{{ u.summary.clients_loaded | length }} clients · {{ u.summary.new }} new · {{ u.summary.changed + u.summary.returned }} changed
             {% elif u.status == "staged" %}<a href="/uploads/{{ u.id }}">Open the preview →</a>{% endif %}
           </td>
         </tr>

@@ -587,3 +587,16 @@ h3 .fr-badge { vertical-align: 2px; margin-left: 4px; }
 .prop-actions form { margin: 0; }
 .icon-btn.is-on { color: var(--ok-ink); }
 .prop-pill { white-space: normal; }
+
+/* -- Insurers (the Insurer Capability Database) -- */
+.filter-bar { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: flex-end; }
+.filter-bar label { display: flex; flex-direction: column; gap: 4px; min-width: 200px; }
+.ins-card { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 12px; }
+.ins-name { margin: 0 0 6px; font-size: 15px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; cursor: pointer; }
+.pill-net { background: var(--accent-soft); color: var(--accent); }
+.cap-yes { color: var(--ok-ink); font-weight: 600; }
+.cap-no { color: var(--muted); }
+.cap-comment { font-size: 13px; color: var(--ink-2); min-width: 200px; }
+.country-list { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 4px 0 12px; }
+.country-list a { text-decoration: none; }
+.prop-context { margin: 2px 0 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
