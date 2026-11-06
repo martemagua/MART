@@ -4,7 +4,7 @@ A local web app to run the renewal lifecycle: the real state of every
 renewal, broker deadlines, follow-ups, notes and to-dos, built on the BM+
 tracker exports. Runs on the work laptop with nothing installed.
 
-**Status:** M3 · day 3 (the Insurer Capability Database; 0.9.7: a proposal holds its negotiation, first to final quote; day 2: proposals compared; day 1: your strategy, completed) — next: day 4, plan design changes. See `BUILD_PLAN_M3.md`.
+**Status:** M3 · day 3 (the Insurer Capability Database; 0.9.7: a proposal holds its negotiation, first to final quote; 0.9.8: strategy, proposals and completed for several renewals at once; day 2: proposals compared; day 1: your strategy, completed) — next: day 4, plan design changes. See `BUILD_PLAN_M3.md`.
 
 ## Use it
 

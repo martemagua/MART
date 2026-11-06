@@ -84,6 +84,7 @@
 
   {# ── middle: the selected bundle ─────────────────────────────────────── #}
   <section class="bundle-view" aria-live="polite">
+    {% if notice %}<div class="notice notice-ok" role="status">{{ notice }}</div>{% endif %}
     {% if client_mine %}
     <header class="bundle-head"><div><h2 class="bundle-title">{{ client.name }}</h2>
       <p class="muted">About the client as a whole. Notes on a single renewal or bundle go there.</p></div></header>
@@ -110,7 +111,7 @@
           </form>
         </details>
         {% if s.renewals and not editing %}
-        <a class="btn btn-small title-action" href="{{ base }}?bundle={{ s.key | urlencode }}{{ q_all }}&edit=1" title="Select renewals and move them to another bundle">Move renewals…</a>
+        <a class="btn btn-small title-action" href="{{ base }}?bundle={{ s.key | urlencode }}{{ q_all }}&edit=1" title="Tick renewals (or all of them) to set their strategy, add a proposal, mark them completed or move them">Edit renewals…</a>
         {% endif %}
         </div>
         <p class="muted">
@@ -144,15 +145,16 @@
     {% if not s.renewals %}
     <div class="card empty"><p>No renewals left in this bundle: they were moved to other bundles. Its notes and to-dos stay here.</p></div>
     {% elif editing %}
-    {% from "partials/move.html" import move_form %}
-    {{ move_form(base, s, "move-form", here, done=base ~ "?bundle=" ~ (s.key | urlencode) ~ q_all) }}
+    {% from "partials/bulk.html" import bulk_bar %}
+    {{ bulk_bar(base, s, here, base ~ "?bundle=" ~ (s.key | urlencode) ~ q_all) }}
+    {% if bulk_insurers %}<datalist id="insurer-options">{% for p in bulk_insurers.partners %}<option value="{{ p.insurer }}">{{ p.network_names | join(", ") }} network</option>{% endfor %}{% for i in bulk_insurers.insurers %}{% if not bulk_insurers.partners | selectattr("insurer", "equalto", i) | list %}<option value="{{ i }}">{% endif %}{% endfor %}</datalist>{% endif %}
     {% endif %}
 
     <div class="renewal-list">
       {% for r in s.renewals %}
       <article class="renewal-card {{ 'st-mine' if r.actual.strategy else r.actual.effective | strategy_class }}{% if not r.in_latest_export %} is-left{% endif %}{% if editing %} is-picking{% endif %}" id="r{{ r.id }}">
         <div class="rc-name-row">
-          {% if editing %}<input type="checkbox" name="renewal" value="{{ r.id }}" form="move-form" class="rc-pick" aria-label="Select {{ r.policy_name }} to move" title="Select to move to another bundle">{% endif %}
+          {% if editing %}<input type="checkbox" name="renewal" value="{{ r.id }}" form="bulk-form" class="rc-pick" aria-label="Select {{ r.policy_name }}" title="Select for the edit bar's actions">{% endif %}
           <a class="rc-name" href="/clients/{{ client.id }}/renewals/{{ r.id }}{{ q_all1 }}" title="Open the renewal: {{ r.policy_name }}">{{ r.policy_name or "—" }}</a>
           {{ links_menu(r.links, "Links for " ~ (r.policy_name or "this renewal")) }}
         </div>
