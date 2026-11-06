@@ -183,6 +183,7 @@ def test_each_column_says_what_it_means(app):
     cid, _ = _book()
     assert board.HINTS["decision"].startswith("The final proposals from the insurer(s) are in")
     page = get(app, f"/clients/{cid}/board").body_bytes.decode()
-    assert page.count('class="board-col-hint"') == 7
+    assert page.count('<span class="info" tabindex="0" role="note"') == 7            # behind an ⓘ, not shown
+    assert 'data-col-label="Decision"' in page
     assert "check that the policy documents are uploaded to BM+" in page
     assert 'data-hint="The renewal has not been kicked off."' in page and "data-hint-text" in page

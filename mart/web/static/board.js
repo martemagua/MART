@@ -62,9 +62,8 @@
       field("stage").value = stage;
       field("reason").value = "";
       dialog.querySelector("[data-move-what]").textContent = dragged.getAttribute("data-name");
-      dialog.querySelector("[data-move-to]").textContent = col.querySelector(".board-col-title").firstChild.textContent.trim();
-      var hint = col.querySelector(".board-col-hint");
-      dialog.querySelector("[data-move-hint]").textContent = hint ? hint.textContent : "";
+      dialog.querySelector("[data-move-to]").textContent = col.getAttribute("data-col-label");
+      dialog.querySelector("[data-move-hint]").textContent = col.getAttribute("data-col-hint") || "";
       var open = parseInt(dragged.getAttribute("data-open") || "0", 10);
       var box = dialog.querySelector("[data-move-complete]");
       box.hidden = !(stage === "done" && open > 0);

@@ -6,6 +6,17 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.16 — 06.11.2026 · the column meanings behind an ⓘ
+
+### Changed
+- The board's column meanings are no longer always shown (Martin,
+  06.11.2026): an ⓘ beside each column's name shows the line on hover or
+  click, like the other ⓘ in MART. The window after a drag and the stage
+  forms still show the meaning of the stage picked.
+
+### What to try
+1. Board → hover (or click) the ⓘ beside "Decision".
+
 ## 0.9.15 — 06.11.2026 · what each board column means
 
 ### Added

@@ -84,11 +84,10 @@
 
 <div class="board" id="board" data-board data-dialog="#board-move">
   {% for col in columns %}
-  <section class="board-col" data-col-drop="{{ col.key }}" data-filter-col aria-labelledby="col-{{ col.key }}">
-    <div class="board-col-head">
-      <h2 class="board-col-title" id="col-{{ col.key }}">{{ col.label }} <span class="count" data-filter-count>{{ col.cards | length }}</span></h2>
-      <p class="board-col-hint">{{ col.hint }}</p>
-    </div>
+  <section class="board-col" data-col-drop="{{ col.key }}" data-col-label="{{ col.label }}" data-col-hint="{{ col.hint }}" data-filter-col aria-labelledby="col-{{ col.key }}">
+    <h2 class="board-col-title"><span class="bct-label"><span id="col-{{ col.key }}">{{ col.label }}</span>
+      <span class="info" tabindex="0" role="note" aria-label="{{ col.hint }}">i<span class="tip">{{ col.hint }}</span></span></span>
+      <span class="count" data-filter-count>{{ col.cards | length }}</span></h2>
     <div class="board-cards" data-col-cards>
       {% for b in col.cards %}{{ card(b) }}{% endfor %}
     </div>
