@@ -125,3 +125,28 @@ def test_start_backs_up_before_an_upgrade(configured):
     assert len(backups) == 2                        # before (old schema) + after
     # nothing to upgrade the next time: only the start backup (unchanged)
     assert not any("Before the upgrade" in x for x in prepare_database(configured))
+
+
+def test_unpacked_over_a_running_mart_asks_for_a_restart(tmp_path, configured):
+    """Martin, 06.11.2026: a newer zip unpacked while MART ran mixed the new
+    pages with the old code. Every page now says to start MART again."""
+    import os
+
+    from mart import __version__
+    from mart.web.app import App as WebApp
+    from mart.web.app import build_router, version_on_disk
+    from tests.conftest import get
+
+    code = tmp_path / "__init__.py"
+    code.write_text(f'"""MART."""\n__version__ = "{__version__}"\n', encoding="utf-8")
+    app = WebApp(build_router(), code_file=code)
+    assert get(app, "/").status == 200
+    code.write_text('__version__ = "99.0.0"\nRELEASE_LABEL = "x"\n', encoding="utf-8")
+    os.utime(code, (1, 1))                       # a different mtime, whatever the clock
+    assert version_on_disk(code) == "99.0.0"
+    res = get(app, "/clients")
+    page = res.body_bytes.decode()
+    assert res.status == 503 and "Start MART again" in page and "99.0.0" in page and __version__ in page
+    assert get(app, "/health").status == 200     # still answers "is MART running?"
+    code.unlink()                                # unreadable: carry on as before
+    assert get(app, "/").status == 200

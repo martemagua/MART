@@ -4,6 +4,13 @@
 
 {% set _pen %}<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M11.7 1.3a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4l-8.6 8.6-3.4.8.8-3.4 8.2-8.6zM3.6 11l-.4 1.8 1.8-.4L12.6 4.8 11.2 3.4 3.6 11z"/></svg>{% endset %}
 
+{# Martin's own strategy is drawn NEUTRAL with a ✎ (Martin, 06.11.2026), so it
+   never looks like one BM+ set; BM+'s keep their colours. #}
+{% macro strategy_pill(value, mine, n=1) %}
+{% if mine %}<span class="pill pill-st st-mine" title="Your strategy, set in MART">✎ {{ value }}{% if n > 1 %} ×{{ n }}{% endif %}</span>
+{% else %}<span class="pill pill-st {{ value | strategy_class }}" title="Upcoming renewal strategy (BM+)">{{ value or "—" }}{% if n > 1 %} ×{{ n }}{% endif %}</span>{% endif %}
+{% endmacro %}
+
 {# How Martin's strategy stands against BM+'s, in one pill. #}
 {% macro strategy_vs_bm(a) %}
 {% if a.state == "behind" %}<span class="pill pill-warn" title="BM+ hasn't caught up with your strategy yet">≠ BM+: {{ a.bm_strategy or "blank" }}</span>
@@ -14,9 +21,9 @@
 
 {# The renewal card's strategy cell: Martin's wins, BM+'s beside it. #}
 {% macro strategy_cell(a) %}
-<span class="pill pill-st {{ a.effective | strategy_class }}" title="{{ 'Your strategy' if a.strategy else 'Upcoming renewal strategy (BM+)' }}">{{ a.effective or "—" }}</span>
+{{ strategy_pill(a.effective, a.strategy) }}
 {% if a.differs %}<div class="rc-sub act-differs" title="{{ 'BM+ changed since you set yours' if a.state == 'conflict' else 'BM+ has not caught up yet' }}: BM+ says {{ a.bm_strategy or 'nothing' }}">≠ BM+: {{ a.bm_strategy or "blank" }}</div>
-{% elif a.strategy %}<div class="rc-sub">yours{{ " · BM+ caught up" if a.caught_up }}</div>{% endif %}
+{% elif a.strategy %}<div class="rc-sub">set by you{{ " · BM+ caught up" if a.caught_up }}</div>{% endif %}
 {% endmacro %}
 
 {% macro completed_badge(a) %}
@@ -39,16 +46,19 @@
   <h3 id="actual-h">Actual state <span class="sec-src">written in MART · BM+ stays the record</span></h3>
   <div class="act-row">
     <span class="act-label">Strategy</span>
-    {% if a.strategy %}<span class="pill pill-st {{ a.strategy | strategy_class }}">{{ a.strategy }}</span>{{ strategy_vs_bm(a) }}
+    {% if a.strategy %}{{ strategy_pill(a.strategy, true) }}{{ strategy_vs_bm(a) }}
     {% else %}<span class="muted small">not set — going by BM+ ({{ a.bm_strategy or "blank" }})</span>{% endif %}
     <details class="arrange">
       <summary class="icon-btn" title="{{ 'Change your strategy' if a.strategy else 'Set your strategy' }}" aria-label="{{ 'Change your strategy' if a.strategy else 'Set your strategy' }}">{{ _pen }}</summary>
       <form method="post" action="{{ base }}/renewals/{{ r.id }}/strategy" class="arrange-box stack-form">
         <input type="hidden" name="back" value="{{ back }}">
-        <label class="small muted">Your strategy <input type="text" name="strategy" list="strategy-options" maxlength="120" value="{{ a.strategy or '' }}" placeholder="{{ a.bm_strategy or 'e.g. Remarketing' }}" data-focus-on-open></label>
-        <datalist id="strategy-options">{% for s in strategies %}<option value="{{ s }}">{% endfor %}</datalist>
+        <label class="small muted">Your strategy <select name="strategy" data-focus-on-open>
+          <option value="">— go by BM+ ({{ a.bm_strategy or "blank" }}) —</option>
+          {% for s in strategies %}<option value="{{ s }}" {% if a.strategy == s %}selected{% endif %}>{{ s }}</option>{% endfor %}
+          {% if a.strategy and a.strategy not in strategies %}<option value="" selected disabled>{{ a.strategy }} (no longer offered)</option>{% endif %}
+        </select></label>
         <label class="small muted">Why (optional) <input type="text" name="reason" maxlength="500" value="{{ a.strategy_reason or '' }}" placeholder="e.g. agreed with HR on the call of 28.10"></label>
-        <p class="hint">BM+ says: {{ a.bm_strategy or "nothing yet" }}. Leave it empty to go by BM+'s again.</p>
+        <p class="hint">BM+ says: {{ a.bm_strategy or "nothing yet" }}. Pick "go by BM+" to drop yours.</p>
         <div class="actions"><button type="submit" class="btn btn-small btn-primary">Save</button></div>
       </form>
     </details>

@@ -13,6 +13,9 @@
 * On the board and the cards **Martin's strategy wins**; BM+ stays the record
   and is shown beside it.
 
+Martin's strategy is drawn NEUTRAL with a ✎ (Martin, 06.11.2026), so it never
+looks like one BM+ set; BM+'s keep their colours (`web/colors.py`).
+
 Append-only (`actuals_repo`): changing or clearing a value adds a row.
 """
 
@@ -26,10 +29,10 @@ from mart.repository import actuals_repo, clients_repo, renewals_repo
 from mart.repository.db import connection
 
 FIELDS = ("strategy", "completed")
-# BM+'s Upcoming Renewal Strategy values (the same list as web/colors.py)
+# What Martin can pick (a single dropdown, Martin 06.11.2026): BM+'s Upcoming
+# Renewal Strategy values, with "Canceled" in place of "Unknown / New Policy".
 STRATEGIES = ("Remarketing", "Incumbent without Rate Guarantee", "Incumbent with Rate Guarantee",
-              "Non-expiring", "Unknown / New Policy", "TBC")
-STRATEGY_MAX = 120
+              "Non-expiring", "Canceled", "TBC")
 REASON_MAX = 500
 
 
@@ -76,6 +79,8 @@ def view(rows: list[dict[str, Any]], bm_strategy: str | None,
     state = strategy_state(s["value"] if s else None, s["bm_value"] if s else None, bm_strategy)
     return {
         "strategy": s["value"] if s else None,
+        # (strategy, set by Martin?): the side panel's dots and the bundle's mix
+        "key": ((s["value"] if s else None) or bm_strategy, bool(s)),
         "strategy_reason": s["reason"] if s else None,
         "strategy_set_at": s["created_at"] if s else None,
         "bm_strategy": bm_strategy,
@@ -115,8 +120,11 @@ def _renewals_of_mine(conn, client_id: int, renewal_ids: list[int]) -> list[dict
 
 
 def set_strategy(client_id: int, renewal_id: int, value: str | None, reason: str | None = None) -> None:
-    """Martin's strategy for a renewal; empty clears it (BM+'s shows again)."""
-    value = _clean(value, STRATEGY_MAX, "The strategy")
+    """Martin's strategy for a renewal, one of STRATEGIES; empty clears it
+    (BM+'s shows again)."""
+    value = (value or "").strip() or None
+    if value is not None and value not in STRATEGIES:
+        raise Invalid("Pick one of the strategies in the list.")
     reason = _clean(reason, REASON_MAX, "The reason")
     with connection() as conn:
         r = _renewals_of_mine(conn, client_id, [renewal_id])[0]

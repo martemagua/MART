@@ -7,31 +7,54 @@ Every request goes through `App.handle()`:
    server.
 2. **Origin check on POST**: a form may only be posted from MART's own
    pages, so another website open in the browser can't change anything.
-3. **Setup gate**: until MART is set up, every page leads to /setup.
-4. Routing; any unexpected error becomes a readable error page, and the
+3. **Updated while running**: if a newer MART was unpacked over this one
+   while it runs, the pages (re-read from disk on every request) no longer
+   match the code (read once at start). Every page then says "start MART
+   again" instead of failing (Martin, 06.11.2026).
+4. **Setup gate**: until MART is set up, every page leads to /setup.
+5. Routing; any unexpected error becomes a readable error page, and the
    details go to the error log in the data folder.
 """
 
 from __future__ import annotations
 
+import html
+import re
 import traceback
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlsplit
 
+import mart
+from mart import __version__
 from mart import settings as settings_mod
 from mart.web import templating
 from mart.web.framework import HTTPError, Request, Response, Router
 
 # Paths that work before MART is set up.
 _OPEN_PATHS = ("/setup", "/health")
+_VERSION_RE = re.compile(r'^__version__\s*=\s*["\']([^"\']+)["\']', re.M)
+
+
+def version_on_disk(code_file: Path) -> str | None:
+    """The version written in mart/__init__.py on disk now (None if unreadable)."""
+    try:
+        m = _VERSION_RE.search(code_file.read_text(encoding="utf-8"))
+    except OSError:
+        return None
+    return m.group(1) if m else None
 
 
 class App:
-    def __init__(self, router: Router, allowed_hosts: set[str] | None = None):
+    def __init__(self, router: Router, allowed_hosts: set[str] | None = None,
+                 code_file: Path | None = None):
         self.router = router
         # None = don't check (tests calling handle() directly).
         self.allowed_hosts = allowed_hosts
+        # the running code's own version file; read again only when it changes
+        self.code_file = code_file or Path(mart.__file__)
+        self._code_stamp: float | None = None
+        self._disk_version: str | None = __version__
 
     # -- the rules -----------------------------------------------------------
     def _host_ok(self, request: Request) -> bool:
@@ -56,6 +79,33 @@ class App:
             return None
         return ref.path + (f"?{ref.query}" if ref.query else "")
 
+    def _updated_to(self) -> str | None:
+        """The newer version unpacked over the running one, else None. One
+        stat() per request; the file is read only when it changed."""
+        try:
+            stamp = self.code_file.stat().st_mtime
+        except OSError:
+            return None
+        if stamp != self._code_stamp:
+            self._code_stamp = stamp
+            self._disk_version = version_on_disk(self.code_file)
+        disk = self._disk_version
+        return disk if disk and disk != __version__ else None
+
+    @staticmethod
+    def _restart_page(newer: str) -> Response:
+        """Plain HTML on purpose: the templates on disk belong to the NEW
+        version and may not work with the code still running."""
+        body = (
+            "<!doctype html><html lang='en'><head><meta charset='utf-8'><title>Start MART again</title>"
+            "<style>body{font:16px/1.5 system-ui,sans-serif;max-width:40em;margin:4em auto;padding:0 1em}"
+            "code{background:#eef0f3;padding:0 4px;border-radius:3px}</style></head><body>"
+            f"<h1>Start MART again</h1><p>MART {html.escape(newer)} was unpacked while MART "
+            f"{html.escape(__version__)} was still running.</p>"
+            "<p><strong>Close the MART window</strong> (the black one), then start MART again with "
+            "<code>MART.bat</code>. Nothing was lost: your data is untouched.</p></body></html>")
+        return Response(body, 503)
+
     # -- dispatch ------------------------------------------------------------
     def handle(self, request: Request) -> Response:
         try:
@@ -63,6 +113,9 @@ class App:
                 raise HTTPError(403, "This address is not served by MART.")
             if not self._origin_ok(request):
                 raise HTTPError(403, "Changes can only be made from MART's own pages.")
+            newer = self._updated_to()
+            if newer and request.path != "/health":
+                return self._restart_page(newer)
             if settings_mod.load() is None and not request.path.startswith(_OPEN_PATHS):
                 return Response.redirect("/setup")
             handler, params = self.router.match(request.method, request.path)

@@ -117,7 +117,14 @@ input {
   font: inherit; color: var(--ink); background: var(--surface);
   border: 1px solid var(--border); border-radius: 8px; min-height: 40px; padding: 0 12px; width: 100%;
 }
-input:focus-visible, .btn:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* every dropdown looks like the text fields (Martin, 06.11.2026); the
+   smaller ones (side panel, move bar, to-do edit row) set their own size */
+select {
+  font: inherit; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--border); border-radius: 8px; min-height: 40px; padding: 0 10px;
+}
+.stack-form select { width: 100%; }
+input:focus-visible, select:focus-visible, .btn:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .hint { margin: 0; font-size: 13px; color: var(--muted); }
 .actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .btn {
@@ -544,3 +551,7 @@ h3 .fr-badge { vertical-align: 2px; margin-left: 4px; }
 .act-differs { color: var(--warn-ink); font-weight: 600; }
 .mix dd details.arrange { display: inline-block; }
 .bundle-meta .count.is-done { background: var(--ok-bg); color: var(--ok-ink); }
+/* Martin's own strategy: neutral, dashed, with a ✎ — never BM+'s colours */
+.st-mine { --st: var(--st-none); --st-bg: var(--st-none-bg); }
+.pill-st.st-mine { border: 1px dashed var(--st-none); }
+.st-dot.st-mine { background: transparent; border: 1.5px solid var(--st-none); box-sizing: border-box; }

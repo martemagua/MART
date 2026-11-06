@@ -50,8 +50,9 @@ def test_strategy_state_rules():
     assert actuals.stages_done(done)
     assert not actuals.stages_done([{"state": "done"}, {"state": "doing"}])
     assert not actuals.stages_done([{"state": "skipped"}]) and not actuals.stages_done([])
-    # the strategies offered are the ones MART colours
-    assert {colors.strategy_class(s) for s in actuals.STRATEGIES} == set(colors.STRATEGY_CLASSES.values())
+    # one fixed list (Martin, 06.11.2026): BM+'s, with Canceled for Unknown / New Policy
+    assert "Canceled" in actuals.STRATEGIES and "Unknown / New Policy" not in actuals.STRATEGIES
+    assert all(colors.strategy_class(s) != "st-none" for s in actuals.STRATEGIES if s != "Canceled")
 
 
 def test_my_strategy_wins_until_bm_catches_up_and_survives_uploads():
@@ -80,7 +81,9 @@ def test_my_strategy_wins_until_bm_catches_up_and_survives_uploads():
 def test_bundle_strategy_mix_goes_by_mine():
     cid, ids = _book(med="TBC")
     actuals.set_strategy(cid, ids["Medical"], "Remarketing")
-    assert cs.explorer(cid, bundle=POLAND)["selected"]["strategies"] == {"Remarketing": 2}
+    # mine and BM+'s are counted apart: mine is drawn neutral
+    assert cs.explorer(cid, bundle=POLAND)["selected"]["strategies"] == {("Remarketing", True): 1,
+                                                                        ("Remarketing", False): 1}
 
 
 def test_completed_on_a_renewal_and_on_the_whole_bundle(app):
@@ -132,4 +135,13 @@ def test_panel_and_card_show_it(app):
     assert panel.index("Actual state") < panel.index('id="facts-h"')          # in the "yours" slot
     card = get(app, f"{base}?bundle=Poland%7C2027-01-01").body_bytes.decode()
     assert "≠ BM+: TBC" in card
-    assert post(app, f"{base}/renewals/{ids['Medical']}/strategy", {"strategy": "x" * 200}).status == 400
+    # set by you: neutral with a ✎, never BM+'s colour
+    assert 'class="pill pill-st st-mine"' in card and "✎ Remarketing" in card and "set by you" not in card
+    assert 'renewal-card st-mine' in card
+    # only the listed strategies; "Canceled" is one of them
+    res = post(app, f"{base}/renewals/{ids['Medical']}/strategy", {"strategy": "Something else"})
+    assert res.status == 400
+    actuals.set_strategy(cid, ids["Life"], "Canceled")
+    assert _card(cid, "Life")["actual"]["state"] == "behind"
+    assert 'class="pill pill-st st-mine" title="Your strategy, set in MART">✎ Canceled' in \
+        get(app, f"{base}?bundle=Poland%7C2027-01-01").body_bytes.decode()

@@ -6,6 +6,58 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.3 — 06.11.2026 · fix: dropdowns look like the rest of MART
+
+### Fixed
+- **The strategy dropdown was a slim grey rectangle** (the browser's own
+  look). Every dropdown now has the same height, border, corners and
+  colours as MART's text fields, including the urgency dropdown when you
+  add a to-do; the smaller ones (side panel, move bar, to-do edit row) keep
+  their size.
+
+### What to try
+1. Unpack 0.9.3 **while MART 0.9.2 is still open**: the page should ask
+   you to start MART again (the check added in 0.9.2). Close MART, start it.
+2. Open ✎ on a renewal's strategy, and "+ To-do": the dropdowns match the
+   fields around them.
+
+## 0.9.2 — 06.11.2026 · fix: a new version unpacked while MART runs
+
+### Fixed
+- **"Something went wrong" on the client pages after unpacking 0.9.1.**
+  The new files were unpacked while MART 0.9.0 was still running. MART
+  re-reads its pages on every request but its code only at start, so the
+  new pages met the old code (`not enough values to unpack` in the error
+  log). Nothing was wrong with the data. Now MART notices it: if a newer
+  version is unpacked over the one running, every page says **"Start MART
+  again"** (close the MART window, start `MART.bat`) instead of failing.
+  This works from this version on, so this time close MART before
+  unpacking 0.9.2.
+
+### What to try
+1. Close MART, unpack 0.9.2, start it: the client pages work again.
+2. Next time, unpack a new version while MART is still open: the page
+   asks you to start MART again.
+
+## 0.9.1 — 06.11.2026 · M3 day 1 · your strategy looks like yours
+
+From Martin's notes on 0.9.0.
+
+### Changed
+- **Your strategy no longer looks like BM+'s.** Wherever it shows (the
+  card, the renewal panel, the bundle's strategy mix, the side panel's dots
+  and the card's left edge) it is drawn **neutral, with a dashed border and
+  a ✎**: "✎ Remarketing". BM+'s strategies keep their colours.
+- **One dropdown, no free text.** Your strategy is picked from a single list:
+  Remarketing · Incumbent without Rate Guarantee · Incumbent with Rate
+  Guarantee · Non-expiring · **Canceled** (in place of "Unknown / New
+  Policy") · TBC. The first entry, "go by BM+", drops yours.
+
+### What to try
+1. Set a strategy on a renewal and check it reads as yours at a glance, on
+   the card and in the bundle header.
+2. Open the ✎ again: the list, with "Canceled".
+
 ## 0.9.0 — 05.11.2026 · M3 day 1 · actual state
 
 ### Added
