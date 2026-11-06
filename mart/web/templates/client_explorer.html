@@ -32,6 +32,7 @@
       <span class="cn-text"><span class="cn-title">Client notes &amp; to-dos</span><span class="cn-sub">about {{ client.name }} as a whole</span></span>
       {{ mine_badges(client_counts) }}</a>
     <p class="client-pages">
+      <a class="client-pages-link" href="{{ base }}/board" title="A card per bundle, in its actual stage">Board →</a>
       <a class="client-pages-link {% if plan_overview %}is-selected{% endif %}" href="{{ base }}/plan-changes{{ q_all1 }}">Plan design changes →</a>
       <a class="client-pages-link {% if region_page %}is-selected{% endif %}" href="{{ base }}/regions{{ q_all1 }}" title="This client's own regions, per country">Regions →</a>
     </p>
@@ -140,6 +141,8 @@
       {% if s.renewals %}
       <dl class="mix">
         <div><dt>Strategy</dt><dd>{% for (k, mine), n in s.strategies.most_common() %}{{ strategy_pill(k, mine, n) }}{% endfor %}</dd></div>
+        {% set bst = s.stage %}
+        <div><dt>Board</dt><dd><a class="pill {{ 'st-mine' if bst.mine else 'pill-soft' }}" href="{{ base }}/board" title="{% if bst.mine %}Stage set by you{% if bst.row.reason %}: {{ bst.row.reason }}{% endif %} · BM+: {{ board_labels[bst.bm] }}{% else %}Where BM+'s tasks put it (the least advanced renewal){% endif %}">{{ "✎ " if bst.mine }}{{ board_labels[bst.column] }}</a></dd></div>
         <div><dt>BM+ workflow</dt><dd>{% for k, n in s.statuses.most_common() %}<span class="pill pill-soft">{{ k }}{% if n > 1 %} ×{{ n }}{% endif %}</span>{% endfor %}</dd></div>
         <div><dt>Proposals</dt><dd>{% if s.proposal_count %}<span class="muted small" title="{{ s.proposal_insurers | join(', ') }}">{{ s.proposal_count }} from {{ s.proposal_insurers | length }} insurer{{ "s" if s.proposal_insurers | length != 1 }}</span>{% else %}<span class="muted small">none yet</span>{% endif %}</dd></div>
         {% set pdc = s.pdc_counts %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Board{% endblock %}
+{% block content %}
+<header class="page-head">
+  <h1>Board</h1>
+  <p class="lead">One board per client: a card per bundle, in its actual stage. Pick a client.</p>
+</header>
+{% if clients %}
+<section class="card">
+  <ul class="board-clients">
+    {% for c in clients %}
+    <li><a href="/clients/{{ c.id }}/board"><strong>{{ c.name }}</strong></a>
+      <span class="muted small">{{ c.bundles }} bundle{{ "s" if c.bundles != 1 }} · {{ c.renewals }} renewal{{ "s" if c.renewals != 1 }}{% if c.next_renewal %} · next {{ c.next_renewal | dmy }}{% endif %}</span></li>
+    {% endfor %}
+  </ul>
+</section>
+{% else %}
+<section class="card empty">
+  <h2>No clients yet</h2>
+  <p>Upload a Renewal Tracker and tick your clients in the preview.</p>
+  <p><a class="btn btn-primary" href="/uploads">Upload a tracker</a></p>
+</section>
+{% endif %}
+{% endblock %}

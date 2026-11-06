@@ -17,6 +17,7 @@ from typing import Any
 from mart.ingestion import overview as ov
 from mart.repository import (
     actuals_repo,
+    board_repo,
     bundles_repo,
     clients_repo,
     deadlines_repo,
@@ -29,6 +30,7 @@ from mart.repository import (
 from mart.repository.db import connection
 from mart.services import (
     actuals,
+    board,
     deadlines,
     freshness,
     plan_changes,
@@ -133,12 +135,13 @@ def _new_bundle(key: str, country: str, today: date, custom: dict[str, Any] | No
     return {"key": key, "country": country, "renewal_date": None, "last_date": None, "days_until": None,
             "extra": custom["name"] if custom else (name or ""),
             "custom_id": custom["id"] if custom else None,
-            "renewals": [], "flags": Counter(), "left": 0, "completed": 0, "search": []}
+            "renewals": [], "flags": Counter(), "left": 0, "completed": 0, "search": [],
+            "columns": [], "stage_lists": [], "proposal_count": 0, "proposal_insurers": set(), "differs": 0}
 
 
 def explorer(client_id: int, bundle: str | None = None,
              show_all: bool = False, today: date | None = None,
-             renewal_id: int | None = None) -> dict[str, Any]:
+             renewal_id: int | None = None, with_detail: bool = True) -> dict[str, Any]:
     """The explorer's side panel (bundles, grouped) and the selected bundle:
     the one asked for, else the one holding `renewal_id`, else the first in
     the panel. A renewal is in its default bundle (country + date) unless Martin
@@ -160,12 +163,15 @@ def explorer(client_id: int, bundle: str | None = None,
         actual_rows = actuals_repo.for_client(conn, client_id)
         proposal_rows = proposals_repo.for_client(conn, client_id)
         change_rows = plan_changes_repo.for_client(conn, client_id)
+        stage_rows = board_repo.current(conn, client_id)
 
     lim = freshness.limits(today)
     fresh_of = {r["id"]: freshness.of(freshness.latest(r["fields"]), lim) for r in renewals}
     left_count = sum(1 for r in renewals if not r["in_latest_export"])
     shown = [r for r in renewals if show_all or r["in_latest_export"]]
     linked = renewal_service.link_tasks(shown, tasks)
+    stage_of = {r["id"]: renewal_service.stages(linked[r["id"]], today, r.get("upcoming_strategy"))
+                for r in shown}
 
     bundles: dict[str, dict[str, Any]] = {}
     where: dict[int, str] = {}
@@ -184,6 +190,13 @@ def explorer(client_id: int, bundle: str | None = None,
         r["actual"] = actuals.view(actual_rows.get(r["id"], []), r.get("upcoming_strategy"))
         b["renewals"].append(r)
         b["completed"] += int(bool(r["actual"]["completed"]))
+        b["differs"] += int(r["actual"]["differs"])
+        # the board (day 6): where this renewal stands, and what was received
+        b["stage_lists"].append(stage_of[r["id"]])
+        b["columns"].append(board.renewal_column(stage_of[r["id"]], bool(r["actual"]["completed"])))
+        pv = proposals.view(proposal_rows.get(r["id"], []))
+        b["proposal_count"] += pv["count"]
+        b["proposal_insurers"].update(pv["insurers"])
         f = r["fields"]
         b["flags"][ov.flag(f.get("overview_all"), f.get("overview_client_ready"))["state"]] += 1
         b["left"] += int(not r["in_latest_export"])
@@ -210,6 +223,9 @@ def explorer(client_id: int, bundle: str | None = None,
             fresh_of[r["id"]] = freshness.pause(fresh_of[r["id"]], b["deadline"])
             r["freshness"] = fresh_of[r["id"]]      # Home reads it from the bundles
         b["freshness"] = freshness.worst([fresh_of[r["id"]] for r in b["renewals"]])
+        b["bm_stage"] = board.bundle_column(b["columns"])
+        b["stage"] = board.place(b["bm_stage"]["column"], stage_rows.get(key))
+        b["proposal_insurers"] = sorted(b["proposal_insurers"], key=str.casefold)
     ordered = sorted(bundles.values(), key=lambda b: (b["renewal_date"] or "9999", b["country"], b["extra"]))
 
     groups: dict[str, list[dict[str, Any]]] = {}
@@ -221,9 +237,7 @@ def explorer(client_id: int, bundle: str | None = None,
     selected = bundles.get(where.get(renewal_id) if renewal_id else (bundle or "")) \
         or next((b for items in groups.values() for b in items), None)
     detail = None
-    if selected:
-        stage_of = {r["id"]: renewal_service.stages(linked[r["id"]], today, r.get("upcoming_strategy"))
-                    for r in selected["renewals"]}
+    if selected and with_detail:
         def card(r: dict[str, Any]) -> dict[str, Any]:
             """One renewal card: BM+'s facts and stages, plus what Martin recorded."""
             rid = r["id"]
@@ -243,11 +257,8 @@ def explorer(client_id: int, bundle: str | None = None,
             "strategies": Counter((r["actual"]["effective"] or "—", bool(r["actual"]["strategy"]))
                                   for r in items),
             "open_ids": [r["id"] for r in items if not r["actual"]["completed"]],
-            "proposal_count": sum(r["proposals"]["count"] for r in items),
             "pdc_counts": {s: sum(r["plan_changes"]["counts"][s] for r in items)
                            for s in plan_changes.STATUSES},
-            "proposal_insurers": sorted({i for r in items for i in r["proposals"]["insurers"]},
-                                        key=str.casefold),
             "statuses": Counter(r["workflow_status"] or "—" for r in items),
             "move_targets": move_targets(customs, bundles, selected["country"], selected["custom_id"]),
         }

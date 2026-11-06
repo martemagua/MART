@@ -23,6 +23,7 @@
       {% for c in clients %}
         <tr>
           <td class="col-policy"><a href="/clients/{{ c.id }}">{{ c.name }}</a>
+            <a class="small board-link" href="/clients/{{ c.id }}/board" title="{{ c.name }}'s board: a card per bundle, in its actual stage">Board</a>
             {% if client_notes.get(c.id) %}<a href="/clients/{{ c.id }}/notes" class="badge-link">{{ mine_badges(client_notes.get(c.id)) }}</a>{% endif %}</td>
           <td class="num">{{ c.renewals }}</td>
           <td class="num">{{ c.bundles }}</td>

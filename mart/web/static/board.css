@@ -1,0 +1,47 @@
+/* MART — the board (board.html). Loaded on that page only; the tokens
+   (colours, radius) are mart.css's, so light and dark both work. */
+.content.content-board { padding: 20px 24px 32px; }
+.board-head { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.board-head h1 { margin: 0 0 4px; font-size: 22px; }
+.board-head .muted { margin: 0; max-width: 70ch; }
+.nav-filters.board-filters { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 8px; margin: 0; padding: 0; }
+.board-filters .nav-filter { width: 220px; }
+.board-filters select { width: auto; min-width: 150px; }
+.board-filters .nav-range { display: flex; gap: 8px; }
+.board-filters .nav-filter-summary { align-self: center; }
+
+.board { display: grid; grid-template-columns: repeat(7, minmax(150px, 1fr)); gap: 10px; overflow-x: auto; padding-bottom: 8px; align-items: start; }
+.board-col { background: var(--soft-bg); border-radius: var(--radius); padding: 8px; min-height: 140px; display: flex; flex-direction: column; gap: 8px; border: 2px solid transparent; }
+.board-col.is-over { border-color: var(--accent); background: var(--accent-soft); }
+.board-col-title { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin: 2px 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 700; }
+.board-cards { display: flex; flex-direction: column; gap: 8px; min-height: 60px; }
+
+.board-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; cursor: grab; font-size: 13px; min-width: 0; }
+.board-card:hover { border-color: var(--accent); }
+.board-card.is-dragging { opacity: 0.5; }
+.board-card.is-mine { border-left: 3px solid var(--accent); }
+.bc-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; }
+.bc-name { font-weight: 600; color: var(--ink); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bc-name:hover { color: var(--accent); text-decoration: underline; }
+.bc-head .icon-btn { width: 24px; height: 24px; font-size: 14px; flex: none; }
+.bc-sub { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.bc-extra { color: var(--ink-2); }
+.bc-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+.bc-pills .pill { font-size: 11px; padding: 1px 6px; white-space: normal; }
+.bc-meta { display: flex; flex-direction: column; gap: 1px; color: var(--ink-2); font-size: 12px; overflow-wrap: anywhere; }
+.bc-spread { color: var(--warn-ink); }
+.bc-done { color: var(--ok-ink); }
+.bc-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.bc-foot .pill { font-size: 11px; padding: 1px 6px; }
+.bc-mine { color: var(--accent); font-size: 12px; }
+.board-card .arrange-box { cursor: auto; width: 280px; }
+.board-card .arrange-box label.check, .board-dialog label.check { flex-direction: row; align-items: flex-start; margin-top: 2px; }
+.board-dialog label.small { display: flex; flex-direction: column; gap: 4px; }
+.board-dialog label.check input, .board-card label.check input { flex: none; margin-top: 1px; }
+
+.board-dialog { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--ink); padding: 18px 20px; width: min(420px, 92vw); }
+.board-dialog::backdrop { background: rgba(0, 0, 0, 0.35); }
+.board-dialog-title { margin: 0 0 6px; font-size: 16px; }
+
+.board-clients { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.board-clients li { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
