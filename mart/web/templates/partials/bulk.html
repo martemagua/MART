@@ -5,9 +5,10 @@
    boxes join it with form="bulk-form", and each action's button posts it to
    its own route (formaction), which reads only its own fields. No field is
    `required`, so one action's empty fields never block another's; the
-   services check. Plan design changes join here on day 4. #}
+   services check. #}
 {% from "partials/move.html" import move_fields %}
 {% from "partials/proposals.html" import proposal_fields %}
+{% from "partials/plan_changes.html" import change_fields %}
 
 {% macro bulk_bar(base, s, back, done) %}
 <form method="post" action="{{ base }}/bundles/move" id="bulk-form" class="move-bar bulk-bar is-editing" data-move-form data-bulk-form>
@@ -53,6 +54,13 @@
         </fieldset>
         <p class="hint">Added to each selected renewal. Where that insurer and variant already has a proposal, it becomes its next quote.</p>
         <div class="actions"><button type="submit" class="btn btn-small btn-primary" formaction="{{ base }}/bulk/proposals" data-pick-submit>Add to the selected</button></div>
+      </div>
+    </details>
+    <details class="arrange">
+      <summary class="btn btn-small" data-pick-needed>Plan design…</summary>
+      <div class="arrange-box stack-form prop-form">
+        {{ change_fields(prefix="pdc_", focus=false, required=false) }}
+        <div class="actions"><button type="submit" class="btn btn-small btn-primary" formaction="{{ base }}/bulk/plan-changes" data-pick-submit>Add to the selected</button></div>
       </div>
     </details>
     <details class="arrange">

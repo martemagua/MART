@@ -23,13 +23,14 @@ from mart.repository import (
     actuals_repo,
     clients_repo,
     history_repo,
+    plan_changes_repo,
     proposals_repo,
     renewals_repo,
     tasks_repo,
     uploads_repo,
 )
 from mart.repository.db import connection
-from mart.services import actuals, capabilities, freshness, history, proposals
+from mart.services import actuals, capabilities, freshness, history, plan_changes, proposals
 
 _STAGE_KEYS = {norm(s): s for s in tspec.STAGES}
 
@@ -152,6 +153,7 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
         changes = history_repo.for_items(conn, items)
         actual_rows = actuals_repo.for_renewal(conn, r["id"])
         my_proposals = proposals_repo.for_renewal(conn, r["id"])
+        my_changes = plan_changes_repo.for_renewal(conn, r["id"])
         insurer_options = proposals_repo.insurers_of_client(conn, client_id, r["country"])
     mine = mine_tasks
     f, d = r["fields"], r["details"]
@@ -172,6 +174,7 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
         "stages": stages_, "has_task_data": has_task_data, "other_tasks": others,
         "actual": actuals.view(actual_rows, r.get("upcoming_strategy"), stages_),
         "my_proposals": proposals.view(my_proposals), "insurer_options": insurer_options,
+        "plan_changes": plan_changes.view(my_changes, plan_changes.bm_suggestion(f, d)),
         # the Insurer Capability Database: the country's network partners, and
         # which networks stand behind the insurers named here
         "partners": partners,

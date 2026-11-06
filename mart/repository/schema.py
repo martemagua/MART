@@ -359,6 +359,27 @@ MIGRATIONS: list[tuple[int, str]] = [
         DELETE FROM proposals WHERE id NOT IN (
             SELECT MIN(id) FROM proposals GROUP BY renewal_id, lower(trim(insurer)), plan_design);
     """),
+    (13, """
+        -- M3 day 4: plan design changes per renewal (USER data): what changes,
+        -- and where it stands: suggested -> agreed -> implemented, or dropped,
+        -- with the date it got there. `source` = 'bm' when it was taken over
+        -- from BM+'s Renewal Strategy sheet.
+        CREATE TABLE plan_changes (
+            id              INTEGER PRIMARY KEY,
+            renewal_id      INTEGER NOT NULL REFERENCES renewals(id),
+            title           TEXT NOT NULL,
+            detail          TEXT,
+            status          TEXT NOT NULL DEFAULT 'suggested',  -- suggested | agreed | implemented | dropped
+            suggested_on    TEXT,
+            agreed_on       TEXT,
+            implemented_on  TEXT,
+            dropped_on      TEXT,
+            source          TEXT NOT NULL DEFAULT 'you',        -- you | bm
+            created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX ix_plan_changes_renewal ON plan_changes(renewal_id);
+    """),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1][0]

@@ -1,5 +1,5 @@
 {# The renewal panel, in a FIXED order (glance → stages → YOURS: the actual
-   state, proposals received, to-dos and notes → facts → proposals → savings → overview → the rest), so each section
+   state, proposals received, plan design changes, to-dos and notes → facts → proposals → savings → overview → the rest), so each section
    is always in the same place. Everything but "yours" is BM+ data, read-only. #}
 {% from "partials/overview.html" import overview_timeline, overview_pill, fresh_badge %}
 {% from "partials/deadline.html" import deadline_line %}
@@ -9,6 +9,7 @@
 {% from "partials/move.html" import move_form %}
 {% from "partials/actual.html" import actual_section %}
 {% from "partials/proposals.html" import proposals_section %}
+{% from "partials/plan_changes.html" import plan_changes_section %}
 {% set r = detail.renewal %}
 {% set f = detail.fields %}
 
@@ -56,6 +57,8 @@
 {{ actual_section(base, r, detail.actual, here) }}
 
 {{ proposals_section(base, r, detail.my_proposals, here, detail.insurer_options, detail.bm_expiring, detail.partners, detail.networks_of) }}
+
+{{ plan_changes_section(base, r, detail.plan_changes, here) }}
 
 {{ mine_section(mine, here, earlier=mine.earlier, also=mine.bundle, also_url="/clients/" ~ client.id ~ "?bundle=" ~ (selected.key | urlencode) ~ "#mine") }}
 

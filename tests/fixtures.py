@@ -48,6 +48,8 @@ class R:
     end_date: object = datetime(2026, 12, 31)
     proposals: list[tuple[str, float, float]] = field(default_factory=list)
     final_terms_date: datetime | None = None
+    pdc_types: str | None = None     # Strategy sheet: types of plan design changes
+    pdc_reasons: str | None = None
     overview: str | None = None      # "Renewal Overview (all)"
     overview_cr: str | None = "same"  # "(client ready)"; "same" = as overview
     feed: str | None = None          # "Renewal Feed"
@@ -213,8 +215,12 @@ def renewal_tracker(renewals: list[R], flavour: str = CROSS, report_date: str = 
     strat = wb.create_sheet("Renewal Strategy")
     _write_table(strat, flavour, 6, id_cols + ren_col + [
         ("Renewal Strategy Information", "Renewal Strategy"),
-        ("Renewal Strategy Information", "Expected date to receive the final renewal terms")],
-        [ids_of(r) + [_renewal_cell(r, flavour), r.strategy, r.final_terms_date] for r in renewals],
+        ("Renewal Strategy Information", "Expected date to receive the final renewal terms"),
+        ("Renewal Strategy Information", "Types of Plan Desing changes (e.g adding or removing a coverage, "
+                                         "changing benefit levels, etc):"),
+        ("Renewal Strategy Information", "Reasons for plan design changes")],
+        [ids_of(r) + [_renewal_cell(r, flavour), r.strategy, r.final_terms_date, r.pdc_types, r.pdc_reasons]
+         for r in renewals],
         client, "Renewal Tracker - Renewal Strategy", "Renewal Strategy Information")
 
     prop_header = 5 if flavour == CLIENT else 6   # moves between flavours, as in BM+
