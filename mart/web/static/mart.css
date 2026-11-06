@@ -555,3 +555,22 @@ h3 .fr-badge { vertical-align: 2px; margin-left: 4px; }
 .st-mine { --st: var(--st-none); --st-bg: var(--st-none-bg); }
 .pill-st.st-mine { border: 1px dashed var(--st-none); }
 .st-dot.st-mine { background: transparent; border: 1.5px solid var(--st-none); box-sizing: border-box; }
+
+/* The OPEN list of every dropdown: rounded, with MART's colours (Martin,
+   06.11.2026). Only browsers that can style it (Edge / Chrome 135+) get
+   this; others keep their own list, which still works. */
+@supports (appearance: base-select) {
+  select, select::picker(select) { appearance: base-select; }
+  select { display: inline-flex; align-items: center; justify-content: space-between; gap: 8px; }
+  select::picker-icon { color: var(--muted); transition: rotate .15s; }
+  select:open::picker-icon { rotate: 180deg; }
+  select::picker(select) {
+    border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--ink);
+    padding: 4px; margin-top: 4px; box-shadow: 0 8px 24px rgba(0, 0, 0, .14);
+  }
+  select option { border-radius: 6px; padding: 6px 10px; }
+  select option::checkmark { display: none; }
+  select option:hover, select option:focus-visible { background: var(--soft-bg); outline: none; }
+  select option:checked { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  select option:disabled { color: var(--muted); }
+}

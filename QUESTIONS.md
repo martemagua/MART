@@ -276,3 +276,6 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 
 **M3h** "Completed": per renewal only, or also a whole bundle at once?
 → **Answered 05.11.2026:** **also for the whole bundle** (built in 0.9.0).
+
+**M3i** The date filters' calendar (from / until in the side panel) is drawn by the browser and can't be rounded with CSS like the dropdown lists (0.9.4). Is it worth replacing with MART's own small calendar (rounded, MART's colours, Monday first, DD.MM.YYYY), or keep the browser's?
+→
