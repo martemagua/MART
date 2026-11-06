@@ -203,7 +203,8 @@
           {% if r.benefit_owner %}<span class="muted small">Benefit owner: {{ r.benefit_owner }}</span>{% endif %}
         </div>
         {% if r.overview.entries %}
-        <details class="rc-overview" {% if s.renewals | length == 1 %}open{% endif %}>
+        {# always closed when the page opens, however many renewals (Martin, 06.11.2026) #}
+        <details class="rc-overview">
           <summary>Renewal overview</summary>
           {{ overview_timeline(r.overview, new_since=fresh_limits.new_since) }}
         </details>

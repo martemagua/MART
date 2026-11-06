@@ -6,6 +6,16 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.18 — 06.11.2026 · the renewal overview starts closed
+
+### Changed
+- In a bundle with only one renewal, the card's **Renewal overview** no
+  longer starts open (Martin, 06.11.2026): like in every other bundle, it
+  is closed when the page opens; click it to read it.
+
+### What to try
+1. Open a bundle with one renewal: its overview is closed.
+
 ## 0.9.17 — 06.11.2026 · why a card was moved, shown
 
 ### Added

@@ -207,3 +207,16 @@ def test_the_reason_shows_and_every_move_is_listed(app):
     assert 'class="bc-why"' not in page and "follows BM+ again" in page and "bc-mine is-past" in page
     header = get(app, f"/clients/{cid}?bundle=Canada%7C2027-01-01").body_bytes.decode()
     assert "Your moves on the board" in header and "quotes in, HR deciding" in header
+
+
+def test_a_lone_renewals_overview_starts_closed(app):
+    """Martin, 06.11.2026: a bundle with one renewal opens like any other,
+    its renewal overview closed."""
+    _commit(renewal_tracker([R(n=1, policy="Medical", renewal_date=JAN,
+                               overview="01 Nov 2026: broker asked for claims data")],
+                            cross_overview=True), "rt.xlsx")
+    with connection() as conn:
+        cid = conn.execute("SELECT id FROM clients").fetchone()["id"]
+    page = get(app, f"/clients/{cid}?bundle=Poland%7C2027-01-01").body_bytes.decode()
+    assert "broker asked for claims data" in page
+    assert '<details class="rc-overview">' in page and '<details class="rc-overview" open' not in page
