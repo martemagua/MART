@@ -285,3 +285,6 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 
 **M3k** Is the Insurers page enough to choose whom to invite for a remarketing, or would you like more there, e.g. only partners that can pool the renewal's lines, or the countries of a whole bundle at once?
 →
+
+**M3l** The board (0.9.11) places a card from BM+'s three tasks: **Decision** = proposals done, policy update not started; **Post-renewal review** = all three BM+ tasks done but not yet marked completed by you; **Done** = every renewal marked completed by you. Does that match how you read the stages, or should a column mean something else?
+→

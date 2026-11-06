@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}MART{% endblock %} · MART</title>
 <link rel="stylesheet" href="/static/mart.css">
+{% block head %}{% endblock %}
 </head>
 <body>
 <div class="shell">
@@ -16,10 +17,10 @@
     {% if not setup_mode %}
     <a class="nav-link {% if active == 'home' %}is-active{% endif %}" href="/">Home</a>
     <a class="nav-link {% if active == 'clients' %}is-active{% endif %}" href="/clients">Clients</a>
+    <a class="nav-link {% if active == 'board' %}is-active{% endif %}" href="/board">Board</a>
     <a class="nav-link {% if active == 'todos' %}is-active{% endif %}" href="/todos">To-dos</a>
     <a class="nav-link {% if active == 'insurers' %}is-active{% endif %}" href="/insurers">Insurers</a>
     <a class="nav-link {% if active == 'uploads' %}is-active{% endif %}" href="/uploads">Uploads</a>
-    <span class="nav-link is-soon" title="Coming in M3">Board</span>
     <a class="nav-link {% if active == 'settings' %}is-active{% endif %}" href="/settings">Settings</a>
     {% endif %}
     <div class="sidebar-foot">
@@ -32,5 +33,6 @@
   </main>
 </div>
 <script src="/static/mart.js"></script>
+{% block scripts %}{% endblock %}
 </body>
 </html>

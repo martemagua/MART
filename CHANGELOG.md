@@ -6,6 +6,49 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.11 — 06.11.2026 · M3 day 6 · the board
+
+### Added
+- **The board**, one per client (**Board** in the main menu, "Board →" in
+  the side panel and on the Clients list). Seven columns: **Not started ·
+  Strategy · Proposals / Marketing · Decision · Update Policy ·
+  Post-renewal review · Done**, a card per **bundle**.
+- **Where a card starts**: at its **least advanced** renewal's stage (M3d),
+  read from BM+'s three tasks: strategy at work → Strategy; strategy done →
+  Proposals / Marketing (or Update Policy when the strategy needs no
+  proposals); proposals done, policy update not started → Decision; policy
+  update at work → Update Policy; all three done → Post-renewal review;
+  every renewal marked completed by you → Done. A bundle at mixed stages
+  says "2 of 3 at Proposals / Marketing" (hover: where the others are).
+- **Drag a card** into another column to record its actual stage. A small
+  window asks for an optional reason; Enter moves it, Esc puts it back.
+  The ⇄ on each card does the same without dragging. Into **Done** you can
+  also mark the bundle's open renewals completed today, in one go.
+- **Your stage beside BM+'s**: a card you moved shows ✎ and "BM+: …" where
+  BM+'s tasks put it. Once BM+ gets there (or further), the card follows
+  BM+ again by itself ("✓ BM+ caught up"). A card you moved BACK stays
+  there while BM+ stands still; if BM+ moves on, it says "≠ BM+ moved to …".
+  Moving a card to the column BM+ has it in = follow BM+ again.
+- **On each card**: flag, country, date (and your bundle name), the
+  strategy pills (yours ✎), renewals, proposals received and from whom,
+  completed count, BM+'s stage dots, ≠ (your strategy differs from BM+'s),
+  the stale and broker-deadline badges.
+- **Filters**: text, region (the client's own), country, from / until —
+  the same as the explorer's and remembered with them; the column counts
+  follow the filters.
+- The bundle header in the explorer shows the bundle's **Board** stage.
+
+### Changed
+- The main menu's "Board" (greyed out since M1) now opens the board; with
+  one client it goes straight to that client's board.
+
+### What to try
+1. Board → run through a client's bundles as on a status call.
+2. Drag a bundle into **Decision** with a reason ("quotes in, HR to
+   decide"); open the bundle: its header says Board ✎ Decision.
+3. Drag a finished bundle into **Done** and tick "also mark … completed".
+4. Filter the board by region and by date.
+
 ## 0.9.10 — 06.11.2026 · M3 day 5 · regions per client
 
 ### Added

@@ -146,6 +146,7 @@ def log_error(request: Request) -> Path:
 
 def build_router() -> Router:
     from mart.web.routes import (
+        board,
         bulk,
         clients,
         home,
@@ -159,7 +160,8 @@ def build_router() -> Router:
     )
 
     router = Router()
-    for module in (home, setup, uploads, clients, notes, proposals, insurers, bulk, plan_changes, regions):
+    for module in (home, setup, uploads, clients, notes, proposals, insurers, bulk, plan_changes, regions,
+                   board):
         router.include(module.router)
     return router
 

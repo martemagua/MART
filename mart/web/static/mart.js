@@ -17,7 +17,7 @@
     input.addEventListener("keydown", function (e) { if (e.key === "Enter") e.preventDefault(); });
   });
 
-  // [data-bundle-filters="<client id>"]: the explorer's side panel filters —
+  // [data-bundle-filters="<client id>"]: the explorer's side panel filters (and the board's) —
   // text, region, country, and renewal dates from / until (ISO, so they compare as text) — hide the bundles that
   // don't match, and the groups left empty. They are remembered per client
   // in this browser tab (clicking a bundle reloads the page); [data-fresh]
@@ -49,6 +49,11 @@
       });
       list.querySelectorAll("[data-filter-group]").forEach(function (g) {
         g.hidden = !g.querySelector("[data-filter-item]:not([hidden])");
+      });
+      // the board's columns stay, and count what they still show
+      list.querySelectorAll("[data-filter-col]").forEach(function (col) {
+        var n = col.querySelector("[data-filter-count]");
+        if (n) n.textContent = col.querySelectorAll("[data-filter-item]:not([hidden])").length;
       });
       fields.forEach(function (f) { saved[f.getAttribute("data-f")] = f.value; });
       if (summary) {

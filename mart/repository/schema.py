@@ -393,6 +393,23 @@ MIGRATIONS: list[tuple[int, str]] = [
             PRIMARY KEY (client_id, country)
         );
     """),
+    (15, """
+        -- M3 day 6: the board. Martin's stage of a BUNDLE (a card is a bundle,
+        -- QUESTIONS C2), beside the one MART reads from BM+'s tasks. USER data,
+        -- append-only: the newest row per (client, bundle) is the stage; a NULL
+        -- stage = the card follows BM+ again. `bm_stage` = BM+'s stage when he
+        -- moved it (PLANNING §1d), so MART can tell when BM+ catches up.
+        CREATE TABLE bundle_stages (
+            id          INTEGER PRIMARY KEY,
+            client_id   INTEGER NOT NULL REFERENCES clients(id),
+            bundle_key  TEXT NOT NULL,          -- services/bundles: <country>|<date> or custom|<id>
+            stage       TEXT,                   -- services/board.COLUMNS; NULL = follow BM+
+            bm_stage    TEXT,
+            reason      TEXT,
+            created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX ix_bundle_stages_client ON bundle_stages(client_id, bundle_key);
+    """),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1][0]

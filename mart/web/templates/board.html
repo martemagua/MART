@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{# One client's board (services/board_service): a column per stage, a card
+   per bundle. A card sits at its least advanced renewal's stage until Martin
+   moves it (drag it, or "⇄" on the card); his stage is kept beside BM+'s and
+   the card says where BM+ has it. The filters are the explorer's (mart.js
+   data-bundle-filters), remembered per client in this tab. #}
+{% from "partials/overview.html" import fresh_badge %}
+{% from "partials/deadline.html" import deadline_badge %}
+{% from "partials/stages.html" import stage_dots %}
+{% from "partials/actual.html" import strategy_pill %}
+{% block title %}Board · {{ client.name }}{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/board.css">{% endblock %}
+{% block content_class %}content-board{% endblock %}
+{% block content %}
+{% set base = "/clients/" ~ client.id %}
+
+{% macro stage_menu(b) %}
+<details class="arrange">
+  <summary class="icon-btn" title="Move to another stage" aria-label="Move {{ b.country }} {{ b.renewal_date | dmy }} to another stage">⇄</summary>
+  <form method="post" action="{{ base }}/board/stage" class="arrange-box stack-form arrange-right">
+    <input type="hidden" name="key" value="{{ b.key }}">
+    <input type="hidden" name="back" value="{{ here }}">
+    <label class="small muted">Stage <select name="stage" data-focus-on-open>
+      {% for col in columns %}<option value="{{ col.key }}" {% if col.key == b.stage.column %}selected{% endif %}>{{ col.label }}{% if col.key == b.bm_stage.column %} (BM+){% endif %}</option>{% endfor %}
+    </select></label>
+    <label class="small muted">Why (optional) <input type="text" name="reason" maxlength="200" placeholder="e.g. agreed with HR on the call of 28.10"></label>
+    {% if b.open_ids %}<label class="small check"><input type="checkbox" name="complete" value="1"> Into Done: also mark its {{ b.open_ids | length }} open renewal{{ "s" if b.open_ids | length != 1 }} completed today</label>{% endif %}
+    <div class="actions"><button type="submit" class="btn btn-small btn-primary">Move</button></div>
+    {% if b.stage.mine %}<p class="hint">Picking the stage BM+ has it in ({{ board_labels[b.bm_stage.column] }}) makes the card follow BM+ again.</p>{% endif %}
+  </form>
+</details>
+{% endmacro %}
+
+{% macro card(b) %}
+{% set st = b.stage %}
+<article class="board-card{% if st.mine %} is-mine{% endif %}" draggable="true" data-card data-filter-item
+         data-key="{{ b.key }}" data-col="{{ st.column }}" data-bm="{{ b.bm_stage.column }}" data-open="{{ b.open_ids | length }}"
+         data-name="{{ b.country }} · {{ b.extra or (b.renewal_date | dmy) or 'no date' }}"
+         data-country="{{ b.country }}" data-region="{{ b.region or '' }}" data-first="{{ b.renewal_date or '' }}" data-last="{{ b.last_date or b.renewal_date or '' }}">
+  <div class="bc-head">
+    <a class="bc-name" href="{{ base }}?bundle={{ b.key | urlencode }}" title="Open the bundle: {{ b.country }}">{{ b.country | flag }}{{ b.country }}</a>
+    {{ stage_menu(b) }}
+  </div>
+  <div class="bc-sub">{{ b.renewal_date | dmy or "no date" }}{% if b.custom_id and b.last_date and b.last_date != b.renewal_date %} – {{ b.last_date | dmy }}{% endif %}{% if b.extra %} · <span class="bc-extra" title="Your bundle: {{ b.extra }}">{{ b.extra }}</span>{% endif %}</div>
+  <div class="bc-pills">{% for (value, mine), n in b.strategies %}{{ strategy_pill(value, mine, n) }}{% endfor %}</div>
+  <div class="bc-meta">
+    {% set n = b.renewals | length %}
+    <span>{{ n }} renewal{{ "s" if n != 1 }}</span>
+    {% if b.bm_stage.mixed %}<span class="bc-spread" title="{% for label, k in b.bm_stage.spread %}{{ k }} at {{ label }}{% if not loop.last %} · {% endif %}{% endfor %}">{{ b.bm_stage.at }} of {{ b.bm_stage.total }} at {{ board_labels[b.bm_stage.column] }}</span>{% endif %}
+    {% if b.proposal_count %}<span title="Proposals you recorded">{{ b.proposal_count }} proposal{{ "s" if b.proposal_count != 1 }}: {{ b.proposal_insurers | join(", ") }}</span>{% endif %}
+    {% if b.completed %}<span class="bc-done" title="Marked completed by you">✓ {{ b.completed }} of {{ n }} completed</span>{% endif %}
+  </div>
+  <div class="bc-foot">
+    {% if has_task_data %}{{ stage_dots(b.dots) }}{% endif %}
+    {% if st.state == "behind" %}<span class="pill pill-warn" title="You moved it here{% if st.row.reason %}: {{ st.row.reason }}{% endif %} ({{ st.row.created_at | dmy(True) }}). BM+'s tasks are still behind.">BM+: {{ board_labels[st.bm] }}</span>
+    {% elif st.state == "held" %}<span class="pill pill-warn" title="You moved it back here{% if st.row.reason %}: {{ st.row.reason }}{% endif %} ({{ st.row.created_at | dmy(True) }}). BM+'s tasks say more.">BM+: {{ board_labels[st.bm] }}</span>
+    {% elif st.state == "conflict" %}<span class="pill pill-err" title="BM+ moved on since you set this stage{% if st.row.reason %} ({{ st.row.reason }}){% endif %}: have a look">≠ BM+ moved to {{ board_labels[st.bm] }}</span>
+    {% elif st.state == "caught_up" and st.column != "done" %}<span class="pill pill-ok" title="BM+ now has it where you put it">✓ BM+ caught up</span>{% endif %}
+    {% if st.mine %}<span class="bc-mine" title="Stage set by you{% if st.row.reason %}: {{ st.row.reason }}{% endif %} ({{ st.row.created_at | dmy(True) }})">✎</span>{% endif %}
+    {% if b.differs %}<span class="pill pill-warn" title="Your strategy differs from BM+'s on {{ b.differs }} renewal{{ 's' if b.differs != 1 }}">≠ {{ b.differs }}</span>{% endif %}
+    {% if st.column != "done" %}{{ fresh_badge(b.freshness, short=true) }}{{ deadline_badge(b.deadline) }}{% endif %}
+  </div>
+  <span class="visually-hidden">{{ b.search }}</span>
+</article>
+{% endmacro %}
+
+<header class="board-head">
+  <div>
+    <p class="crumbs"><a href="/clients">Clients</a> › <a href="{{ base }}">{{ client.name }}</a></p>
+    <h1>Board · {{ client.name }}</h1>
+    <p class="muted small">{{ card_count }} bundle{{ "s" if card_count != 1 }}{% if moved %} · {{ moved }} moved by you{% endif %}.
+      A card sits at its least advanced renewal's stage until you drag it; your stage is kept beside BM+'s.
+      {% if not has_task_data %}<strong>No Task Tracker uploaded yet:</strong> without BM+'s stages every card starts in Not started.{% endif %}</p>
+  </div>
+  {% set f = filters %}
+  <div class="nav-filters board-filters" data-bundle-filters="{{ client.id }}" data-list="#board">
+    <input type="search" class="nav-filter" placeholder="Filter: policy, entity, insurer…" aria-label="Filter cards" data-f="text">
+    {% if f.regions | length > 1 %}
+    <select data-f="region" aria-label="Region"><option value="">All regions</option>{% for g in f.regions %}<option value="{{ g }}">{{ g }}</option>{% endfor %}</select>
+    {% endif %}
+    {% if f.countries | length > 1 %}
+    <select data-f="country" aria-label="Country"><option value="">All countries</option>{% for c in f.countries %}<option value="{{ c }}">{{ c }}</option>{% endfor %}</select>
+    {% endif %}
+    {% if f.first and f.first != f.last %}
+    <div class="nav-range">
+      <label>From<input type="date" data-f="from" min="{{ f.first }}" max="{{ f.last }}" aria-label="Renewing from"></label>
+      <label>Until<input type="date" data-f="until" min="{{ f.first }}" max="{{ f.last }}" aria-label="Renewing until"></label>
+    </div>
+    {% endif %}
+    <p class="small nav-filter-summary" data-f-summary hidden><span data-f-count></span> · <button type="button" class="link-btn" data-f-clear>Clear filters</button></p>
+  </div>
+</header>
+
+<div class="board" id="board" data-board data-dialog="#board-move">
+  {% for col in columns %}
+  <section class="board-col" data-col-drop="{{ col.key }}" data-filter-col aria-labelledby="col-{{ col.key }}">
+    <h2 class="board-col-title" id="col-{{ col.key }}">{{ col.label }} <span class="count" data-filter-count>{{ col.cards | length }}</span></h2>
+    <div class="board-cards" data-col-cards>
+      {% for b in col.cards %}{{ card(b) }}{% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+</div>
+
+<dialog id="board-move" class="board-dialog" aria-labelledby="board-move-h">
+  <form method="post" action="{{ base }}/board/stage" class="stack-form">
+    <h2 id="board-move-h" class="board-dialog-title">Move <span data-move-what></span> to <span data-move-to></span></h2>
+    <input type="hidden" name="key">
+    <input type="hidden" name="stage">
+    <input type="hidden" name="back" value="{{ here }}">
+    <label class="small muted">Why (optional) <input type="text" name="reason" maxlength="200" placeholder="e.g. agreed with HR on the call of 28.10"></label>
+    <label class="small check" data-move-complete hidden><input type="checkbox" name="complete" value="1"> Also mark its <span data-move-open></span> open renewal(s) completed today</label>
+    <p class="hint" data-move-bm hidden>This is where BM+ has it: the card follows BM+ again.</p>
+    <div class="actions"><button type="submit" class="btn btn-small btn-primary">Move</button>
+      <button type="button" class="btn btn-small" data-move-cancel>Cancel</button></div>
+  </form>
+</dialog>
+{% endblock %}
+{% block scripts %}<script src="/static/board.js"></script>{% endblock %}
