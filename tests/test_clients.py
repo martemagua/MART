@@ -47,7 +47,7 @@ def test_bundles_are_country_plus_renewal_date():
     assert (s["country"], s["renewal_date"], len(s["renewals"])) == ("Brazil", "2026-07-01", 1)
     s = cs.explorer(cid, bundle=cs.bundle_key("Poland", "2027-01-01"), today=TODAY)["selected"]
     assert s["days_until"] == 58 and s["entities"] == ["Acme PL", "Acme PL Services"]
-    assert v["filters"] == {"countries": ["Brazil", "Poland", "Spain"],
+    assert v["filters"] == {"countries": ["Brazil", "Poland", "Spain"], "regions": ["EMEA"],
                             "first": "2026-07-01", "last": "2027-02-01"}
 
 
@@ -117,7 +117,7 @@ def test_clients_and_explorer_pages(app):
     assert 'type="date" data-f="from" min="2026-07-01" max="2027-02-01"' in page
     spain = get(app, f"/clients/{cid}?bundle=Spain%7C2027-02-01").body_bytes.decode()
     assert "Spain · 01.02.2027" in spain and "data-fresh" not in spain
-    assert 'data-country="Spain" data-first="2027-02-01" data-last="2027-02-01"' in spain
+    assert 'data-country="Spain" data-region="EMEA" data-first="2027-02-01" data-last="2027-02-01"' in spain
     poland = get(app, f"/clients/{cid}?bundle=Poland%7C2027-01-01").body_bytes.decode()
     assert "not in client-ready" in poland and "no client-ready" in poland
     assert "Internal: budget tight." in poland

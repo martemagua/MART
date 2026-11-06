@@ -1,0 +1,25 @@
+{# A client's own regions (services/regions), in the explorer's middle: one
+   row per country, BM+'s region beside the one that counts. One form saves
+   them all; an empty field (or BM+'s own name) goes back to BM+'s. #}
+{% set rg = region_page %}
+<header class="bundle-head"><div><h2 class="bundle-title">Regions · {{ client.name }}</h2>
+  <p class="muted">How {{ client.name }} groups its countries. Prefilled from BM+'s Region; change any country for this client only. The side panel filters by these regions.</p></div></header>
+<form method="post" action="{{ base }}/regions" class="card region-form">
+  <datalist id="region-options">{% for g in rg.regions %}<option value="{{ g }}">{% endfor %}</datalist>
+  <table class="table">
+    <thead><tr><th scope="col">Country</th><th scope="col">BM+ says</th><th scope="col">Region for {{ client.name }}</th></tr></thead>
+    <tbody>
+    {% for row in rg.rows %}
+      <tr>
+        <td>{{ row.country | flag }}{{ row.country }} <span class="muted small">· {{ row.renewals }} renewal{{ "s" if row.renewals != 1 }}</span></td>
+        <td class="muted">{{ row.bm or "—" }}</td>
+        <td><input type="hidden" name="country" value="{{ row.country }}">
+          <input type="text" name="region" list="region-options" maxlength="60" value="{{ row.mine or '' }}" placeholder="{{ row.bm or 'e.g. North America' }}" aria-label="Region of {{ row.country }} for {{ client.name }}">
+          {% if row.mine %}<span class="pill st-mine pill-st" title="Set by you; BM+ says {{ row.bm or 'nothing' }}">✎ yours</span>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p class="hint">Empty = go by BM+'s region. {{ rg.changed }} countr{{ "y" if rg.changed == 1 else "ies" }} set by you.</p>
+  <div class="actions"><button type="submit" class="btn btn-primary">Save the regions</button></div>
+</form>

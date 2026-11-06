@@ -380,6 +380,19 @@ MIGRATIONS: list[tuple[int, str]] = [
         );
         CREATE INDEX ix_plan_changes_renewal ON plan_changes(renewal_id);
     """),
+    (14, """
+        -- M3 day 5: each client's own regions (USER data; Martin 05.11.2026):
+        -- clients split the world differently, so a country's region is set
+        -- per client. Only Martin's overrides are stored; without one, the
+        -- country goes by BM+'s Region column.
+        CREATE TABLE client_regions (
+            client_id   INTEGER NOT NULL REFERENCES clients(id),
+            country     TEXT NOT NULL,          -- as BM+ writes it
+            region      TEXT NOT NULL,
+            updated_at  TEXT NOT NULL DEFAULT (datetime('now')),
+            PRIMARY KEY (client_id, country)
+        );
+    """),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1][0]

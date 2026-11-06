@@ -6,6 +6,25 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.10 — 06.11.2026 · M3 day 5 · regions per client
+
+### Added
+- **Each client's own regions.** "Regions →" (beside "Plan design changes →"
+  in the side panel) lists the client's countries with **BM+'s region**
+  and the **region for this client**: prefilled from BM+ (per country the
+  commonest value, cleaned: "EMEA, EMEA" → "EMEA"), changeable per country
+  for this client only — e.g. "North America" and "LatAm" instead of
+  BM+'s "US&C" and "LATAM". One "Save the regions" for all; an empty field
+  (or BM+'s own name) goes back to BM+'s. Your regions are marked ✎.
+- **Region filter** in the side panel, above the country filter: shows only
+  the bundles of that region; remembered like the other filters.
+- The bundle header names the bundle's region.
+
+### What to try
+1. Open a client → Regions → set "North America" for Canada and the United
+   States → Save.
+2. Pick "North America" in the side panel's region filter.
+
 ## 0.9.9 — 06.11.2026 · M3 day 4 · plan design changes
 
 ### Added

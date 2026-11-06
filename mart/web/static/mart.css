@@ -643,3 +643,9 @@ h3 .fr-badge { vertical-align: 2px; margin-left: 4px; }
 .pdc-filter a { text-decoration: none; }
 .client-pages-link { display: block; margin: 6px 0 0; padding: 4px 2px; font-size: 13px; text-decoration: none; }
 .client-pages-link.is-selected { font-weight: 600; }
+
+/* -- a client's regions (partials/regions.html) -- */
+.client-pages { display: flex; flex-wrap: wrap; gap: 2px 14px; margin: 6px 0 0; }
+.client-pages .client-pages-link { margin: 0; }
+.region-form input[type=text] { max-width: 260px; min-height: 34px; }
+.region-form td { vertical-align: middle; }
