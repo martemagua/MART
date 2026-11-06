@@ -8,6 +8,7 @@
 {% from "partials/deadline.html" import deadline_badge %}
 {% from "partials/stages.html" import stage_dots %}
 {% from "partials/actual.html" import strategy_pill %}
+{% from "partials/board_stage.html" import stage_form %}
 {% block title %}Board · {{ client.name }}{% endblock %}
 {% block head %}<link rel="stylesheet" href="/static/board.css">{% endblock %}
 {% block content_class %}content-board{% endblock %}
@@ -17,17 +18,7 @@
 {% macro stage_menu(b) %}
 <details class="arrange">
   <summary class="icon-btn" title="Move to another stage" aria-label="Move {{ b.country }} {{ b.renewal_date | dmy }} to another stage">⇄</summary>
-  <form method="post" action="{{ base }}/board/stage" class="arrange-box stack-form arrange-right">
-    <input type="hidden" name="key" value="{{ b.key }}">
-    <input type="hidden" name="back" value="{{ here }}">
-    <label class="small muted">Stage <select name="stage" data-focus-on-open>
-      {% for col in columns %}<option value="{{ col.key }}" {% if col.key == b.stage.column %}selected{% endif %}>{{ col.label }}{% if col.key == b.bm_stage.column %} (BM+){% endif %}</option>{% endfor %}
-    </select></label>
-    <label class="small muted">Why (optional) <input type="text" name="reason" maxlength="200" placeholder="e.g. agreed with HR on the call of 28.10"></label>
-    {% if b.open_ids %}<label class="small check"><input type="checkbox" name="complete" value="1"> Into Done: also mark its {{ b.open_ids | length }} open renewal{{ "s" if b.open_ids | length != 1 }} completed today</label>{% endif %}
-    <div class="actions"><button type="submit" class="btn btn-small btn-primary">Move</button></div>
-    {% if b.stage.mine %}<p class="hint">Picking the stage BM+ has it in ({{ board_labels[b.bm_stage.column] }}) makes the card follow BM+ again.</p>{% endif %}
-  </form>
+  {{ stage_form(base, b, here) }}
 </details>
 {% endmacro %}
 
@@ -68,7 +59,7 @@
   <div>
     <p class="crumbs"><a href="/clients">Clients</a> › <a href="{{ base }}">{{ client.name }}</a></p>
     <h1>Board · {{ client.name }}</h1>
-    <p class="muted small">{{ card_count }} bundle{{ "s" if card_count != 1 }}{% if moved %} · {{ moved }} moved by you{% endif %}.
+    <p class="muted small" data-board-summary>{{ card_count }} bundle{{ "s" if card_count != 1 }}{% if moved %} · {{ moved }} moved by you{% endif %}.
       A card sits at its least advanced renewal's stage until you drag it; your stage is kept beside BM+'s.
       {% if not has_task_data %}<strong>No Task Tracker uploaded yet:</strong> without BM+'s stages every card starts in Not started.{% endif %}</p>
   </div>
@@ -93,8 +84,10 @@
 
 <div class="board" id="board" data-board data-dialog="#board-move">
   {% for col in columns %}
-  <section class="board-col" data-col-drop="{{ col.key }}" data-filter-col aria-labelledby="col-{{ col.key }}">
-    <h2 class="board-col-title" id="col-{{ col.key }}">{{ col.label }} <span class="count" data-filter-count>{{ col.cards | length }}</span></h2>
+  <section class="board-col" data-col-drop="{{ col.key }}" data-col-label="{{ col.label }}" data-col-hint="{{ col.hint }}" data-filter-col aria-labelledby="col-{{ col.key }}">
+    <h2 class="board-col-title"><span class="bct-label"><span id="col-{{ col.key }}">{{ col.label }}</span>
+      <span class="info" tabindex="0" role="note" aria-label="{{ col.hint }}">i<span class="tip">{{ col.hint }}</span></span></span>
+      <span class="count" data-filter-count>{{ col.cards | length }}</span></h2>
     <div class="board-cards" data-col-cards>
       {% for b in col.cards %}{{ card(b) }}{% endfor %}
     </div>
@@ -105,6 +98,7 @@
 <dialog id="board-move" class="board-dialog" aria-labelledby="board-move-h">
   <form method="post" action="{{ base }}/board/stage" class="stack-form">
     <h2 id="board-move-h" class="board-dialog-title">Move <span data-move-what></span> to <span data-move-to></span></h2>
+    <p class="hint" data-move-hint></p>
     <input type="hidden" name="key">
     <input type="hidden" name="stage">
     <input type="hidden" name="back" value="{{ here }}">
@@ -114,6 +108,21 @@
     <div class="actions"><button type="submit" class="btn btn-small btn-primary">Move</button>
       <button type="button" class="btn btn-small" data-move-cancel>Cancel</button></div>
   </form>
+</dialog>
+
+{# A card opens its bundle here, over the board (Martin, 06.11.2026): the
+   bundle page itself in a frame, so everything on it works as on the client
+   page; mart.js drops the menus when a page runs inside it. A click outside,
+   × or Esc shrinks it back into its card, and the board refreshes what changed. #}
+<dialog id="board-pop" class="board-pop" aria-label="Bundle">
+  <div class="board-pop-frame">
+    <div class="board-pop-bar">
+      <strong class="board-pop-title" data-pop-title></strong>
+      <a class="small" href="" target="_top" data-pop-full title="Leave the board and open this on the client page">Open the full page ↗</a>
+      <button type="button" class="icon-btn" data-pop-close autofocus title="Back to the board (or click outside, or Esc)" aria-label="Back to the board">×</button>
+    </div>
+    <iframe title="Bundle" data-pop-iframe></iframe>
+  </div>
 </dialog>
 {% endblock %}
 {% block scripts %}<script src="/static/board.js"></script>{% endblock %}

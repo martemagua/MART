@@ -3,9 +3,11 @@ client, a card per bundle at its least advanced renewal's stage until Martin
 moves it, his stage kept beside BM+'s."""
 
 from datetime import datetime
+from pathlib import Path
 
 import pytest
 
+import mart
 from mart.repository.db import connection
 from mart.services import board, board_service
 from mart.services import client_service as cs
@@ -135,3 +137,53 @@ def test_pages(app):
     assert f'href="/clients/{cid}/board"' in explorer and "✎ Proposals / Marketing" in explorer
     assert 'href="/board"' in explorer                                   # in the main menu
     assert "/static/board.css" in get(app, f"/clients/{cid}/board").body_bytes.decode()
+
+
+def test_a_card_opens_its_bundle_over_the_board(app):
+    """Martin, 06.11.2026: click a card → its bundle in a pop-up over the
+    board; a click outside shrinks it back (board.js). The page inside is the
+    client page itself, without the menus (base.html → .is-embedded)."""
+    cid, _ = _book()
+    page = get(app, f"/clients/{cid}/board").body_bytes.decode()
+    assert 'id="board-pop"' in page and "data-pop-iframe" in page and "data-pop-close" in page
+    assert f'href="/clients/{cid}?bundle=Poland%7C2027-01-01"' in page               # what the card opens
+    inside = get(app, f"/clients/{cid}?bundle=Poland%7C2027-01-01").body_bytes.decode()
+    assert 'classList.add("is-embedded")' in inside
+    css = (Path(mart.__file__).parent / "web" / "static" / "mart.css").read_text(encoding="utf-8")
+    assert ".is-embedded .sidebar, .is-embedded .bundle-nav { display: none; }" in css
+
+
+def test_menu_folds_and_popovers_keep_in_view(app):
+    """Martin, 06.11.2026: a toggle folds the main menu into icons
+    (remembered); a pop-over never opens where the board (or the menu) cuts
+    it off (mart.js `fit`)."""
+    page = get(app, "/clients").body_bytes.decode()
+    assert "data-menu-toggle" in page and 'class="nav-icon"' in page and "mart-menu-mini" in page
+    assert page.count('class="nav-label"') == 8                          # 7 links + the toggle
+    js = (Path(mart.__file__).parent / "web" / "static" / "mart.js").read_text(encoding="utf-8")
+    assert "function fit(d)" in js and 'document.addEventListener("toggle"' in js
+
+
+def test_the_bundle_header_moves_it_on_the_board(app):
+    """Martin, 06.11.2026: the open card (the bundle page, also in the
+    pop-up) changes the board stage too."""
+    cid, _ = _book()
+    url = f"/clients/{cid}?bundle=Canada%7C2027-01-01"
+    page = get(app, url).body_bytes.decode()
+    assert f'action="/clients/{cid}/board/stage"' in page and 'name="key" value="Canada|2027-01-01"' in page
+    assert "Not started (BM+)" in page
+    res = post(app, f"/clients/{cid}/board/stage", {"key": CANADA, "stage": "decision", "back": url})
+    assert dict(res.headers)["Location"] == url
+    assert "✎ Decision ▾" in get(app, url).body_bytes.decode()
+
+
+def test_each_column_says_what_it_means(app):
+    """Martin, 06.11.2026: the renewal pipeline's guideline, under each
+    column's title and with the stage picked in a stage form."""
+    cid, _ = _book()
+    assert board.HINTS["decision"].startswith("The final proposals from the insurer(s) are in")
+    page = get(app, f"/clients/{cid}/board").body_bytes.decode()
+    assert page.count('<span class="info" tabindex="0" role="note"') == 7            # behind an ⓘ, not shown
+    assert 'data-col-label="Decision"' in page
+    assert "check that the policy documents are uploaded to BM+" in page
+    assert 'data-hint="The renewal has not been kicked off."' in page and "data-hint-text" in page

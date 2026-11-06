@@ -4,25 +4,37 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}MART{% endblock %} · MART</title>
+<script>
+// before the CSS, so nothing jumps: inside the board's pop-up (no menus), and the menu folded or not
+if (window.self !== window.top) document.documentElement.classList.add("is-embedded");
+try { if (localStorage.getItem("mart-menu-mini") === "1") document.documentElement.classList.add("menu-mini"); } catch (e) { /* not remembered */ }
+</script>
 <link rel="stylesheet" href="/static/mart.css">
 {% block head %}{% endblock %}
 </head>
 <body>
 <div class="shell">
   <nav class="sidebar" aria-label="Main">
-    <a class="brand" href="/">
-      <span class="brand-name">MART</span>
+    <a class="brand" href="/" title="MART · Home">
+      <span class="brand-name">MART</span><span class="brand-mini" aria-hidden="true">M</span>
       <span class="brand-sub">renewals</span>
     </a>
     {% if not setup_mode %}
-    <a class="nav-link {% if active == 'home' %}is-active{% endif %}" href="/">Home</a>
-    <a class="nav-link {% if active == 'clients' %}is-active{% endif %}" href="/clients">Clients</a>
-    <a class="nav-link {% if active == 'board' %}is-active{% endif %}" href="/board">Board</a>
-    <a class="nav-link {% if active == 'todos' %}is-active{% endif %}" href="/todos">To-dos</a>
-    <a class="nav-link {% if active == 'insurers' %}is-active{% endif %}" href="/insurers">Insurers</a>
-    <a class="nav-link {% if active == 'uploads' %}is-active{% endif %}" href="/uploads">Uploads</a>
-    <a class="nav-link {% if active == 'settings' %}is-active{% endif %}" href="/settings">Settings</a>
+    {% set items = [
+      ("home", "/", "Home", "M2 7.5 8 2.5l6 5M3.5 6.5V14h3.5v-4h2v4h3.5V6.5"),
+      ("clients", "/clients", "Clients", "M6 7.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM1.5 14c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5M11 7a2 2 0 1 0 0-4M12 9.5c1.5.4 2.5 2 2.5 4"),
+      ("board", "/board", "Board", "M2 2.5h3.5v11H2zM6.25 2.5h3.5v7h-3.5zM10.5 2.5H14v9h-3.5z"),
+      ("todos", "/todos", "To-dos", "M2.5 2.5h11v11h-11zM5 8l2 2 4-4.5"),
+      ("insurers", "/insurers", "Insurers", "M8 1.8 13.5 4v4c0 3.2-2.4 5.4-5.5 6.2C4.9 13.4 2.5 11.2 2.5 8V4z"),
+      ("uploads", "/uploads", "Uploads", "M8 10.5V2.5M4.8 5.5 8 2.3l3.2 3.2M2.5 10.5v3h11v-3"),
+      ("settings", "/settings", "Settings", "M8 10.2a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4zM8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"),
+    ] %}
+    {% for key, href, label, icon in items %}
+    <a class="nav-link {% if active == key %}is-active{% endif %}" href="{{ href }}" title="{{ label }}"><svg class="nav-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="{{ icon }}"/></svg><span class="nav-label">{{ label }}</span></a>
+    {% endfor %}
     {% endif %}
+    <button type="button" class="menu-toggle" data-menu-toggle aria-label="Fold the menu" title="Fold the menu into icons (it stays that way)">
+      <svg class="nav-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5 5.5 8l4.5 4.5"/></svg><span class="nav-label">Fold the menu</span></button>
     <div class="sidebar-foot">
       <span>MART {{ version }}</span>
       <span>{{ release }}</span>

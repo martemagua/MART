@@ -6,6 +6,96 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.16 — 06.11.2026 · the column meanings behind an ⓘ
+
+### Changed
+- The board's column meanings are no longer always shown (Martin,
+  06.11.2026): an ⓘ beside each column's name shows the line on hover or
+  click, like the other ⓘ in MART. The window after a drag and the stage
+  forms still show the meaning of the stage picked.
+
+### What to try
+1. Board → hover (or click) the ⓘ beside "Decision".
+
+## 0.9.15 — 06.11.2026 · what each board column means
+
+### Added
+- **Each board column says what it means** (Martin, 06.11.2026: the
+  guideline for the renewal pipeline), under its title, so you can see why
+  a card is there and when to move it on:
+  - **Not started**: the renewal has not been kicked off.
+  - **Strategy**: the renewal has been kicked off; the strategy is pending.
+  - **Proposals / Marketing**: the strategy is decided; terms and proposals
+    for the renewal are being collected.
+  - **Decision**: the final proposals from the insurer(s) are in; the
+    client's decision is pending.
+  - **Update Policy**: the renewal is confirmed with the client; the data
+    in BM+ needs to be updated.
+  - **Post-renewal review**: review all data, note key learnings, savings
+    and plan design changes, and check that the policy documents are
+    uploaded to BM+.
+  - **Done**: all tasks have been completed.
+- The same line shows when you move a card: in the window after dragging,
+  and under the stage you pick (⇄ on a card, or the bundle header's Board
+  stage).
+- The column heads line up, so the cards of every column start level.
+
+### What to try
+1. Open a board: read the columns' lines.
+2. ⇄ on a card → pick another stage: its line changes with it.
+
+## 0.9.14 — 06.11.2026 · the board stage from the bundle itself
+
+### Added
+- **Move a bundle on the board from the bundle** (Martin, 06.11.2026): the
+  "Board" stage in the bundle header (on the client page and in the
+  board's pop-up) opens the same small form as ⇄ on the card: pick the
+  stage, an optional reason, and into Done optionally mark its open
+  renewals completed. Closing the pop-up shows the card in its new column.
+  "Board" above it still leads to the board.
+
+### What to try
+1. Board → open a card → click its "Board" stage (e.g. "Not started ▾") →
+   pick Decision → Move → click beside the pop-up.
+
+## 0.9.13 — 06.11.2026 · a foldable menu, pop-overs kept in view
+
+### Added
+- **Fold the menu** (Martin, 06.11.2026): the button at the foot of the
+  main menu folds it into a slim strip of icons (the names show on
+  hover); › opens it again. Remembered in this browser.
+
+### Fixed
+- The board's ⇄ pop-over on the leftmost column was cut off at the
+  board's left edge (it opened leftwards, out of the board's scroll area).
+  Every pop-over in MART now opens where it has room: on its usual side,
+  else the other, else shifted, so the board, a table or the menu never
+  cut it off.
+
+### What to try
+1. Board → ⇄ on a card in "Not started": the pop-over opens to the right.
+2. Fold the menu at its foot; open another page: it stays folded.
+
+## 0.9.12 — 06.11.2026 · the board's cards open over it
+
+### Added
+- **A card opens its bundle over the board** (Martin, 06.11.2026). Click a
+  card: the bundle page opens in a pop-up on top of the board, and works
+  as on the client page: edit renewals, proposals, plan design, completed,
+  the expected update, notes and to-dos, and its renewals (← back to the
+  bundle stays in the pop-up).
+- **A click outside** (or ×, or Esc) shrinks it back into its card. If you
+  changed something in it, the board is refreshed first, so the card
+  already shows it, in its new column if it moved.
+- "Open the full page ↗" leaves the board for the page shown in the
+  pop-up. Ctrl-click on a card still opens it in a new tab; dragging a card
+  works as before.
+
+### What to try
+1. Board → click a card → mark a renewal's strategy or add a proposal in
+   the pop-up → click beside it: the card shows the change.
+2. In the pop-up, open a renewal, then go back to the bundle.
+
 ## 0.9.11 — 06.11.2026 · M3 day 6 · the board
 
 ### Added

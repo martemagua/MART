@@ -17,17 +17,26 @@ from __future__ import annotations
 from collections import Counter
 from typing import Any
 
+# The renewal pipeline (Martin, 06.11.2026: "a general guideline for the
+# Renewal Pipeline"): each column, and what has to be true for a card to sit
+# there, shown under each column's title and with the stage picked.
 COLUMNS = (
-    ("not_started", "Not started"),
-    ("strategy", "Strategy"),
-    ("proposals", "Proposals / Marketing"),
-    ("decision", "Decision"),
-    ("update_policy", "Update Policy"),
-    ("review", "Post-renewal review"),
-    ("done", "Done"),
+    ("not_started", "Not started", "The renewal has not been kicked off."),
+    ("strategy", "Strategy", "The renewal has been kicked off; the strategy is pending."),
+    ("proposals", "Proposals / Marketing",
+     "The strategy is decided; terms and proposals for the renewal are being collected."),
+    ("decision", "Decision",
+     "The final proposals from the insurer(s) are in; the client's decision is pending."),
+    ("update_policy", "Update Policy",
+     "The renewal is confirmed with the client; the data in BM+ needs to be updated."),
+    ("review", "Post-renewal review",
+     "Review all data, note key learnings, savings and plan design changes, and check that "
+     "the policy documents are uploaded to BM+."),
+    ("done", "Done", "All tasks have been completed."),
 )
-LABELS = dict(COLUMNS)
-ORDER = {key: i for i, (key, _) in enumerate(COLUMNS)}
+LABELS = {key: label for key, label, _ in COLUMNS}
+HINTS = {key: hint for key, _, hint in COLUMNS}
+ORDER = {key: i for i, (key, _, _) in enumerate(COLUMNS)}
 REASON_MAX = 200
 
 
@@ -65,7 +74,7 @@ def bundle_column(columns: list[str]) -> dict[str, Any]:
     least = min(columns, key=ORDER.__getitem__)
     counts = Counter(columns)
     return {"column": least, "at": counts[least], "total": len(columns), "mixed": len(counts) > 1,
-            "spread": [(LABELS[c], counts[c]) for c, _ in COLUMNS if counts[c]]}
+            "spread": [(LABELS[c], counts[c]) for c in ORDER if counts[c]]}
 
 
 def place(bm: str, row: dict[str, Any] | None) -> dict[str, Any]:

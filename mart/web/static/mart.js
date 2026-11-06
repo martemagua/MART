@@ -3,6 +3,29 @@
 (function () {
   "use strict";
 
+  // A page inside the board's pop-up (board.js; base.html marks it
+  // .is-embedded, and the CSS drops the menus): links to this client's pages
+  // stay in the pop-up, a link back to the board closes it, any other link
+  // opens in the whole window; Esc (with nothing open) closes the pop-up.
+  var embedded = document.documentElement.classList.contains("is-embedded");
+  function toParent(name) {
+    try { window.parent.document.dispatchEvent(new CustomEvent(name)); } catch (e) { /* not ours */ }
+  }
+  if (embedded) {
+    document.addEventListener("click", function (e) {
+      var a = e.target.closest ? e.target.closest("a[href]") : null;
+      if (!a || a.target || a.origin !== location.origin) return;
+      var path = a.pathname;
+      if (/^\/clients\/\d+\/board$/.test(path) || path === "/board") {
+        e.preventDefault();
+        toParent("mart-pop-close");
+      } else if (!/^\/clients\/\d+/.test(path)) {
+        a.target = "_top";
+      }
+    });
+    document.addEventListener("submit", function () { toParent("mart-pop-changed"); }, true);
+  }
+
   // <input data-filter-rows="#tbody-id">: hide table rows that don't contain the text.
   document.querySelectorAll("[data-filter-rows]").forEach(function (input) {
     var body = document.querySelector(input.getAttribute("data-filter-rows"));
@@ -124,7 +147,12 @@
   document.addEventListener("click", function (e) {
     closeMenus(e.target.closest ? e.target.closest("details.menu, details.arrange") : null);
   });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeMenus(null); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    var hadOpen = document.querySelector("details.menu[open], details.arrange[open], dialog[open]");
+    closeMenus(null);
+    if (embedded && !hadOpen) toParent("mart-pop-close");
+  });
   // <form data-confirm="Question?">: ask before submitting (deletes).
   document.querySelectorAll("form[data-confirm]").forEach(function (f) {
     f.addEventListener("submit", function (e) {
@@ -214,10 +242,71 @@
     sel.addEventListener("change", sync);
     sync();
   });
-  // [data-focus-on-open] in a <details>: put the cursor there when it opens.
-  document.querySelectorAll("details").forEach(function (d) {
+  // A <details> opening (caught on the document, so the board's refreshed
+  // cards count too): the cursor into its [data-focus-on-open], and a
+  // pop-over (.arrange-box) kept fully in view — it opens on its usual side,
+  // flips to the other or shifts if a scroll area (the board, a table) or
+  // the menu would cut it off.
+  function room(d) {
+    var lo = 0, hi = document.documentElement.clientWidth;
+    var side = document.querySelector(".sidebar");
+    var s = side && side.getBoundingClientRect();
+    if (s && s.height > window.innerHeight / 2 && s.right < hi / 2) lo = s.right;
+    for (var el = d.parentElement; el && el !== document.body; el = el.parentElement) {
+      if (getComputedStyle(el).overflowX !== "visible") {
+        var e = el.getBoundingClientRect();
+        lo = Math.max(lo, e.left);
+        hi = Math.min(hi, e.right);
+      }
+    }
+    return [lo + 4, hi - 4];
+  }
+  function fit(d) {
+    var box = d.querySelector(":scope > .arrange-box");
+    if (!box) return;
+    box.style.left = box.style.right = "";
+    var span = room(d), r = box.getBoundingClientRect();
+    if (r.left < span[0]) { box.style.left = "0"; box.style.right = "auto"; }
+    else if (r.right > span[1]) { box.style.left = "auto"; box.style.right = "0"; }
+    r = box.getBoundingClientRect();
+    var at = d.getBoundingClientRect().left;
+    if (r.right > span[1]) { box.style.left = (span[1] - r.width - at) + "px"; box.style.right = "auto"; }
+    r = box.getBoundingClientRect();
+    if (r.left < span[0]) { box.style.left = (span[0] - at) + "px"; box.style.right = "auto"; }
+  }
+  document.addEventListener("toggle", function (e) {
+    var d = e.target;
+    if (!d || d.tagName !== "DETAILS" || !d.open) return;
+    if (d.classList.contains("arrange")) fit(d);
     var field = d.querySelector("[data-focus-on-open]");
-    if (!field) return;
-    d.addEventListener("toggle", function () { if (d.open) field.focus(); });
+    if (field) field.focus();
+  }, true);
+
+  // <select data-hint-select>: the chosen option's data-hint in the form's
+  // [data-hint-text] (the board stage: what has to be true for that column).
+  document.addEventListener("change", function (e) {
+    var sel = e.target;
+    if (!sel.matches || !sel.matches("select[data-hint-select]")) return;
+    var out = sel.form && sel.form.querySelector("[data-hint-text]");
+    var opt = sel.options[sel.selectedIndex];
+    if (out && opt) out.textContent = opt.getAttribute("data-hint") || "";
+  });
+
+  // [data-menu-toggle]: fold the main menu into icons, or open it again;
+  // remembered in this browser (base.html applies it before the page shows).
+  document.querySelectorAll("[data-menu-toggle]").forEach(function (btn) {
+    function label() {
+      var mini = document.documentElement.classList.contains("menu-mini");
+      var text = mini ? "Open the menu" : "Fold the menu";
+      btn.setAttribute("aria-label", text);
+      btn.title = mini ? "Open the menu again" : "Fold the menu into icons (it stays that way)";
+      btn.querySelector(".nav-label").textContent = text;
+    }
+    btn.addEventListener("click", function () {
+      var mini = document.documentElement.classList.toggle("menu-mini");
+      try { localStorage.setItem("mart-menu-mini", mini ? "1" : "0"); } catch (e) { /* not remembered */ }
+      label();
+    });
+    label();
   });
 })();

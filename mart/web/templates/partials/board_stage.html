@@ -1,0 +1,28 @@
+{# Moving a bundle on the board (services/board_service.set_stage): the
+   fields behind the board card's ⇄ and the bundle header's "Board" pill
+   (Martin, 06.11.2026: change it from the open card too). `b` = a bundle of
+   client_service.explorer (stage, bm_stage, open_ids), `back` = where to
+   return. #}
+{% macro stage_form(base, b, back, right=true) %}
+<form method="post" action="{{ base }}/board/stage" class="arrange-box stack-form{% if right %} arrange-right{% endif %}">
+  <input type="hidden" name="key" value="{{ b.key }}">
+  <input type="hidden" name="back" value="{{ back }}">
+  <label class="small muted">Stage on the board <select name="stage" data-focus-on-open data-hint-select>
+    {% for key, label in board_labels.items() %}<option value="{{ key }}" data-hint="{{ board_hints[key] }}" {% if key == b.stage.column %}selected{% endif %}>{{ label }}{% if key == b.bm_stage.column %} (BM+){% endif %}</option>{% endfor %}
+  </select></label>
+  <p class="hint" data-hint-text>{{ board_hints[b.stage.column] }}</p>
+  <label class="small muted">Why (optional) <input type="text" name="reason" maxlength="200" placeholder="e.g. agreed with HR on the call of 28.10"></label>
+  {% if b.open_ids %}<label class="small check"><input type="checkbox" name="complete" value="1"> Into Done: also mark its {{ b.open_ids | length }} open renewal{{ "s" if b.open_ids | length != 1 }} completed today</label>{% endif %}
+  <div class="actions"><button type="submit" class="btn btn-small btn-primary">Move</button></div>
+  {% if b.stage.mine %}<p class="hint">Picking the stage BM+ has it in ({{ board_labels[b.bm_stage.column] }}) makes the card follow BM+ again.</p>{% endif %}
+</form>
+{% endmacro %}
+
+{# The bundle header's pill: the stage, opening the form. #}
+{% macro stage_pill(base, s, back) %}
+{% set st = s.stage %}
+<details class="arrange">
+  <summary class="pill pill-btn {{ 'st-mine' if st.mine else 'pill-soft' }}" title="{% if st.mine %}Stage set by you{% if st.row.reason %}: {{ st.row.reason }}{% endif %} · BM+: {{ board_labels[st.bm] }}{% else %}Where BM+'s tasks put it (the least advanced renewal){% endif %} · click to move it">{{ "✎ " if st.mine }}{{ board_labels[st.column] }} ▾</summary>
+  {{ stage_form(base, s, back, right=false) }}
+</details>
+{% endmacro %}

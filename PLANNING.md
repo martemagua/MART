@@ -292,6 +292,19 @@ forever. The MAPT audit plan already identified waivers as an open point.
 
 ## 5. Kanban board — first sketch
 
+**The renewal pipeline** (Martin, 06.11.2026, the guideline for the board's
+columns, shown under each one; `services/board.COLUMNS`):
+
+| Column | A card is here when… |
+|---|---|
+| Not started | the renewal has not been kicked off |
+| Strategy | the renewal has been kicked off; the strategy is pending |
+| Proposals / Marketing | the strategy is decided; terms and proposals are being collected |
+| Decision | the final proposals from the insurer(s) are in; the client's decision is pending |
+| Update Policy | the renewal is confirmed with the client; the data in BM+ needs to be updated |
+| Post-renewal review | review all data, note key learnings, savings, plan design changes; check the policy documents are uploaded to BM+ |
+| Done | all tasks have been completed |
+
 - **Columns** = lifecycle phases (§4). The Closed column prunes itself after N days.
 - **Cards** = renewal cases (or a bundle card that expands). The card shows
   client · country · product group · renewal date countdown · strategy pill
