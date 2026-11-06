@@ -22,10 +22,13 @@
   </div>
 {% endmacro %}
 
-{% macro plan_changes_section(base, r, pc, back) %}
-<section class="rd-section sec-mine" id="plan-changes" aria-labelledby="pdc-h">
+{# Inside the renewal panel's Strategy section (Martin, 06.11.2026: BM+ and
+   his together, his marked ✎ with the blue edge): BM+'s own plan design
+   facts (`bm_facts`), its suggestion, then his changes. #}
+{% macro plan_changes_block(base, r, pc, back, bm_facts=[]) %}
+<div class="pdc-block" id="plan-changes" aria-labelledby="pdc-h">
   <div class="mine-head">
-    <h3 id="pdc-h">Plan design changes <span class="sec-src">written in MART · suggested → agreed → implemented</span></h3>
+    <h4 id="pdc-h">Plan design changes</h4>
     <details class="arrange">
       <summary class="btn btn-small">+ Change</summary>
       <form method="post" action="{{ base }}/renewals/{{ r.id }}/plan-changes" class="arrange-box stack-form arrange-right prop-form">
@@ -35,6 +38,7 @@
       </form>
     </details>
   </div>
+  {% if bm_facts %}<dl class="facts pdc-bm-facts">{% for label, val in bm_facts %}<dt>{{ label }}</dt><dd>{{ val }}</dd>{% endfor %}</dl>{% endif %}
   {% if pc.bm %}
   <div class="pdc-bm">
     <span class="pill pill-soft" title="BM+ Renewal Strategy sheet">BM+ suggests</span>
@@ -46,7 +50,7 @@
   </div>
   {% endif %}
   {% if pc["items"] %}
-  <ul class="pdc-list">
+  <ul class="pdc-list mine-block">
     {% for c in pc["items"] %}
     <li class="pdc-item{% if c.status == 'dropped' %} is-dropped{% endif %}">
       <div class="pdc-main">
@@ -82,10 +86,10 @@
     {% endfor %}
   </ul>
   {% elif not pc.bm %}
-  <p class="muted">No plan design changes recorded. <a href="{{ base }}/plan-changes">All of this client's →</a></p>
+  <p class="muted small">None recorded by you. <a href="{{ base }}/plan-changes">All of this client's →</a></p>
   {% endif %}
   {% if pc["items"] %}<p class="hint"><a href="{{ base }}/plan-changes">All plan design changes of this client →</a></p>{% endif %}
-</section>
+</div>
 {% endmacro %}
 
 {# The client-wide overview (in the explorer's middle). #}

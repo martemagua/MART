@@ -684,3 +684,44 @@ summary.pill-btn:hover { outline: 1px solid var(--accent); }
 .sh-list li { display: flex; flex-direction: column; }
 .sh-when { font-size: 12px; color: var(--muted); }
 .sh-why { font-style: italic; overflow-wrap: anywhere; }
+
+/* -- the renewal panel, lean (Martin, 06.11.2026) ---------------------------------- */
+.rd-crumbs { display: flex; align-items: center; gap: 6px; }
+.rd-crumbs .arrange-box { width: 380px; }
+.icon-btn.icon-sm { width: 24px; height: 24px; }
+.icon-btn.icon-sm svg { width: 13px; height: 13px; }
+.rd-meta { margin: 4px 0 0; }
+.rd-pills { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.act-ctl { display: inline-flex; align-items: center; gap: 4px; }
+.act-ctl form { margin: 0; }
+.rd-pills details.arrange { display: inline-block; }
+.btn.btn-pill { min-height: 24px; padding: 1px 10px; font-size: 12px; border-radius: 6px; }
+.btn.btn-pill.is-suggested { border-color: var(--ok-ink); color: var(--ok-ink); }
+/* a section of its own only by name: BM+'s stages in one slim row */
+.rd-section.rd-slim { padding: 10px 20px; display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: center; gap: 8px 16px; }
+.rd-section.rd-slim h3 { margin: 0; font-size: 14px; }
+.stage-line { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.sl { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 7px; padding: 5px 9px; border: 1px solid var(--border); border-left: 3px solid var(--muted); border-radius: 6px; font-size: 12.5px; cursor: help; min-width: 0; }
+.sl .sdot { grid-row: span 2; }
+.sl-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sl-state { color: var(--ink-2); }
+.sl-fact { grid-column: 2; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sl-doing { border-left-color: var(--accent); }
+.sl-review { border-left-color: var(--warn-line); }
+.sl-done { border-left-color: var(--ok-ink); }
+.sl-missing, .sl-skipped { border-left-style: dashed; color: var(--muted); }
+.sl.is-late { border-left-color: var(--err-ink); }
+@media (max-width: 1100px) { .rd-section.rd-slim { grid-template-columns: minmax(0, 1fr); } }
+/* an empty to-dos and notes: one slim line */
+.rd-section.sec-mine.is-empty { padding: 8px 20px; }
+.rd-section.sec-mine.is-empty h3 { font-size: 14px; color: var(--muted); }
+/* what Martin wrote inside a BM+ section: ✎ and the mine edge */
+.mine-block { border-left: 3px solid var(--accent); padding-left: 12px; margin: 8px 0; }
+.mine-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.mine-tag { font-size: 12px; font-weight: 600; color: var(--accent); }
+.mine-why { font-style: italic; color: var(--ink-2); }
+.pdc-block { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }
+.pdc-block .mine-head h4 { margin: 0; }
+.pdc-bm-facts { margin: 6px 0; }
+ul.pdc-list.mine-block { padding-left: 12px; }
+.rd-section.rd-slim > p { margin: 0; }

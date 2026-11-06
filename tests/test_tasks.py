@@ -130,7 +130,7 @@ def test_strategies_without_a_proposals_stage(configured, app, strategy):
     life = {s["name"]: s for s in rs.detail(*rows["Life"])["stages"]}
     assert life["Proposals"]["state"] == "missing"
     page = get(app, "/clients/{}/renewals/{}".format(*rows["Medical"])).body_bytes.decode()
-    assert f"not needed ({strategy})" in page and "stage-skipped" in page
+    assert f"not needed ({strategy})" in page and "sl-skipped" in page
     # if BM+ does create one anyway, it is shown as it is
     uid = us.stage("t2.xlsx", task_tracker([T(n=1, task_name="Renewal Strategy"),
                                            T(n=1, task_name="Proposals", status="In Progress")],

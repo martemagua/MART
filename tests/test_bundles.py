@@ -76,7 +76,7 @@ def test_move_into_a_new_bundle_then_more_then_back(book, app):
     assert f'class="btn btn-small move-done" href="/clients/{cid}?bundle=custom%7C{custom}"' in page
     # the renewal panel shows its bundle and where it can move
     panel = get(app, f"/clients/{cid}/renewals/{med}").body_bytes.decode()
-    assert "Bundle:" in panel and "PZU programme" in panel and "Move to another bundle" in panel
+    assert "PZU programme" in panel and 'aria-label="Move this renewal to another bundle"' in panel
     # back to their own bundles
     bs.move(cid, [med, dental], bs.DEFAULT)
     assert _bundles(cid)[POLAND] == ["Life", "Medical"] and "Poland|2027-03-01" in _bundles(cid)

@@ -41,7 +41,7 @@ def test_write_on_a_renewal_through_the_pages(book, app):
     post(app, "/notes/add", {"scope": "renewal", "ref": str(book["med"]),
                              "body": "Broker: terms\nexpected late November", "back": url})
     page = _page(app, url)
-    assert "Your to-dos and notes" in page and "Chase broker" in page and "due 10.11.2026" in page
+    assert "To-dos and notes" in page and "Chase broker" in page and "due 10.11.2026" in page
     assert "Broker: terms\nexpected late November" in page
     # the bundle card shows the counts
     bundle_page = _page(app, f"/clients/{book['cid']}")

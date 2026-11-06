@@ -131,8 +131,8 @@ def test_panel_and_card_show_it(app):
                {"strategy": "Remarketing", "reason": "HR call", "back": f"{base}/renewals/{ids['Medical']}"})
     assert res.status == 303 and dict(res.headers)["Location"].endswith("#actual")
     panel = get(app, f"{base}/renewals/{ids['Medical']}").body_bytes.decode()
-    assert "Actual state" in panel and "≠ BM+: TBC" in panel and "HR call" in panel
-    assert panel.index("Actual state") < panel.index('id="facts-h"')          # in the "yours" slot
+    assert 'id="actual"' in panel and "≠ BM+: TBC" in panel and "HR call" in panel
+    assert panel.index('id="actual"') < panel.index('id="mine"')              # in the header (0.9.19)
     card = get(app, f"{base}?bundle=Poland%7C2027-01-01").body_bytes.decode()
     assert "≠ BM+: TBC" in card
     # set by you: neutral with a ✎, never BM+'s colour

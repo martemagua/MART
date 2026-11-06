@@ -84,9 +84,12 @@
 
 {# The section: to-dos + notes on `target`, with add forms. `also` = notes
    and to-dos of the bundle, shown read-only with a link (renewal panel). #}
-{% macro mine_section(m, back, heading="Your to-dos and notes", also=none, also_url=none, earlier=none) %}
-<section class="rd-section sec-mine" id="mine" aria-labelledby="mine-h">
-  {% set open_todos = m.todos | rejectattr("done_at") | list %}{% set done_todos = m.todos | selectattr("done_at") | list %}
+{# `compact` (the renewal panel, Martin 06.11.2026): with nothing written,
+   one slim line with the two buttons instead of a card saying so. #}
+{% macro mine_section(m, back, heading="Your to-dos and notes", also=none, also_url=none, earlier=none, compact=false) %}
+{% set open_todos = m.todos | rejectattr("done_at") | list %}{% set done_todos = m.todos | selectattr("done_at") | list %}
+{% set empty = not (open_todos or done_todos or m.notes or earlier or (also and (also.notes or also.todos | rejectattr("done_at") | list))) %}
+<section class="rd-section sec-mine{% if compact and empty %} is-empty{% endif %}" id="mine" aria-labelledby="mine-h">
   <div class="mine-head">
     <h3 id="mine-h">{{ heading }} <span class="sec-src">written in MART</span></h3>
     <div class="mine-actions">
@@ -129,7 +132,7 @@
     </div>
     {% endif %}
   </div>
-  {% else %}<p class="muted small mine-empty">Nothing written here yet.</p>{% endif %}
+  {% elif not compact %}<p class="muted small mine-empty">Nothing written here yet.</p>{% endif %}
   {% if earlier %}
   <details class="mine-also mine-earlier">
     <summary><h4>Notes from earlier renewals of this policy ({{ earlier | length }})</h4></summary>

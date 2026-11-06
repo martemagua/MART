@@ -6,6 +6,42 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.19 — 06.11.2026 · a leaner renewal page, BM+ to the fore
+
+### Changed
+- **The renewal page is leaner** (Martin, 06.11.2026: the MART cards took
+  the room; he wants more of BM+). New order: header → to-dos and notes →
+  BM+ stages → **renewal overview** → Strategy → Proposals → Renewal →
+  Savings → the folded rest.
+- **The header carries your actual state**: the strategy that counts (✎
+  yours, else BM+'s) with "≠ BM+: …" when they differ and a ✎ to set or
+  change it (your earlier changes are listed under its form); **✓ Mark
+  completed** (green when BM+'s three stages are all done) or the
+  completed badge; and the bundle's **Board** stage, which opens the same
+  move form as on the board. The "Actual state" card is gone.
+- The header also names the **expiring insurer** (with its networks, or
+  "no network partner") and the **expiring premium** (BM+). The bundle line
+  became the back link with a ⇄ beside it to move the renewal.
+- **To-dos and notes** come first, as one slim line when there are none.
+- **BM+ stages** in one slim row: state, due date and who; peer review and
+  due-date moves on hover.
+- **Renewal overview** right after the stages, the newest three entries
+  open.
+- **Strategy**: your strategy (✎, with why) above BM+'s Renewal Strategy
+  sheet, and **plan design changes** inside it: BM+'s "considered /
+  comments", its suggestion and your changes.
+- **Proposals**: one section, yours first (to compare), BM+'s Proposals
+  sheet below as "In BM+"; with none, one line.
+- An empty Savings is one line too.
+- Inside a BM+ section, what you wrote carries ✎ and a blue edge on its
+  left, so MART and BM+ stay told apart without separate cards.
+
+### What to try
+1. Open a renewal: the overview is on the first screen.
+2. ✎ beside the strategy pill → set yours; it shows in the header and at
+   the top of Strategy.
+3. "+ Change" in Strategy; "+ Proposal" in Proposals.
+
 ## 0.9.18 — 06.11.2026 · the renewal overview starts closed
 
 ### Changed

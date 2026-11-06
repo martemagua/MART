@@ -40,17 +40,16 @@
 </form>
 {% endmacro %}
 
-{# The renewal panel's section, just after the BM+ stages. #}
-{% macro actual_section(base, r, a, back) %}
-<section class="rd-section sec-mine" id="actual" aria-labelledby="actual-h">
-  <h3 id="actual-h">Actual state <span class="sec-src">written in MART · BM+ stays the record</span></h3>
-  <div class="act-row">
-    <span class="act-label">Strategy</span>
-    {% if a.strategy %}{{ strategy_pill(a.strategy, true) }}{{ strategy_vs_bm(a) }}
-    {% else %}<span class="muted small">not set — going by BM+ ({{ a.bm_strategy or "blank" }})</span>{% endif %}
-    <details class="arrange">
-      <summary class="icon-btn" title="{{ 'Change your strategy' if a.strategy else 'Set your strategy' }}" aria-label="{{ 'Change your strategy' if a.strategy else 'Set your strategy' }}">{{ _pen }}</summary>
-      <form method="post" action="{{ base }}/renewals/{{ r.id }}/strategy" class="arrange-box stack-form">
+{# The renewal panel's header carries the actual state (Martin, 06.11.2026:
+   leaner, BM+ to the fore): the strategy that counts, how it stands against
+   BM+'s, a ✎ to set yours (with every change behind it), and completed. #}
+{% macro strategy_control(base, r, a, back) %}
+<span class="act-ctl" id="actual">
+  {{ strategy_pill(a.effective, a.strategy) }}{% if a.strategy %}{{ strategy_vs_bm(a) }}{% endif %}
+  <details class="arrange">
+    <summary class="icon-btn icon-sm" title="{{ 'Change your strategy' if a.strategy else 'Set your strategy (BM+ says: ' ~ (a.bm_strategy or 'nothing') ~ ')' }}" aria-label="{{ 'Change your strategy' if a.strategy else 'Set your strategy' }}">{{ _pen }}</summary>
+    <div class="arrange-box">
+      <form method="post" action="{{ base }}/renewals/{{ r.id }}/strategy" class="stack-form">
         <input type="hidden" name="back" value="{{ back }}">
         <label class="small muted">Your strategy <select name="strategy" data-focus-on-open>
           <option value="">— go by BM+ ({{ a.bm_strategy or "blank" }}) —</option>
@@ -61,34 +60,30 @@
         <p class="hint">BM+ says: {{ a.bm_strategy or "nothing yet" }}. Pick "go by BM+" to drop yours.</p>
         <div class="actions"><button type="submit" class="btn btn-small btn-primary">Save</button></div>
       </form>
-    </details>
-  </div>
-  {% if a.strategy_reason %}<div class="act-note">{{ a.strategy_reason }}</div>{% endif %}
-  <div class="act-row">
-    <span class="act-label">Completed</span>
-    {% if a.completed %}
-    {{ completed_badge(a) }}
-    <form method="post" action="{{ base }}/completed" data-confirm="Mark this renewal as not completed?">
-      <input type="hidden" name="back" value="{{ back }}"><input type="hidden" name="rid" value="{{ r.id }}"><input type="hidden" name="undo" value="1">
-      <button type="submit" class="icon-btn" title="Not completed after all" aria-label="Mark as not completed">×</button>
-    </form>
-    {% else %}
-    <span class="muted small">not yet</span>
-    {% if a.suggest_completed %}<span class="pill pill-new" title="BM+'s Renewal Strategy, Proposals and Update Policy are all completed">BM+'s stages are all done</span>{% endif %}
-    <details class="arrange">
-      <summary class="btn btn-small">✓ Mark completed</summary>
-      {{ completed_form(base, [r.id], back) }}
-    </details>
-    {% endif %}
-  </div>
-  {% if a.completed_reason %}<div class="act-note">{{ a.completed_reason }}</div>{% endif %}
-  {% if a.history %}
-  <details class="dl-history">
-    <summary class="small muted">Changes ({{ a.history | length }})</summary>
-    <ul>{% for h in a.history %}<li class="small">{{ h.created_at | dmy(True) }} · {{ "strategy" if h.field == "strategy" else "completed" }}:
-      {% if h.value is none %}{{ "cleared (BM+'s counts)" if h.field == "strategy" else "taken back" }}{% elif h.field == "completed" %}{{ h.value | dmy }}{% else %}{{ h.value }}{% endif %}
-      {% if h.field == "strategy" %}<span class="muted">(BM+ then: {{ h.bm_value or "blank" }})</span>{% endif %}{% if h.reason %} · {{ h.reason }}{% endif %}</li>{% endfor %}</ul>
+      {% if a.history %}
+      <div class="stage-history">
+        <p class="small muted sh-title">Your changes</p>
+        <ol class="sh-list">{% for h in a.history %}<li><span class="sh-when">{{ h.created_at | dmy(True) }}</span>
+          <span>{{ "Strategy" if h.field == "strategy" else "Completed" }}: {% if h.value is none %}{{ "cleared (BM+'s counts)" if h.field == "strategy" else "taken back" }}{% elif h.field == "completed" %}{{ h.value | dmy }}{% else %}<strong>{{ h.value }}</strong>{% endif %}{% if h.field == "strategy" %} <span class="muted">(BM+ then: {{ h.bm_value or "blank" }})</span>{% endif %}</span>
+          {% if h.reason %}<span class="sh-why">{{ h.reason }}</span>{% endif %}</li>{% endfor %}</ol>
+      </div>
+      {% endif %}
+    </div>
   </details>
-  {% endif %}
-</section>
+</span>
+{% endmacro %}
+
+{% macro completed_control(base, r, a, back) %}
+{% if a.completed %}
+<span class="act-ctl">{{ completed_badge(a) }}
+  <form method="post" action="{{ base }}/completed" data-confirm="Mark this renewal as not completed?">
+    <input type="hidden" name="back" value="{{ back }}"><input type="hidden" name="rid" value="{{ r.id }}"><input type="hidden" name="undo" value="1">
+    <button type="submit" class="icon-btn icon-sm" title="Not completed after all" aria-label="Mark as not completed">×</button>
+  </form></span>
+{% else %}
+<details class="arrange">
+  <summary class="btn btn-small btn-pill{% if a.suggest_completed %} is-suggested{% endif %}" title="{{ 'BM+\'s Renewal Strategy, Proposals and Update Policy are all completed' if a.suggest_completed else 'Only you mark a renewal completed' }}">✓ Mark completed{% if a.suggest_completed %} · BM+'s stages are all done{% endif %}</summary>
+  {{ completed_form(base, [r.id], back) }}
+</details>
+{% endif %}
 {% endmacro %}
