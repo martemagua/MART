@@ -6,6 +6,24 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.13 — 06.11.2026 · a foldable menu, pop-overs kept in view
+
+### Added
+- **Fold the menu** (Martin, 06.11.2026): the button at the foot of the
+  main menu folds it into a slim strip of icons (the names show on
+  hover); › opens it again. Remembered in this browser.
+
+### Fixed
+- The board's ⇄ pop-over on the leftmost column was cut off at the
+  board's left edge (it opened leftwards, out of the board's scroll area).
+  Every pop-over in MART now opens where it has room: on its usual side,
+  else the other, else shifted, so the board, a table or the menu never
+  cut it off.
+
+### What to try
+1. Board → ⇄ on a card in "Not started": the pop-over opens to the right.
+2. Fold the menu at its foot; open another page: it stays folded.
+
 ## 0.9.12 — 06.11.2026 · the board's cards open over it
 
 ### Added

@@ -151,3 +151,14 @@ def test_a_card_opens_its_bundle_over_the_board(app):
     assert 'classList.add("is-embedded")' in inside
     css = (Path(mart.__file__).parent / "web" / "static" / "mart.css").read_text(encoding="utf-8")
     assert ".is-embedded .sidebar, .is-embedded .bundle-nav { display: none; }" in css
+
+
+def test_menu_folds_and_popovers_keep_in_view(app):
+    """Martin, 06.11.2026: a toggle folds the main menu into icons
+    (remembered); a pop-over never opens where the board (or the menu) cuts
+    it off (mart.js `fit`)."""
+    page = get(app, "/clients").body_bytes.decode()
+    assert "data-menu-toggle" in page and 'class="nav-icon"' in page and "mart-menu-mini" in page
+    assert page.count('class="nav-label"') == 8                          # 7 links + the toggle
+    js = (Path(mart.__file__).parent / "web" / "static" / "mart.js").read_text(encoding="utf-8")
+    assert "function fit(d)" in js and 'document.addEventListener("toggle"' in js

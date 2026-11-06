@@ -102,7 +102,7 @@ before changing anything.
 - Test data: `tests/fixtures.py` builds exports to the real layout. Real
   exports can be checked with `MART_REAL_EXPORTS=<folder>` (never committed).
 - Timestamps in the DB are UTC; `| dmy(True)` shows them in local time.
-- **Desktop only** (landscape and portrait windows). The main menu (`.sidebar`) is pinned to the window; explorer pages: side panel scrolls on its own (`.bundle-nav`), content in the middle.
+- **Desktop only** (landscape and portrait windows). The main menu (`.sidebar`) is pinned to the window and folds into icons (`[data-menu-toggle]` → `html.menu-mini`, remembered in `localStorage` `mart-menu-mini`, applied by base.html's inline script before the CSS; each link = `.nav-icon` + `.nav-label`); explorer pages: side panel scrolls on its own (`.bundle-nav`), content in the middle.
 - The explorer opens at the TOP (Martin, 04.11.2026): no bundle asked for → the top bundle of the
   panel is selected, and `data-fresh` resets the panel's remembered scroll and filters. Its
   bundles are always grouped by renewal month (no other grouping); the filters (text, region (the client's own), country,
@@ -113,7 +113,9 @@ before changing anything.
   (`details.arrange` + `.arrange-box`), footnotes behind an ⓘ (`.info` +
   `.tip`), edit actions are icons beside what they edit (`.icon-btn`). A
   popover opened from a button at the RIGHT end of a line gets `.arrange-right`,
-  so it opens leftwards and never runs off the window.
+  so it opens leftwards; on top of that `mart.js` `fit` checks every opened
+  `details.arrange` and flips or shifts its box to stay inside the window,
+  the menu and any scroll area around it (the board, a `.table-scroll`).
 - CSS: `[hidden]` always wins (`display: none !important`), so filters work on flex/grid items.
 - Keep files under ~400 lines; one shared helper over duplicated logic.
 

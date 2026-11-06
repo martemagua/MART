@@ -242,10 +242,61 @@
     sel.addEventListener("change", sync);
     sync();
   });
-  // [data-focus-on-open] in a <details>: put the cursor there when it opens.
-  document.querySelectorAll("details").forEach(function (d) {
+  // A <details> opening (caught on the document, so the board's refreshed
+  // cards count too): the cursor into its [data-focus-on-open], and a
+  // pop-over (.arrange-box) kept fully in view — it opens on its usual side,
+  // flips to the other or shifts if a scroll area (the board, a table) or
+  // the menu would cut it off.
+  function room(d) {
+    var lo = 0, hi = document.documentElement.clientWidth;
+    var side = document.querySelector(".sidebar");
+    var s = side && side.getBoundingClientRect();
+    if (s && s.height > window.innerHeight / 2 && s.right < hi / 2) lo = s.right;
+    for (var el = d.parentElement; el && el !== document.body; el = el.parentElement) {
+      if (getComputedStyle(el).overflowX !== "visible") {
+        var e = el.getBoundingClientRect();
+        lo = Math.max(lo, e.left);
+        hi = Math.min(hi, e.right);
+      }
+    }
+    return [lo + 4, hi - 4];
+  }
+  function fit(d) {
+    var box = d.querySelector(":scope > .arrange-box");
+    if (!box) return;
+    box.style.left = box.style.right = "";
+    var span = room(d), r = box.getBoundingClientRect();
+    if (r.left < span[0]) { box.style.left = "0"; box.style.right = "auto"; }
+    else if (r.right > span[1]) { box.style.left = "auto"; box.style.right = "0"; }
+    r = box.getBoundingClientRect();
+    var at = d.getBoundingClientRect().left;
+    if (r.right > span[1]) { box.style.left = (span[1] - r.width - at) + "px"; box.style.right = "auto"; }
+    r = box.getBoundingClientRect();
+    if (r.left < span[0]) { box.style.left = (span[0] - at) + "px"; box.style.right = "auto"; }
+  }
+  document.addEventListener("toggle", function (e) {
+    var d = e.target;
+    if (!d || d.tagName !== "DETAILS" || !d.open) return;
+    if (d.classList.contains("arrange")) fit(d);
     var field = d.querySelector("[data-focus-on-open]");
-    if (!field) return;
-    d.addEventListener("toggle", function () { if (d.open) field.focus(); });
+    if (field) field.focus();
+  }, true);
+
+  // [data-menu-toggle]: fold the main menu into icons, or open it again;
+  // remembered in this browser (base.html applies it before the page shows).
+  document.querySelectorAll("[data-menu-toggle]").forEach(function (btn) {
+    function label() {
+      var mini = document.documentElement.classList.contains("menu-mini");
+      var text = mini ? "Open the menu" : "Fold the menu";
+      btn.setAttribute("aria-label", text);
+      btn.title = mini ? "Open the menu again" : "Fold the menu into icons (it stays that way)";
+      btn.querySelector(".nav-label").textContent = text;
+    }
+    btn.addEventListener("click", function () {
+      var mini = document.documentElement.classList.toggle("menu-mini");
+      try { localStorage.setItem("mart-menu-mini", mini ? "1" : "0"); } catch (e) { /* not remembered */ }
+      label();
+    });
+    label();
   });
 })();
