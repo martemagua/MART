@@ -54,8 +54,6 @@
 .board-dialog::backdrop { background: rgba(0, 0, 0, 0.35); }
 .board-dialog-title { margin: 0 0 6px; font-size: 16px; }
 
-.board-clients { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.board-clients li { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
 
 /* the pop-up: the bundle page over the board (board.js). The dialog fills the
    window and is see-through, so a click beside the frame lands on it. */

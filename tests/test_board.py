@@ -9,7 +9,7 @@ import pytest
 
 import mart
 from mart.repository.db import connection
-from mart.services import board, board_service
+from mart.services import board, board_service, client_cards
 from mart.services import client_service as cs
 from mart.services import upload_service as us
 from tests.conftest import get, post
@@ -135,7 +135,7 @@ def test_pages(app):
     assert get(app, f"/clients/{cid + 1}/board").status == 404
     explorer = get(app, f"/clients/{cid}?bundle=Canada%7C2027-01-01").body_bytes.decode()
     assert f'href="/clients/{cid}/board"' in explorer and "✎ Proposals / Marketing" in explorer
-    assert 'href="/board"' in explorer                                   # in the main menu
+    assert 'href="/board"' not in explorer                 # 0.9.20: picked on the Clients page, no menu entry
     assert "/static/board.css" in get(app, f"/clients/{cid}/board").body_bytes.decode()
 
 
@@ -159,7 +159,7 @@ def test_menu_folds_and_popovers_keep_in_view(app):
     it off (mart.js `fit`)."""
     page = get(app, "/clients").body_bytes.decode()
     assert "data-menu-toggle" in page and 'class="nav-icon"' in page and "mart-menu-mini" in page
-    assert page.count('class="nav-label"') == 8                          # 7 links + the toggle
+    assert page.count('class="nav-label"') == 7                          # 6 links + the toggle
     js = (Path(mart.__file__).parent / "web" / "static" / "mart.js").read_text(encoding="utf-8")
     assert "function fit(d)" in js and 'document.addEventListener("toggle"' in js
 
@@ -220,3 +220,17 @@ def test_a_lone_renewals_overview_starts_closed(app):
     page = get(app, f"/clients/{cid}?bundle=Poland%7C2027-01-01").body_bytes.decode()
     assert "broker asked for claims data" in page
     assert '<details class="rc-overview">' in page and '<details class="rc-overview" open' not in page
+
+
+def test_one_clients_page_leads_to_board_and_explorer(app):
+    """Martin, 06.11.2026: the Clients list and the Board's client picker are
+    one page, a large card per client with its board in one row."""
+    cid, _ = _book()
+    board_service.set_stage(cid, CANADA, "decision", "quotes in")
+    page = get(app, "/clients").body_bytes.decode()
+    assert f'href="/clients/{cid}/board"' in page and "Explorer →" in page and "Board →" in page
+    assert page.count('class="cb-col') == 7 and "Recorded by you" in page and "Needs you" in page
+    assert "1 bundle moved on the board" in page and "0 of 3 renewals completed" in page
+    c = client_cards.cards()[0]
+    assert {col["key"]: col["n"] for col in c["board"] if col["n"]} == {"strategy": 1, "decision": 1}
+    assert c["countries"] == 2 and c["board_total"] == 2

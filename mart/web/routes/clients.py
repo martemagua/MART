@@ -8,6 +8,7 @@ from urllib.parse import quote
 from mart.services import (
     actuals,
     bundle_service,
+    client_cards,
     client_service,
     deadlines,
     freshness,
@@ -23,7 +24,7 @@ router = Router()
 
 @router.route("/clients")
 def clients_page(request: Request) -> Response:
-    return render("clients.html", active="clients", clients=client_service.clients_overview(),
+    return render("clients.html", active="clients", clients=client_cards.cards(),
                   client_notes=notes_service.client_totals())
 
 

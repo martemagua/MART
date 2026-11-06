@@ -662,7 +662,6 @@ h3 .fr-badge { vertical-align: 2px; margin-left: 4px; }
 .client-pages .client-pages-link { margin: 0; }
 .region-form input[type=text] { max-width: 260px; min-height: 34px; }
 .region-form td { vertical-align: middle; }
-.board-link { margin-left: 8px; }
 /* a page inside the board's pop-up (board.js): no menus, only the page */
 .is-embedded .sidebar, .is-embedded .bundle-nav { display: none; }
 .is-embedded .explorer { grid-template-columns: minmax(0, 1fr); min-height: 0; }
@@ -725,3 +724,27 @@ summary.pill-btn:hover { outline: 1px solid var(--accent); }
 .pdc-bm-facts { margin: 6px 0; }
 ul.pdc-list.mine-block { padding-left: 12px; }
 .rd-section.rd-slim > p { margin: 0; }
+
+/* -- the Clients page: a large card per client (clients.html) ---------------------- */
+.ccards { display: grid; grid-template-columns: repeat(auto-fill, minmax(520px, 1fr)); gap: 16px; }
+@media (max-width: 1200px) { .ccards { grid-template-columns: minmax(0, 1fr); } }
+.ccard { display: flex; flex-direction: column; gap: 14px; }
+.ccard-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px 16px; }
+.ccard-title { flex: 1; min-width: 0; }
+.ccard-title h2 { margin: 0 0 2px; font-size: 19px; }
+.ccard-title h2 a { color: var(--ink); text-decoration: none; }
+.ccard-title h2 a:hover { color: var(--accent); text-decoration: underline; }
+.ccard-title p { margin: 0; }
+.ccard-go { display: flex; gap: 8px; flex: none; }
+/* the board in one row: bundles per column */
+.ccard-board { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; text-decoration: none; color: var(--ink); }
+.cb-col { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; border-radius: 6px; background: var(--accent-soft); min-width: 0; }
+.cb-col.is-empty { background: var(--soft-bg); color: var(--muted); }
+.cb-n { font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.cb-l { font-size: 10.5px; line-height: 1.2; text-align: center; color: var(--muted); overflow-wrap: anywhere; }
+.ccard-board:hover .cb-col { outline: 1px solid var(--accent); }
+.ccard-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 18px; }
+@media (max-width: 760px) { .ccard-cols { grid-template-columns: minmax(0, 1fr); } }
+.ccard-cols h3 { margin: 0 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.ccard-cols .cc-counts { margin: 0; }
+.ccard-foot { margin-top: auto; border-top: 1px solid var(--border); padding-top: 10px; color: var(--muted); }

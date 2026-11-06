@@ -6,6 +6,30 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.20 — 07.11.2026 · one Clients page, a large card per client
+
+### Changed
+- **The Clients list and the Board's client picker are one page**
+  (Martin, 06.11.2026): **Clients** shows a large card per client with
+  **Board →** and **Explorer →**, and on it:
+  - its renewals, bundles, countries (and the client's own regions) and
+    the next renewal;
+  - its **board in one row**: how many bundles sit in each of the seven
+    columns (hover for what a column means; click for the board);
+  - **Needs you**: passed / near expected updates, new overview entries,
+    bundles gone quiet, open to-dos (the same counts as Home);
+  - **Recorded by you**: renewals completed, strategies set (≠ BM+ on …),
+    proposals received, bundles moved on the board;
+  - **BM+ data**: how old the client's overview is, and renewals without
+    a client-ready overview, with gaps or with none;
+  - links to the client's notes & to-dos, plan design changes and regions.
+- The main menu's **Board** entry is gone: a board opens from its client's
+  card (or the explorer's side panel). `/board` still works: with one
+  client it opens that client's board, otherwise the Clients page.
+
+### What to try
+1. Clients → read a card; Board → for a status call; Explorer → to work.
+
 ## 0.9.19 — 06.11.2026 · a leaner renewal page, BM+ to the fore
 
 ### Changed

@@ -40,7 +40,9 @@ def _cap(items: list[dict[str, Any]]) -> dict[str, Any]:
     return {"items": items[:SHOWN], "more": max(len(items) - SHOWN, 0), "total": len(items)}
 
 
-def view(today: date | None = None) -> dict[str, Any]:
+def view(today: date | None = None, views: dict[int, dict[str, Any]] | None = None) -> dict[str, Any]:
+    """`views` = the clients' explorer views when the caller has them already
+    (the Clients page), so each is built once per request."""
     today = today or date.today()
     since = (today - timedelta(days=1)).isoformat()
     with connection() as conn:
@@ -49,7 +51,7 @@ def view(today: date | None = None) -> dict[str, Any]:
     passed, soon, stale, new = [], [], [], []
     cards = []
     for c in mine:
-        v = client_service.explorer(c["id"], today=today)
+        v = (views or {}).get(c["id"]) or client_service.explorer(c["id"], today=today, with_detail=False)
         base = f"/clients/{c['id']}"
         counts = {"passed": 0, "soon": 0, "stale": 0, "new": 0,
                   "todos": sum(1 for t in todos if t["client_id"] == c["id"])}
