@@ -6,6 +6,20 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.14 — 06.11.2026 · the board stage from the bundle itself
+
+### Added
+- **Move a bundle on the board from the bundle** (Martin, 06.11.2026): the
+  "Board" stage in the bundle header (on the client page and in the
+  board's pop-up) opens the same small form as ⇄ on the card: pick the
+  stage, an optional reason, and into Done optionally mark its open
+  renewals completed. Closing the pop-up shows the card in its new column.
+  "Board" above it still leads to the board.
+
+### What to try
+1. Board → open a card → click its "Board" stage (e.g. "Not started ▾") →
+   pick Decision → Move → click beside the pop-up.
+
 ## 0.9.13 — 06.11.2026 · a foldable menu, pop-overs kept in view
 
 ### Added

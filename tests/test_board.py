@@ -162,3 +162,16 @@ def test_menu_folds_and_popovers_keep_in_view(app):
     assert page.count('class="nav-label"') == 8                          # 7 links + the toggle
     js = (Path(mart.__file__).parent / "web" / "static" / "mart.js").read_text(encoding="utf-8")
     assert "function fit(d)" in js and 'document.addEventListener("toggle"' in js
+
+
+def test_the_bundle_header_moves_it_on_the_board(app):
+    """Martin, 06.11.2026: the open card (the bundle page, also in the
+    pop-up) changes the board stage too."""
+    cid, _ = _book()
+    url = f"/clients/{cid}?bundle=Canada%7C2027-01-01"
+    page = get(app, url).body_bytes.decode()
+    assert f'action="/clients/{cid}/board/stage"' in page and 'name="key" value="Canada|2027-01-01"' in page
+    assert "Not started (BM+)" in page
+    res = post(app, f"/clients/{cid}/board/stage", {"key": CANADA, "stage": "decision", "back": url})
+    assert dict(res.headers)["Location"] == url
+    assert "✎ Decision ▾" in get(app, url).body_bytes.decode()
