@@ -6,6 +6,24 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.2 — 06.11.2026 · fix: a new version unpacked while MART runs
+
+### Fixed
+- **"Something went wrong" on the client pages after unpacking 0.9.1.**
+  The new files were unpacked while MART 0.9.0 was still running. MART
+  re-reads its pages on every request but its code only at start, so the
+  new pages met the old code (`not enough values to unpack` in the error
+  log). Nothing was wrong with the data. Now MART notices it: if a newer
+  version is unpacked over the one running, every page says **"Start MART
+  again"** (close the MART window, start `MART.bat`) instead of failing.
+  This works from this version on, so this time close MART before
+  unpacking 0.9.2.
+
+### What to try
+1. Close MART, unpack 0.9.2, start it: the client pages work again.
+2. Next time, unpack a new version while MART is still open: the page
+   asks you to start MART again.
+
 ## 0.9.1 — 06.11.2026 · M3 day 1 · your strategy looks like yours
 
 From Martin's notes on 0.9.0.
