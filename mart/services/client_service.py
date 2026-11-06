@@ -21,11 +21,12 @@ from mart.repository import (
     clients_repo,
     deadlines_repo,
     notes_repo,
+    proposals_repo,
     renewals_repo,
     tasks_repo,
 )
 from mart.repository.db import connection
-from mart.services import actuals, deadlines, freshness, preferences, renewal_service
+from mart.services import actuals, deadlines, freshness, preferences, proposals, renewal_service
 from mart.services import bundles as bx
 
 NO_DATE = "none"
@@ -146,6 +147,7 @@ def explorer(client_id: int, bundle: str | None = None,
             deadlines_repo.open_bundle_keys(conn, client_id)
         details = renewals_repo.details_of(conn, [r["id"] for r in renewals])
         actual_rows = actuals_repo.for_client(conn, client_id)
+        proposal_rows = proposals_repo.for_client(conn, client_id)
 
     lim = freshness.limits(today)
     fresh_of = {r["id"]: freshness.of(freshness.latest(r["fields"]), lim) for r in renewals}
@@ -213,7 +215,9 @@ def explorer(client_id: int, bundle: str | None = None,
                                               "freshness": fresh_of[r["id"]],
                                               "actual": actuals.view(actual_rows.get(r["id"], []),
                                                                      r.get("upcoming_strategy"),
-                                                                     stage_of[r["id"]])}, today),
+                                                                     stage_of[r["id"]]),
+                                              "proposals": proposals.view(proposal_rows.get(r["id"], []))},
+                                             today),
                                      stage_of[r["id"]]) for r in selected["renewals"]),
                        key=lambda r: ((r["policy_name"] or "").casefold(), r["entity"] or ""))
         detail = {
@@ -223,6 +227,9 @@ def explorer(client_id: int, bundle: str | None = None,
             "strategies": Counter((r["actual"]["effective"] or "—", bool(r["actual"]["strategy"]))
                                   for r in items),
             "open_ids": [r["id"] for r in items if not r["actual"]["completed"]],
+            "proposal_count": sum(r["proposals"]["count"] for r in items),
+            "proposal_insurers": sorted({i for r in items for i in r["proposals"]["insurers"]},
+                                        key=str.casefold),
             "statuses": Counter(r["workflow_status"] or "—" for r in items),
             "move_targets": move_targets(customs, bundles, selected["country"], selected["custom_id"]),
         }

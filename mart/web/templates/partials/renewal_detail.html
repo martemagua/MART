@@ -1,5 +1,5 @@
 {# The renewal panel, in a FIXED order (glance → stages → YOURS: the actual
-   state, to-dos and notes → facts → proposals → savings → overview → the rest), so each section
+   state, proposals received, to-dos and notes → facts → proposals → savings → overview → the rest), so each section
    is always in the same place. Everything but "yours" is BM+ data, read-only. #}
 {% from "partials/overview.html" import overview_timeline, overview_pill, fresh_badge %}
 {% from "partials/deadline.html" import deadline_line %}
@@ -8,6 +8,7 @@
 {% from "partials/mine.html" import mine_section %}
 {% from "partials/move.html" import move_form %}
 {% from "partials/actual.html" import actual_section %}
+{% from "partials/proposals.html" import proposals_section %}
 {% set r = detail.renewal %}
 {% set f = detail.fields %}
 
@@ -54,6 +55,8 @@
 
 {{ actual_section(base, r, detail.actual, here) }}
 
+{{ proposals_section(base, r, detail.my_proposals, here, detail.insurer_options, detail.bm_expiring) }}
+
 {{ mine_section(mine, here, earlier=mine.earlier, also=mine.bundle, also_url="/clients/" ~ client.id ~ "?bundle=" ~ (selected.key | urlencode) ~ "#mine") }}
 
 {# Renewal and Strategy stacked (Martin, 04.11.2026): the strategy holds much
@@ -84,14 +87,14 @@
   </section>
 
 <section class="rd-section" aria-labelledby="prop-h">
-  <h3 id="prop-h">Proposals <span class="sec-src">first and final quote per insurer</span> {{ older("proposals") }}</h3>
+  <h3 id="prop-h">Proposals in BM+ <span class="sec-src">first and final quote per insurer</span> {{ older("proposals") }}</h3>
   {% if detail.proposals %}
   <div class="table-scroll">
     <table class="table">
       <thead><tr>{% for label in detail.proposals[0].keys() %}<th scope="col" {% if label in ("Closing premium", "First quote", "Final quote") %}class="num"{% endif %}>{{ label }}</th>{% endfor %}</tr></thead>
       <tbody>
       {% for p in detail.proposals %}
-        <tr>{% for label, val in p.items() %}<td {% if label in ("Closing premium", "First quote", "Final quote") %}class="num"{% endif %}>{% if val is number %}{{ "{:,.0f}".format(val).replace(",", "'") }}{% else %}{{ val if val is not none else "—" }}{% endif %}</td>{% endfor %}</tr>
+        <tr>{% for label, val in p.items() %}<td {% if label in ("Closing premium", "First quote", "Final quote") %}class="num"{% endif %}>{% if val is number %}{{ val | amount }}{% else %}{{ val if val is not none else "—" }}{% endif %}</td>{% endfor %}</tr>
       {% endfor %}
       </tbody>
     </table>

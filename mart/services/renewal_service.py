@@ -19,9 +19,17 @@ from mart.ingestion.ids import bm_link
 from mart.ingestion.sheet import lookup, norm, section_items
 from mart.ingestion.specs import renewal_tracker as rspec
 from mart.ingestion.specs import task_tracker as tspec
-from mart.repository import actuals_repo, clients_repo, history_repo, renewals_repo, tasks_repo, uploads_repo
+from mart.repository import (
+    actuals_repo,
+    clients_repo,
+    history_repo,
+    proposals_repo,
+    renewals_repo,
+    tasks_repo,
+    uploads_repo,
+)
 from mart.repository.db import connection
-from mart.services import actuals, freshness, history
+from mart.services import actuals, freshness, history, proposals
 
 _STAGE_KEYS = {norm(s): s for s in tspec.STAGES}
 
@@ -143,11 +151,13 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
         items = [("renewal", r["id"])] + [("task", t["id"]) for t in mine_tasks]
         changes = history_repo.for_items(conn, items)
         actual_rows = actuals_repo.for_renewal(conn, r["id"])
+        my_proposals = proposals_repo.for_renewal(conn, r["id"])
+        insurer_options = proposals_repo.insurers_of_client(conn, client_id)
     mine = mine_tasks
     f, d = r["fields"], r["details"]
     strategy = (d.get("strategy") or [{}])[0]
     savings = (d.get("savings") or [{}])[0]
-    proposals = [_proposal(p) for p in d.get("proposals") or []]
+    proposals_ = [_proposal(p) for p in d.get("proposals") or []]
     amounts = [(h, val) for h, val in section_items(savings, rspec.SAVINGS_AMOUNTS_SECTION)
                if isinstance(val, (int, float)) and val]
     questions = [(h, val) for h, val in section_items(strategy, rspec.CLIENT_QUESTIONS_SECTION) if val]
@@ -160,11 +170,14 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
         "coverage_lines": values.coverage_lines(f.get("lines_of_coverage")),
         "stages": stages_, "has_task_data": has_task_data, "other_tasks": others,
         "actual": actuals.view(actual_rows, r.get("upcoming_strategy"), stages_),
+        "my_proposals": proposals.view(my_proposals), "insurer_options": insurer_options,
+        "bm_expiring": next((p["Closing premium"] for p in proposals_ if isinstance(p.get("Closing premium"),
+                                                                                    (int, float))), None),
         "strategy": _facts(strategy, rspec.STRATEGY_FIELDS),
         "last_renewal": _facts(strategy, rspec.LAST_RENEWAL_FIELDS),
         "claims": _facts(strategy, rspec.CLAIMS_FIELDS),
         "questions": questions,
-        "proposals": proposals,
+        "proposals": proposals_,
         "savings": _facts(savings, rspec.SAVINGS_FIELDS), "savings_amounts": amounts,
         "overview": ov.timeline(f.get("overview_all"), f.get("overview_client_ready"), today),
         "freshness": freshness.of(freshness.latest(f), freshness.limits(today)),

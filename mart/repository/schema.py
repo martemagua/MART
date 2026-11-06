@@ -279,6 +279,26 @@ MIGRATIONS: list[tuple[int, str]] = [
         );
         CREATE INDEX ix_actuals_renewal ON renewal_actuals(renewal_id, field, id);
     """),
+    (10, """
+        -- M3 day 2: the proposals Martin receives, recorded by him to compare
+        -- them (USER data; BM+'s Proposals sheet stays apart, for reference).
+        CREATE TABLE proposals (
+            id           INTEGER PRIMARY KEY,
+            renewal_id   INTEGER NOT NULL REFERENCES renewals(id),
+            insurer      TEXT NOT NULL,
+            round        TEXT NOT NULL DEFAULT 'first',        -- first | revised | final
+            received_on  TEXT,                                 -- ISO date
+            premium      REAL,                                 -- annual; NULL = not given
+            currency     TEXT,                                 -- e.g. EUR
+            rate_change  REAL,                                 -- percent, + = increase
+            plan_design  TEXT NOT NULL DEFAULT 'as_expiring',  -- as_expiring | changed
+            note         TEXT,
+            chosen       INTEGER NOT NULL DEFAULT 0,           -- at most one per renewal
+            created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX ix_proposals_renewal ON proposals(renewal_id);
+    """),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1][0]

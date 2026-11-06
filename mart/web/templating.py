@@ -14,7 +14,7 @@ from typing import Any
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from mart import RELEASE_LABEL, __version__
-from mart.services import actuals, todo_details
+from mart.services import actuals, proposals, todo_details
 from mart.web import colors, countries
 from mart.web.framework import Response
 
@@ -42,6 +42,27 @@ def dmy(value: Any, with_time: bool = False) -> str:
     return parsed.strftime("%d.%m.%Y %H:%M" if with_time and len(text) > 10 else "%d.%m.%Y")
 
 
+def amount(value: Any) -> str:
+    """120000 -> 120'000; 1234.5 -> 1'234.50 (the apostrophe BM+'s amounts
+    already show in MART). Text passes through; None -> ''."""
+    if value is None or value == "":
+        return ""
+    if not isinstance(value, (int, float)):
+        return str(value)
+    text = f"{value:,.0f}" if float(value).is_integer() else f"{value:,.2f}"
+    return text.replace(",", "'")
+
+
+def pct(value: Any) -> str:
+    """8 -> +8 %, -3.5 -> −3.5 %; None -> ''."""
+    if value is None or value == "":
+        return ""
+    if not isinstance(value, (int, float)):
+        return str(value)
+    num = f"{abs(value):.1f}".rstrip("0").rstrip(".")
+    return ("+" if value > 0 else "−" if value < 0 else "±") + num + " %"
+
+
 def filesize(n: int | None) -> str:
     if not n:
         return "0 KB"
@@ -61,11 +82,14 @@ _env = Environment(
 )
 _env.filters["dmy"] = dmy
 _env.filters["filesize"] = filesize
+_env.filters["amount"] = amount
+_env.filters["pct"] = pct
 _env.filters["strategy_class"] = colors.strategy_class
 _env.filters["flag"] = countries.flag
 _env.globals["todo_vocab"] = {"urgencies": todo_details.URGENCIES, "statuses": todo_details.STATUSES,
                               "kinds": todo_details.WAITING_KINDS}
 _env.globals["strategies"] = actuals.STRATEGIES
+_env.globals["proposal_vocab"] = {"rounds": proposals.ROUNDS, "designs": proposals.PLAN_DESIGNS}
 _env.globals["today_iso"] = lambda: date.today().isoformat()
 _env.globals.update(version=__version__, release=RELEASE_LABEL)
 

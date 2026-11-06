@@ -6,6 +6,31 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.5 — 06.11.2026 · M3 day 2 · proposals received
+
+### Added
+- **Proposals received**, recorded by you as the mails come in (M3f), to
+  compare them. A new section in the renewal panel (written in MART), right
+  after the actual state. **+ Proposal**: insurer (the client's insurers are
+  suggested), first / revised / final quote, the date it arrived, the
+  annual premium + currency, the rate change % the insurer quoted, plan
+  design as expiring or changed, a note.
+- **Side by side**: each insurer's latest quote counts (final before revised
+  before first; earlier ones are greyed), sorted by premium, the lowest per
+  currency marked **lowest**. Mark one as **★ chosen**. ✎ changes a
+  proposal, × deletes it.
+- Premiums and rates are taken as you type them: `1'250'000`,
+  `1.180.000`, `1,210,000`, `1 195 000`, `+6,5`, `-3.5 %`.
+- **On the cards**: "3 proposals: Allianz, AXA, Generali" and "★ AXA"; the
+  **bundle header** counts them ("5 from 3 insurers").
+- BM+'s own Proposals sheet stays below as **Proposals in BM+**, for
+  reference; its expiring premium is shown as a hint next to yours.
+
+### What to try
+1. Record the quotes you have for one remarketing (first and final from the
+   same insurer, too) and see them compared.
+2. Mark the chosen one; check the card and the bundle header.
+
 ## 0.9.4 — 06.11.2026 · polish: the open dropdown lists
 
 ### Changed
