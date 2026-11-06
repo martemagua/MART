@@ -18,7 +18,7 @@
   });
 
   // [data-bundle-filters="<client id>"]: the explorer's side panel filters —
-  // text, country, and renewal dates from / until (ISO, so they compare as text) — hide the bundles that
+  // text, region, country, and renewal dates from / until (ISO, so they compare as text) — hide the bundles that
   // don't match, and the groups left empty. They are remembered per client
   // in this browser tab (clicking a bundle reloads the page); [data-fresh]
   // (the client opened from the list) starts without them.
@@ -33,12 +33,14 @@
       return el ? el.value.trim() : "";
     }
     function apply() {
-      var q = val("text").toLowerCase(), country = val("country"), from = val("from"), until = val("until");
+      var q = val("text").toLowerCase(), country = val("country"), region = val("region");
+      var from = val("from"), until = val("until");
       var shown = 0, total = 0, saved = {};
       list.querySelectorAll("[data-filter-item]").forEach(function (el) {
         var first = el.getAttribute("data-first"), last = el.getAttribute("data-last");
         var ok = (!q || el.textContent.toLowerCase().indexOf(q) !== -1)
           && (!country || el.getAttribute("data-country") === country)
+          && (!region || el.getAttribute("data-region") === region)
           && (!from || (last !== "" && last >= from))
           && (!until || (first !== "" && first <= until));
         el.hidden = !ok;
@@ -50,7 +52,7 @@
       });
       fields.forEach(function (f) { saved[f.getAttribute("data-f")] = f.value; });
       if (summary) {
-        summary.hidden = !(q || country || from || until);
+        summary.hidden = !(q || country || region || from || until);
         count.textContent = shown + " of " + total + " bundle" + (total === 1 ? "" : "s");
       }
       try { sessionStorage.setItem(key, JSON.stringify(saved)); } catch (e) { /* not remembered */ }

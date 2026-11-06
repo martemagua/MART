@@ -27,7 +27,16 @@ from mart.repository import (
     tasks_repo,
 )
 from mart.repository.db import connection
-from mart.services import actuals, deadlines, freshness, plan_changes, preferences, proposals, renewal_service
+from mart.services import (
+    actuals,
+    deadlines,
+    freshness,
+    plan_changes,
+    preferences,
+    proposals,
+    regions,
+    renewal_service,
+)
 from mart.services import bundles as bx
 
 NO_DATE = "none"
@@ -147,6 +156,7 @@ def explorer(client_id: int, bundle: str | None = None,
         with_notes = notes_repo.bundle_keys_with_content(conn, client_id) | \
             deadlines_repo.open_bundle_keys(conn, client_id)
         details = renewals_repo.details_of(conn, [r["id"] for r in renewals])
+        region_of = regions.of_client(conn, client_id)
         actual_rows = actuals_repo.for_client(conn, client_id)
         proposal_rows = proposals_repo.for_client(conn, client_id)
         change_rows = plan_changes_repo.for_client(conn, client_id)
@@ -192,6 +202,7 @@ def explorer(client_id: int, bundle: str | None = None,
     dl = deadlines.for_bundles(client_id, bundles, {i: deadlines.bm_date(d) for i, d in details.items()},
                                {i: f["latest"] for i, f in fresh_of.items()}, today)
     for key, b in bundles.items():
+        b["region"] = region_of.get(b["country"])            # the client's own regions (day 5)
         b["days_until"] = _days_until(b["renewal_date"], today)
         b["deadline"] = dl[key]["current"]
         b["deadline_history"] = dl[key]["history"]
@@ -250,10 +261,12 @@ def explorer(client_id: int, bundle: str | None = None,
 
 
 def panel_filters(bundles: list[dict[str, Any]], renewals: list[dict[str, Any]]) -> dict[str, Any]:
-    """The side panel's filters: the client's countries (a dropdown), and the
-    first and last renewal date (where the "from" / "until" calendars open)."""
+    """The side panel's filters: the client's regions and countries
+    (dropdowns), and the first and last renewal date (where the "from" /
+    "until" calendars open)."""
     dates = sorted(r["renewal_date"] for r in renewals if r["renewal_date"])
     return {"countries": sorted({b["country"] for b in bundles}),
+            "regions": sorted({b["region"] for b in bundles if b.get("region")}, key=str.casefold),
             "first": dates[0] if dates else None, "last": dates[-1] if dates else None}
 
 

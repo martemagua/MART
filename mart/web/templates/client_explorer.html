@@ -31,11 +31,20 @@
       <svg class="cn-icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M3 1.5A1.5 1.5 0 0 1 4.5 0h8A1.5 1.5 0 0 1 14 1.5v13a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 3 14.5V13H2a.5.5 0 0 1 0-1h1V8.5H2a.5.5 0 0 1 0-1h1V4H2a.5.5 0 0 1 0-1h1V1.5zM4.5 1a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-13a.5.5 0 0 0-.5-.5h-8zM6 4h5v1H6V4zm0 2.5h5v1H6v-1zM6 9h3.5v1H6V9z"/></svg>
       <span class="cn-text"><span class="cn-title">Client notes &amp; to-dos</span><span class="cn-sub">about {{ client.name }} as a whole</span></span>
       {{ mine_badges(client_counts) }}</a>
-    <a class="client-pages-link {% if plan_overview %}is-selected{% endif %}" href="{{ base }}/plan-changes{{ q_all1 }}">Plan design changes →</a>
+    <p class="client-pages">
+      <a class="client-pages-link {% if plan_overview %}is-selected{% endif %}" href="{{ base }}/plan-changes{{ q_all1 }}">Plan design changes →</a>
+      <a class="client-pages-link {% if region_page %}is-selected{% endif %}" href="{{ base }}/regions{{ q_all1 }}" title="This client's own regions, per country">Regions →</a>
+    </p>
 
     <div class="nav-filters" data-bundle-filters="{{ client.id }}" data-list="#bundle-list"{% if fresh %} data-fresh{% endif %}>
       <input type="search" class="nav-filter" placeholder="Filter: policy, entity, insurer…" aria-label="Filter bundles" data-f="text">
       {% set f = filters %}
+      {% if f.regions | length > 1 %}
+      <select data-f="region" aria-label="Region">
+        <option value="">All regions</option>
+        {% for g in f.regions %}<option value="{{ g }}">{{ g }}</option>{% endfor %}
+      </select>
+      {% endif %}
       {% if f.countries | length > 1 %}
       <select data-f="country" aria-label="Country">
         <option value="">All countries</option>
@@ -62,7 +71,7 @@
         {% for b in items %}
         <a class="bundle-item {% if selected and b.key == selected.key and not client_mine %}is-selected{% endif %}"
            href="{{ base }}?bundle={{ b.key | urlencode }}{{ q_all }}" data-filter-item
-           data-country="{{ b.country }}" data-first="{{ b.renewal_date or '' }}" data-last="{{ b.last_date or b.renewal_date or '' }}">
+           data-country="{{ b.country }}" data-region="{{ b.region or '' }}" data-first="{{ b.renewal_date or '' }}" data-last="{{ b.last_date or b.renewal_date or '' }}">
           <span class="bundle-main">
             <span class="bundle-name">{{ b.country | flag }}{{ b.country }}</span>
             <span class="bundle-sub">{{ b.renewal_date | dmy or "no date" }}</span>
@@ -89,6 +98,8 @@
     {% if notice %}<div class="notice notice-ok" role="status">{{ notice }}</div>{% endif %}
     {% if plan_overview %}
     {{ plan_overview_page(base, client, plan_overview) }}
+    {% elif region_page %}
+    {% include "partials/regions.html" %}
     {% elif client_mine %}
     <header class="bundle-head"><div><h2 class="bundle-title">{{ client.name }}</h2>
       <p class="muted">About the client as a whole. Notes on a single renewal or bundle go there.</p></div></header>
@@ -121,7 +132,7 @@
         <p class="muted">
           {% if s.custom_id and s.last_date and s.last_date != s.renewal_date %}renewals {{ s.renewal_date | dmy }} – {{ s.last_date | dmy }} · {% elif s.custom_id %}renews {{ s.renewal_date | dmy or "—" }} · {% endif %}
           {% if s.days_until is not none %}{% if s.days_until >= 0 %}{{ "first " if s.custom_id and s.last_date != s.renewal_date }}renews in <strong>{{ s.days_until }} days</strong>{% else %}renewal date {{ -s.days_until }} days ago{% endif %} · {% endif %}
-          {{ s.renewals | length }} renewal{{ "s" if s.renewals | length != 1 }}
+          {% if s.region %}<span title="{{ client.name }}'s region for {{ s.country }} (Regions)">{{ s.region }}</span> · {% endif %}{{ s.renewals | length }} renewal{{ "s" if s.renewals | length != 1 }}
           {% if s.entities %} · {{ s.entities | length }} entit{{ "y" if s.entities | length == 1 else "ies" }}{% endif %}
           {% if s.insurers %} · {{ s.insurers | join(", ") }}{% endif %}
         </p>
