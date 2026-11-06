@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from urllib.parse import parse_qsl, urlencode, urlsplit
 
-from mart.services import actuals, proposals
+from mart.services import actuals, plan_changes, proposals
 from mart.web.framework import HTTPError, Request, Response, Router
 
 router = Router()
@@ -68,3 +68,14 @@ def bulk_completed(request: Request, client_id: int) -> Response:
         raise HTTPError(400, str(exc)) from exc
     return _done(request, client_id, f"{_n(n)} marked completed"
                  + (f" ({len(ids) - n} already were)." if n < len(ids) else "."))
+
+
+@router.route("/clients/{client_id:int}/bulk/plan-changes", methods=("POST",))
+def bulk_plan_changes(request: Request, client_id: int) -> Response:
+    ids = _ids(request)
+    try:
+        added = plan_changes.add_many(client_id, ids, request.arg("pdc_title"), request.arg("pdc_detail"),
+                                      request.arg("pdc_status"), request.arg("pdc_on"))
+    except plan_changes.Invalid as exc:
+        raise HTTPError(400, str(exc)) from exc
+    return _done(request, client_id, f"Plan design change added to {_n(len(added))}.")

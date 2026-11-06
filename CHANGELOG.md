@@ -6,6 +6,35 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.9 — 06.11.2026 · M3 day 4 · plan design changes
+
+### Added
+- **Plan design changes** on each renewal: a new section in the renewal
+  panel (written in MART), after the proposals. **+ Change**: what changes
+  ("deductible 500 → 1'000"), an optional detail, and where it stands —
+  **suggested → agreed → implemented**, or **dropped** — since when.
+  **State…** moves it on; the dates of the earlier states stay, so you can
+  see when it was suggested and agreed. ✎ rewords it, × deletes it.
+- **BM+'s suggestion**: when BM+'s Renewal Strategy sheet names types of
+  plan design changes (or the Overview has plan design comments with
+  changes considered), the section shows "BM+ suggests …" with **Take it
+  over** (it becomes a suggested change of yours, marked "from BM+") or ×
+  (not for this renewal; not offered again). BM+ itself is never changed.
+- **Several renewals at once**: "Plan design…" in the bundle's edit bar
+  adds the same change, in the same state, to every ticked renewal.
+- **All of a client's changes**: "Plan design changes →" under the client
+  notes in the side panel opens the overview: every change with its
+  renewal, by renewal date, filtered by state (suggested / agreed /
+  implemented / dropped), each linking to its renewal.
+- The cards show "Plan design: 1 agreed · 1 implemented"; the bundle header
+  counts them.
+
+### What to try
+1. On a renewal: + Change, then State… → agreed, later → implemented.
+2. A renewal where BM+ lists plan design changes: Take it over.
+3. Edit renewals… → Select all → Plan design… ; then the client's "Plan
+   design changes →" overview.
+
 ## 0.9.8 — 06.11.2026 · act on several renewals at once
 
 ### Added

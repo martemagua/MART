@@ -6,6 +6,7 @@
 {% from "partials/mine.html" import mine_section, mine_badges %}
 {% from "partials/actual.html" import strategy_cell, strategy_pill, completed_badge, completed_form %}
 {% from "partials/proposals.html" import proposals_line %}
+{% from "partials/plan_changes.html" import plan_changes_line, plan_overview_page %}
 {% block title %}{{ client.name }}{% endblock %}
 {% block content_class %}content-explorer{% endblock %}
 {% block content %}
@@ -30,6 +31,7 @@
       <svg class="cn-icon" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M3 1.5A1.5 1.5 0 0 1 4.5 0h8A1.5 1.5 0 0 1 14 1.5v13a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 3 14.5V13H2a.5.5 0 0 1 0-1h1V8.5H2a.5.5 0 0 1 0-1h1V4H2a.5.5 0 0 1 0-1h1V1.5zM4.5 1a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-13a.5.5 0 0 0-.5-.5h-8zM6 4h5v1H6V4zm0 2.5h5v1H6v-1zM6 9h3.5v1H6V9z"/></svg>
       <span class="cn-text"><span class="cn-title">Client notes &amp; to-dos</span><span class="cn-sub">about {{ client.name }} as a whole</span></span>
       {{ mine_badges(client_counts) }}</a>
+    <a class="client-pages-link {% if plan_overview %}is-selected{% endif %}" href="{{ base }}/plan-changes{{ q_all1 }}">Plan design changes →</a>
 
     <div class="nav-filters" data-bundle-filters="{{ client.id }}" data-list="#bundle-list"{% if fresh %} data-fresh{% endif %}>
       <input type="search" class="nav-filter" placeholder="Filter: policy, entity, insurer…" aria-label="Filter bundles" data-f="text">
@@ -85,7 +87,9 @@
   {# ── middle: the selected bundle ─────────────────────────────────────── #}
   <section class="bundle-view" aria-live="polite">
     {% if notice %}<div class="notice notice-ok" role="status">{{ notice }}</div>{% endif %}
-    {% if client_mine %}
+    {% if plan_overview %}
+    {{ plan_overview_page(base, client, plan_overview) }}
+    {% elif client_mine %}
     <header class="bundle-head"><div><h2 class="bundle-title">{{ client.name }}</h2>
       <p class="muted">About the client as a whole. Notes on a single renewal or bundle go there.</p></div></header>
     {{ mine_section(client_mine, here, heading="Notes and to-dos on " ~ client.name) }}
@@ -127,6 +131,8 @@
         <div><dt>Strategy</dt><dd>{% for (k, mine), n in s.strategies.most_common() %}{{ strategy_pill(k, mine, n) }}{% endfor %}</dd></div>
         <div><dt>BM+ workflow</dt><dd>{% for k, n in s.statuses.most_common() %}<span class="pill pill-soft">{{ k }}{% if n > 1 %} ×{{ n }}{% endif %}</span>{% endfor %}</dd></div>
         <div><dt>Proposals</dt><dd>{% if s.proposal_count %}<span class="muted small" title="{{ s.proposal_insurers | join(', ') }}">{{ s.proposal_count }} from {{ s.proposal_insurers | length }} insurer{{ "s" if s.proposal_insurers | length != 1 }}</span>{% else %}<span class="muted small">none yet</span>{% endif %}</dd></div>
+        {% set pdc = s.pdc_counts %}
+        <div><dt>Plan design</dt><dd>{% if pdc.suggested or pdc.agreed or pdc.implemented %}<span class="muted small">{% for st in ("suggested", "agreed", "implemented") %}{% if pdc[st] %}{{ pdc[st] }} {{ st }}{% if not loop.last %} · {% endif %}{% endif %}{% endfor %}</span>{% else %}<span class="muted small">none yet</span>{% endif %}</dd></div>
         <div id="completed"><dt>Completed</dt><dd><span class="muted small">{{ s.completed }} of {{ s.renewals | length }}</span>
           {% if s.open_ids %}
           <details class="arrange">
@@ -175,6 +181,7 @@
         <div class="rc-flags">
           {{ completed_badge(r.actual) }}
           {{ proposals_line(r.proposals) }}
+          {{ plan_changes_line(r.plan_changes) }}
           {{ mine_badges(mine_counts.get("renewal:" ~ r.id)) }}
           {% if not r.in_latest_export %}<span class="pill pill-soft">no longer in the export since {{ r.left_export_at | dmy }}</span>{% endif %}
           {% if r.id_missing %}<span class="pill pill-soft" title="BM+ gave no id; recognised by client, country, entity, policy and date">no BM+ id</span>{% endif %}

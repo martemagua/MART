@@ -21,12 +21,13 @@ from mart.repository import (
     clients_repo,
     deadlines_repo,
     notes_repo,
+    plan_changes_repo,
     proposals_repo,
     renewals_repo,
     tasks_repo,
 )
 from mart.repository.db import connection
-from mart.services import actuals, deadlines, freshness, preferences, proposals, renewal_service
+from mart.services import actuals, deadlines, freshness, plan_changes, preferences, proposals, renewal_service
 from mart.services import bundles as bx
 
 NO_DATE = "none"
@@ -148,6 +149,7 @@ def explorer(client_id: int, bundle: str | None = None,
         details = renewals_repo.details_of(conn, [r["id"] for r in renewals])
         actual_rows = actuals_repo.for_client(conn, client_id)
         proposal_rows = proposals_repo.for_client(conn, client_id)
+        change_rows = plan_changes_repo.for_client(conn, client_id)
 
     lim = freshness.limits(today)
     fresh_of = {r["id"]: freshness.of(freshness.latest(r["fields"]), lim) for r in renewals}
@@ -211,14 +213,17 @@ def explorer(client_id: int, bundle: str | None = None,
     if selected:
         stage_of = {r["id"]: renewal_service.stages(linked[r["id"]], today, r.get("upcoming_strategy"))
                     for r in selected["renewals"]}
-        items = sorted((_with_stages(_enrich({**r, "details": details.get(r["id"]),
-                                              "freshness": fresh_of[r["id"]],
-                                              "actual": actuals.view(actual_rows.get(r["id"], []),
-                                                                     r.get("upcoming_strategy"),
-                                                                     stage_of[r["id"]]),
-                                              "proposals": proposals.view(proposal_rows.get(r["id"], []))},
-                                             today),
-                                     stage_of[r["id"]]) for r in selected["renewals"]),
+        def card(r: dict[str, Any]) -> dict[str, Any]:
+            """One renewal card: BM+'s facts and stages, plus what Martin recorded."""
+            rid = r["id"]
+            mine = {"details": details.get(rid), "freshness": fresh_of[rid],
+                    "actual": actuals.view(actual_rows.get(rid, []), r.get("upcoming_strategy"),
+                                           stage_of[rid]),
+                    "proposals": proposals.view(proposal_rows.get(rid, [])),
+                    "plan_changes": plan_changes.view(change_rows.get(rid, []))}
+            return _with_stages(_enrich({**r, **mine}, today), stage_of[rid])
+
+        items = sorted((card(r) for r in selected["renewals"]),
                        key=lambda r: ((r["policy_name"] or "").casefold(), r["entity"] or ""))
         detail = {
             **selected, "renewals": items,
@@ -228,6 +233,8 @@ def explorer(client_id: int, bundle: str | None = None,
                                   for r in items),
             "open_ids": [r["id"] for r in items if not r["actual"]["completed"]],
             "proposal_count": sum(r["proposals"]["count"] for r in items),
+            "pdc_counts": {s: sum(r["plan_changes"]["counts"][s] for r in items)
+                           for s in plan_changes.STATUSES},
             "proposal_insurers": sorted({i for r in items for i in r["proposals"]["insurers"]},
                                         key=str.casefold),
             "statuses": Counter(r["workflow_status"] or "—" for r in items),
