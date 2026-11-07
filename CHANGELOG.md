@@ -6,6 +6,36 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.23 — 07.11.2026 · M3 day 7 · client topics
+
+### Added
+- **Client topics** (Martin, 05.11.2026, PLANNING §5b): the client's own
+  notes and to-dos (not those on a renewal or a bundle) in named, coloured
+  topics. Client notes & to-dos (side panel) is now a **board**: a column
+  per topic with its colour as a stripe, and in each column:
+  - "+ To-do" / "+ Note" straight into that topic;
+  - the open to-dos (urgent and overdue first), then the **pinned** notes
+    (📌: key facts such as the partner-file recipients), then the newest
+    notes (older ones fold away), and the done to-dos folded;
+  - a footer such as "1 open · 1 urgent · next due 08.11 · 📌 1", so a
+    column tells its story at a glance.
+- **General** holds everything that isn't in a topic; every existing client
+  note and to-do starts there. It can't be renamed or deleted.
+- **+ Topic**: a name, one of eight colours, an optional country (its
+  flag; only a label, renewal and bundle notes stay where they are) and a
+  state: active, **on hold** (shown last, dimmed) or **done** (archived
+  below the board, open it to change it back). ✎ on a column changes or
+  deletes a topic; deleting moves its notes and to-dos to General.
+- In a note's or to-do's **Edit**: **Topic → Move** puts it in another
+  topic. 📌 on a note pins or unpins it.
+- The **To-dos** page shows a client to-do's topic as a coloured chip.
+
+### What to try
+1. A client → Client notes & to-dos → + Topic "Partner tracker" (teal),
+   "Implementation – Brazil" (amber, Brazil).
+2. + Note in Partner tracker with the file's recipients → 📌 it.
+3. Move an older client note from General into a topic (Edit → Topic).
+
 ## 0.9.22 — 07.11.2026 · QA: fixes from the code review
 
 ### Fixed

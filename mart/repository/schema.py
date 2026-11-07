@@ -410,6 +410,28 @@ MIGRATIONS: list[tuple[int, str]] = [
         );
         CREATE INDEX ix_bundle_stages_client ON bundle_stages(client_id, bundle_key);
     """),
+    (16, """
+        -- M3 day 7: client topics (Martin 05.11.2026, PLANNING §5b, QUESTIONS
+        -- M3a/M3c): named, coloured streams inside ONE client for its own notes
+        -- and to-dos. USER data. A client note / to-do sits in one topic;
+        -- topic_id NULL = "General" (every existing one starts there).
+        CREATE TABLE client_topics (
+            id          INTEGER PRIMARY KEY,
+            client_id   INTEGER NOT NULL REFERENCES clients(id),
+            name        TEXT NOT NULL,
+            color       TEXT NOT NULL,          -- services/topics.COLORS
+            country     TEXT,                   -- optional label (a flag), as BM+ writes it
+            status      TEXT NOT NULL DEFAULT 'active',   -- active | on_hold | done
+            position    INTEGER NOT NULL DEFAULT 0,
+            created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at  TEXT
+        );
+        CREATE INDEX ix_client_topics_client ON client_topics(client_id, position);
+        ALTER TABLE notes ADD COLUMN topic_id INTEGER REFERENCES client_topics(id);
+        ALTER TABLE todos ADD COLUMN topic_id INTEGER REFERENCES client_topics(id);
+        -- a pinned note = a key fact, at the top of its topic (NULL = not pinned)
+        ALTER TABLE notes ADD COLUMN pinned_at TEXT;
+    """),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1][0]

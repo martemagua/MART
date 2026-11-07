@@ -1,0 +1,46 @@
+/* MART — the client's topic board (partials/topics.html, M3 day 7). Loaded on
+   the client notes page only. Each topic colour is one token per theme. */
+:root {
+  --tc-blue: #2f6fd6; --tc-green: #1f8a5b; --tc-amber: #c07a00; --tc-red: #c0392b;
+  --tc-purple: #7b4bc4; --tc-teal: #138a8a; --tc-pink: #c2417d; --tc-grey: #6b7280;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --tc-blue: #6ea0f0; --tc-green: #4fc28b; --tc-amber: #e3a640; --tc-red: #ec7a6c;
+    --tc-purple: #a888e8; --tc-teal: #4cc3c3; --tc-pink: #ea7fae; --tc-grey: #9aa3ae;
+  }
+}
+.tc-blue { --tc: var(--tc-blue); } .tc-green { --tc: var(--tc-green); } .tc-amber { --tc: var(--tc-amber); }
+.tc-red { --tc: var(--tc-red); } .tc-purple { --tc: var(--tc-purple); } .tc-teal { --tc: var(--tc-teal); }
+.tc-pink { --tc: var(--tc-pink); } .tc-grey { --tc: var(--tc-grey); }
+
+/* the board: columns side by side, wrapping onto a new row rather than scrolling sideways */
+.topic-board { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; align-items: start; border-left: 0; }
+.tcol { background: var(--surface); border: 1px solid var(--border); border-top: 5px solid var(--tc); border-radius: var(--radius); padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.tcol.is-hold { opacity: .78; border-top-style: dashed; }
+.tcol-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tcol-head h3 { margin: 0; font-size: 15px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; overflow-wrap: anywhere; }
+.tcol-add { display: flex; gap: 6px; }
+.tcol .todo-list, .tcol .note-list { margin: 0; }
+.tcol-pinned .note { border-left: 3px solid var(--tc); background: color-mix(in srgb, var(--tc) 9%, transparent); }
+.tcol-foot { margin-top: auto; border-top: 1px solid var(--border); padding-top: 8px; color: var(--muted); }
+.topic-archive .topic-board { margin-top: 12px; }
+
+/* pin + move */
+.note-pin { display: inline; margin: 0 0 0 auto; }
+.note-head { display: flex; align-items: center; gap: 6px; }
+.note-pin .icon-btn { font-size: 12px; filter: grayscale(1); opacity: .55; }
+.note-pin .icon-btn.is-on, .note-pin .icon-btn:hover { filter: none; opacity: 1; }
+.topic-move { margin: 8px 0; align-items: flex-end; }
+
+/* the colour picker */
+.tc-pick { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.tc-pick legend { margin-bottom: 4px; }
+.tc-swatch { position: relative; cursor: pointer; }
+.tc-swatch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.tc-swatch span[aria-hidden] { display: block; width: 22px; height: 22px; border-radius: 50%; background: var(--tc); border: 2px solid var(--surface); box-shadow: 0 0 0 1px var(--border); }
+.tc-swatch input:checked + span[aria-hidden] { box-shadow: 0 0 0 2px var(--ink); }
+.tc-swatch input:focus-visible + span[aria-hidden] { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* a client to-do's topic on the To-dos page */
+.tc-chip { display: inline-block; font-size: 11.5px; font-weight: 600; border-radius: 6px; padding: 0 7px; color: var(--tc); background: color-mix(in srgb, var(--tc) 14%, transparent); border: 1px solid color-mix(in srgb, var(--tc) 35%, transparent); }

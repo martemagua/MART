@@ -2,7 +2,20 @@
    forms that post and return to `back` (this page). Kept apart from the BM+
    data on purpose: the "written in MART" rail. #}
 
-{% macro todo_row(t, back, show_target=false) %}
+{# `topics` (the client's topic board, day 7): the client's topics, so the
+   row can be moved to another topic from its Edit menu. #}
+{% macro topic_move(kind, item, back, topics) %}
+<form method="post" action="/{{ kind }}s/{{ item.id }}/topic" class="inline-form topic-move">
+  <input type="hidden" name="back" value="{{ back }}">
+  <label class="small muted">Topic <select name="topic">
+    <option value="">General</option>
+    {% for tp in topics %}<option value="{{ tp.id }}" {% if item.topic_id == tp.id %}selected{% endif %}>{{ tp.name }}{% if tp.status == "done" %} (done){% endif %}</option>{% endfor %}
+  </select></label>
+  <button type="submit" class="btn btn-small">Move</button>
+</form>
+{% endmacro %}
+
+{% macro todo_row(t, back, show_target=false, topics=none) %}
 {% set waiting = t.status == "waiting" and not t.done_at %}
 <li class="todo urg-{{ t.urgency }}{% if t.done_at %} is-done{% endif %}{% if t.overdue %} is-overdue{% endif %}" id="todo-{{ t.id }}">
   <form method="post" action="/todos/{{ t.id }}/done" class="todo-check">
@@ -18,7 +31,7 @@
     {% if t.steps %}<span class="todo-due" title="Subtasks done">☑ {{ t.steps_done }}/{{ t.steps | length }}</span>{% endif %}
     {% if t.due_date %}<span class="todo-due">{{ "due " if not t.done_at }}{{ t.due_date | dmy }}{% if t.overdue %} · overdue{% endif %}</span>{% endif %}
     {% if t.done_at %}<span class="todo-due">done {{ t.done_at | dmy(True) }}</span>{% endif %}
-    {% if show_target %}<a class="todo-target" href="{{ t.target.url }}">{{ t.client_name }} · {{ t.target.country | flag }}{{ t.target.country }}{% if t.target.renewal_date %} · {{ t.target.renewal_date | dmy }}{% endif %} · {{ t.target.name }}</a>{% endif %}
+    {% if show_target %}<a class="todo-target" href="{{ t.target.url }}">{{ t.client_name }} · {{ t.target.country | flag }}{{ t.target.country }}{% if t.target.renewal_date %} · {{ t.target.renewal_date | dmy }}{% endif %} · {{ t.target.name }}</a>{% if t.topic %} <span class="tc-chip tc-{{ t.topic.color }}" title="Topic of {{ t.client_name }}">{{ t.topic.name }}</span>{% endif %}{% endif %}
     {% if t.description %}<div class="todo-desc clamp-3" title="{{ t.description }}">{{ t.description }}</div>{% endif %}
     {% if t.steps %}
     <ul class="todo-steps">{% for s in t.steps %}
@@ -57,6 +70,7 @@
         <button type="submit" class="btn btn-small">Add</button>
       </form>
     </div>
+    {% if topics is not none %}{{ topic_move("todo", t, back, topics) }}{% endif %}
     <form method="post" action="/todos/{{ t.id }}/delete" data-confirm="Delete this to-do and its subtasks?">
       <input type="hidden" name="back" value="{{ back }}"><button type="submit" class="btn btn-small btn-danger">Delete to-do</button>
     </form>
@@ -64,9 +78,12 @@
 </li>
 {% endmacro %}
 
-{% macro note_item(n, back) %}
-<li class="note" id="note-{{ n.id }}">
-  <div class="note-head"><span>{{ n.created_at | dmy(True) }}</span>{% if n.updated_at %}<span title="Edited {{ n.updated_at | dmy(True) }}">· edited</span>{% endif %}</div>
+{% macro note_item(n, back, topics=none) %}
+<li class="note{% if n.pinned_at %} is-pinned{% endif %}" id="note-{{ n.id }}">
+  <div class="note-head"><span>{{ n.created_at | dmy(True) }}</span>{% if n.updated_at %}<span title="Edited {{ n.updated_at | dmy(True) }}">· edited</span>{% endif %}
+    {% if topics is not none %}<form method="post" action="/notes/{{ n.id }}/pin" class="note-pin">
+      <input type="hidden" name="back" value="{{ back }}"><input type="hidden" name="pinned" value="{{ '0' if n.pinned_at else '1' }}">
+      <button type="submit" class="icon-btn icon-sm{% if n.pinned_at %} is-on{% endif %}" title="{{ 'Unpin: back into the log' if n.pinned_at else 'Pin it: a key fact, kept at the top of its topic' }}" aria-label="{{ 'Unpin' if n.pinned_at else 'Pin' }} this note">📌</button></form>{% endif %}</div>
   <div class="note-body">{{ n.body }}</div>
   <details class="row-edit">
     <summary>Edit</summary>
@@ -75,6 +92,7 @@
       <textarea name="body" rows="5" required aria-label="Note">{{ n.body }}</textarea>
       <div class="actions"><button type="submit" class="btn btn-small">Save</button></div>
     </form>
+    {% if topics is not none %}{{ topic_move("note", n, back, topics) }}{% endif %}
     <form method="post" action="/notes/{{ n.id }}/delete" data-confirm="Delete this note?">
       <input type="hidden" name="back" value="{{ back }}"><button type="submit" class="btn btn-small btn-danger">Delete</button>
     </form>

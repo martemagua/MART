@@ -10,6 +10,7 @@
 {% from "partials/board_stage.html" import stage_pill %}
 {% block title %}{{ client.name }}{% endblock %}
 {% block content_class %}content-explorer{% endblock %}
+{% block head %}{% if topic_board %}<link rel="stylesheet" href="/static/topics.css">{% endif %}{% endblock %}
 {% block content %}
 {% set base = "/clients/" ~ client.id %}
 {% set q_all = "&all=1" if show_all else "" %}
@@ -102,6 +103,9 @@
     {{ plan_overview_page(base, client, plan_overview) }}
     {% elif region_page %}
     {% include "partials/regions.html" %}
+    {% elif topic_board %}
+    {% from "partials/topics.html" import topic_board as topic_board_page %}
+    {{ topic_board_page(topic_board, base, client, here) }}
     {% elif client_mine %}
     <header class="bundle-head"><div><h2 class="bundle-title">{{ client.name }}</h2>
       <p class="muted">About the client as a whole. Notes on a single renewal or bundle go there.</p></div></header>

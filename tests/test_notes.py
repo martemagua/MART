@@ -136,7 +136,7 @@ def test_client_notes_space(book, app):
     cid = book["cid"]
     url = f"/clients/{cid}/notes"
     page = _page(app, url)
-    assert "Notes and to-dos on Acme Group" in page and "Client notes &amp; to-dos" in page
+    assert "Acme Group · notes and to-dos" in page and "Client notes &amp; to-dos" in page
     r = post(app, "/notes/add", {"scope": "client", "ref": str(cid), "body": "HR contact changes in Jan",
                                  "back": url})
     assert dict(r.headers)["Location"] == url + "#mine"
