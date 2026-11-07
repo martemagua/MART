@@ -48,6 +48,7 @@ def test_bundles_are_country_plus_renewal_date():
     s = cs.explorer(cid, bundle=cs.bundle_key("Poland", "2027-01-01"), today=TODAY)["selected"]
     assert s["days_until"] == 58 and s["entities"] == ["Acme PL", "Acme PL Services"]
     assert v["filters"] == {"countries": ["Brazil", "Poland", "Spain"], "regions": ["EMEA"],
+                            "country_regions": {"Brazil": "EMEA", "Poland": "EMEA", "Spain": "EMEA"},
                             "first": "2026-07-01", "last": "2027-02-01"}
 
 

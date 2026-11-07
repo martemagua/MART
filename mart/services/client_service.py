@@ -282,12 +282,14 @@ def explorer(client_id: int, bundle: str | None = None,
 
 
 def panel_filters(bundles: list[dict[str, Any]], renewals: list[dict[str, Any]]) -> dict[str, Any]:
-    """The side panel's filters: the client's regions and countries
-    (dropdowns), and the first and last renewal date (where the "from" /
-    "until" calendars open)."""
+    """The side panel's filters: the client's regions and countries (several
+    of each can be ticked), each country's region for this client (ticking a
+    region narrows the countries to its own), and the first and last renewal
+    date (where the "from" / "until" calendars open)."""
     dates = sorted(r["renewal_date"] for r in renewals if r["renewal_date"])
     return {"countries": sorted({b["country"] for b in bundles}),
             "regions": sorted({b["region"] for b in bundles if b.get("region")}, key=str.casefold),
+            "country_regions": {b["country"]: b.get("region") or "" for b in bundles},
             "first": dates[0] if dates else None, "last": dates[-1] if dates else None}
 
 

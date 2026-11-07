@@ -8,6 +8,7 @@
 {% from "partials/proposals.html" import proposals_line %}
 {% from "partials/plan_changes.html" import plan_changes_line, plan_overview_page %}
 {% from "partials/board_stage.html" import stage_pill %}
+{% from "partials/filters.html" import bundle_filters %}
 {% block title %}{{ client.name }}{% endblock %}
 {% block content_class %}content-explorer{% endblock %}
 {% block head %}{% if topic_board %}<link rel="stylesheet" href="/static/topics.css">{% endif %}{% endblock %}
@@ -39,29 +40,7 @@
       <a class="client-pages-link {% if region_page %}is-selected{% endif %}" href="{{ base }}/regions{{ q_all1 }}" title="This client's own regions, per country">Regions →</a>
     </p>
 
-    <div class="nav-filters" data-bundle-filters="{{ client.id }}" data-list="#bundle-list"{% if fresh %} data-fresh{% endif %}>
-      <input type="search" class="nav-filter" placeholder="Filter: policy, entity, insurer…" aria-label="Filter bundles" data-f="text">
-      {% set f = filters %}
-      {% if f.regions | length > 1 %}
-      <select data-f="region" aria-label="Region">
-        <option value="">All regions</option>
-        {% for g in f.regions %}<option value="{{ g }}">{{ g }}</option>{% endfor %}
-      </select>
-      {% endif %}
-      {% if f.countries | length > 1 %}
-      <select data-f="country" aria-label="Country">
-        <option value="">All countries</option>
-        {% for c in f.countries %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
-      </select>
-      {% endif %}
-      {% if f.first and f.first != f.last %}
-      <div class="nav-range">
-        <label>From<input type="date" data-f="from" min="{{ f.first }}" max="{{ f.last }}" aria-label="Renewing from"></label>
-        <label>Until<input type="date" data-f="until" min="{{ f.first }}" max="{{ f.last }}" aria-label="Renewing until"></label>
-      </div>
-      {% endif %}
-      <p class="small nav-filter-summary" data-f-summary hidden><span data-f-count></span> · <button type="button" class="link-btn" data-f-clear>Clear filters</button></p>
-    </div>
+    {{ bundle_filters(filters, client.id, "#bundle-list", "bundles", fresh) }}
     {% if left_count %}
     <a class="small nav-toggle" href="{{ base }}?{% if not show_all %}all=1&{% endif %}{% if selected %}bundle={{ selected.key | urlencode }}{% endif %}">
       {% if show_all %}Hide{% else %}Show{% endif %} {{ left_count }} renewal{{ "s" if left_count != 1 }} no longer in the export</a>

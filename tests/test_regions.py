@@ -71,6 +71,12 @@ def test_pages(app):
                              {"content-type": "application/x-www-form-urlencoded"}, body))
     assert res.status == 303 and "Regions%20saved" in dict(res.headers)["Location"]
     explorer = get(app, f"/clients/{cid}").body_bytes.decode()
-    assert '<select data-f="region"' in explorer and 'data-region="North America"' in explorer
+    assert 'data-f-multi="region"' in explorer and 'data-region="North America"' in explorer
+    # several regions and countries can be ticked; each country carries its
+    # region, so ticking a region narrows the countries (mart.js)
+    assert 'data-f-multi="country"' in explorer and 'value="North America" data-f-opt' in explorer
+    assert '<label data-region="North America"><input type="checkbox" value="Canada" data-f-opt>' in explorer
+    board = get(app, f"/clients/{cid}/board").body_bytes.decode()
+    assert 'data-f-multi="region"' in board and 'data-f-multi="country"' in board
     assert f'href="/clients/{cid}/regions"' in explorer
     assert post(app, f"/clients/{cid}/regions", {"country": "Canada"}).status == 400     # region missing
