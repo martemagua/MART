@@ -3,13 +3,17 @@
    dates from / until. Regions and countries take several values (Martin,
    07.11.2026): a pop-over of tick boxes each; ticking a region narrows the
    country list to that region's countries (each country carries its region
-   for this client, `filters.country_regions`). Remembered per client per tab. #}
+   for this client, `filters.country_regions`). A longer list opens with a
+   "Type to find…" box (Enter ticks the first match). Remembered per client
+   per tab. #}
 
 {% macro multi(name, label_all, values, regions=none) %}
 <details class="arrange f-multi" data-f-multi="{{ name }}">
   <summary class="f-multi-btn" data-f-all="{{ label_all }}"><span data-f-label>{{ label_all }}</span><span aria-hidden="true" class="f-caret">▾</span></summary>
   <fieldset class="arrange-box f-multi-box">
     <legend class="visually-hidden">{{ label_all }}</legend>
+    {% if values | length > 6 %}<input type="search" class="f-find" placeholder="Type to find…" aria-label="Find a {{ name }}" data-f-find data-focus-on-open autocomplete="off">
+    <p class="small muted f-none" data-f-nomatch hidden>No {{ name }} matches.</p>{% endif %}
     {% for v in values %}<label{% if regions is not none %} data-region="{{ regions.get(v) or '' }}"{% endif %}><input type="checkbox" value="{{ v }}" data-f-opt> {% if name == "country" %}{{ v | flag }}{% endif %}{{ v }}</label>{% endfor %}
     <button type="button" class="link-btn small" data-f-none>Untick all</button>
   </fieldset>

@@ -114,7 +114,7 @@ before changing anything.
   bundles are always grouped by renewal month (no other grouping); the filters (text, regions (the client's own), countries
   — SEVERAL of each, tick boxes in a pop-over (`[data-f-multi]`), the two side by side so an open box never covers the other;
   ticked regions narrow the country list (each country's label carries its region, `panel_filters` `country_regions`) and
-  unticks a country they hide, so no filter works out of sight — from / until DATE with the browser's calendar) run in `mart.js` on the items' `data-region` / `data-country` /
+  unticks a country they hide, so no filter works out of sight; a list of more than six opens with "Type to find…" (`[data-f-find]`, Enter ticks the first match) — from / until DATE with the browser's calendar) run in `mart.js` on the items' `data-region` / `data-country` /
   `data-first` / `data-last` (ISO dates), remembered per client per tab — the board uses the same filters (and the same memory), and its columns' counts follow them (`[data-filter-col]` / `[data-filter-count]`); a board column is never hidden. Only the panel scrolls itself into
   view (`scrollTop`), never `scrollIntoView` (that scrolls the page too).
 - Keep pages light (Martin, 04.11.2026): input fields hide behind a button

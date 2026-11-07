@@ -139,8 +139,38 @@
       // Enter in the text filter must not submit anything.
       f.addEventListener("keydown", function (e) { if (e.key === "Enter") e.preventDefault(); });
     });
+    // "Type to find…" in a longer list: shows the names that contain what is typed (case and
+    // accents ignored); Enter ticks the first one shown and empties the box for the next.
+    function fold(s) { return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim(); }
+    function find(m) {
+      var input = m.querySelector("[data-f-find]");
+      if (!input) return;
+      var q = fold(input.value), any = false;
+      m.querySelectorAll("label").forEach(function (l) {
+        var off = q !== "" && fold(l.textContent).indexOf(q) === -1;
+        l.classList.toggle("is-nomatch", off);
+        if (!off && !l.hidden) any = true;
+      });
+      m.querySelector("[data-f-nomatch]").hidden = any;
+    }
     multis.forEach(function (m) {
-      m.addEventListener("change", apply);
+      var input = m.querySelector("[data-f-find]");
+      if (input) {
+        input.addEventListener("input", function () { find(m); });
+        input.addEventListener("keydown", function (e) {
+          if (e.key !== "Enter") return;
+          e.preventDefault();
+          var first = m.querySelector("label:not([hidden]):not(.is-nomatch) [data-f-opt]");
+          if (input.value.trim() && first) {
+            first.checked = true;
+            input.value = "";
+            find(m);
+            apply();
+          }
+        });
+        m.addEventListener("toggle", function () { if (m.open) { input.value = ""; find(m); } });
+      }
+      m.addEventListener("change", function (e) { if (e.target !== input) apply(); });
       var none = m.querySelector("[data-f-none]");
       if (none) none.addEventListener("click", function () {
         m.querySelectorAll("[data-f-opt]").forEach(function (o) { o.checked = false; });

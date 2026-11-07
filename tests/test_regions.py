@@ -76,6 +76,8 @@ def test_pages(app):
     # region, so ticking a region narrows the countries (mart.js)
     assert 'data-f-multi="country"' in explorer and 'value="North America" data-f-opt' in explorer
     assert '<label data-region="North America"><input type="checkbox" value="Canada" data-f-opt>' in explorer
+    # a short list has no "Type to find…" box (it shows from 7 names on)
+    assert "data-f-find" not in explorer
     board = get(app, f"/clients/{cid}/board").body_bytes.decode()
     assert 'data-f-multi="region"' in board and 'data-f-multi="country"' in board
     assert f'href="/clients/{cid}/regions"' in explorer

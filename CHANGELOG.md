@@ -6,6 +6,19 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.27 — 07.11.2026 · type to find a country
+
+### Added
+- **Type to find** (Martin, 07.11.2026): a filter list of more than six
+  names (countries, and regions where a client has that many) opens with a
+  "Type to find…" box, the cursor already in it. Typing shows the names
+  that contain it (case and accents ignored), within the ticked regions;
+  Enter ticks the first one shown and empties the box for the next, so
+  "bel ⏎ kor ⏎" ticks Belgium and Korea without scrolling.
+
+### What to try
+1. Explorer or board → All countries → type "bel", Enter, "kor", Enter.
+
 ## 0.9.26 — 07.11.2026 · several regions and countries
 
 ### Changed
