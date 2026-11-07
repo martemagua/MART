@@ -90,7 +90,7 @@ _env.globals["todo_vocab"] = {"urgencies": todo_details.URGENCIES, "statuses": t
                               "kinds": todo_details.WAITING_KINDS}
 _env.globals["strategies"] = actuals.STRATEGIES
 _env.globals["tracker_label"] = lambda t: trackers.BY_TRACKER[t].label if t in trackers.BY_TRACKER else t
-_env.globals["plan_change_vocab"] = plan_changes.STATUSES
+_env.globals["plan_change_vocab"] = plan_changes.OUTCOMES
 _env.globals["board_labels"] = board.LABELS
 _env.globals["board_hints"] = board.HINTS
 _env.globals["topic_colors"] = topics.COLORS

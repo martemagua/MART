@@ -1,83 +1,129 @@
-{# Plan design changes (services/plan_changes): written in MART, so the mine
-   rail. Each change: what changes and where it stands (suggested → agreed →
-   implemented, or dropped) since when. BM+'s own suggestion is offered to
-   take over, never changed. `pc` = plan_changes.view(). #}
+{# Plan design changes (services/plan_changes, reshaped with Martin
+   07.11.2026). ONE change covers one or more renewals (a bundled policy over
+   several entities, a policy split by line of coverage) and ends implemented
+   or not implemented (with why); open until then. BM+'s text is shown once,
+   "In BM+", one line per change, each to track or dismiss; BM+ is never
+   changed. The same block sits on the bundle page and, for one renewal
+   (`pc.focus`), in the renewal panel's Strategy section. `pc` = plan_changes.view(). #}
 
 {% set _pen %}<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M11.7 1.3a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4l-8.6 8.6-3.4.8.8-3.4 8.2-8.6zM3.6 11l-.4 1.8 1.8-.4L12.6 4.8 11.2 3.4 3.6 11z"/></svg>{% endset %}
 
-{% macro status_pill(c) %}<span class="pill pdc-{{ c.status }}" title="{{ c.status_label }}{% if c.since %} since {{ c.since | dmy }}{% endif %}">{{ c.status_label | lower }}{% if c.since %} {{ c.since | dmy }}{% endif %}</span>{% endmacro %}
+{% macro outcome_pill(c) %}<span class="pill pdc-{{ c.outcome }}" title="{{ c.outcome_label }}{% if c.decided_on %}, recorded {{ c.decided_on | dmy }}{% endif %}">{{ c.outcome_label | lower }}</span>{% endmacro %}
 
-{# The card's one line: "Plan design: 1 agreed · 1 implemented". #}
-{% macro plan_changes_line(pc) %}
-{% if pc and pc.live %}<span class="pill pill-soft" title="Plan design changes you recorded">Plan design: {% for s in ("suggested", "agreed", "implemented") %}{% if pc.counts[s] %}{{ pc.counts[s] }} {{ s }}{% if not loop.last %} · {% endif %}{% endif %}{% endfor %}</span>{% endif %}
+{% macro cost_text(c) %}{% if c.cost_amount is not none %}{% if c.cost_unit == "%" %}{{ c.cost_amount | pct }}{% else %}{{ "+" if c.cost_amount > 0 else "−" if c.cost_amount < 0 else "" }}{{ (c.cost_amount | abs) | amount }}{% if c.cost_unit %} {{ c.cost_unit }}{% endif %}{% endif %}{% endif %}{% endmacro %}
+
+{# The card's one line: "Plan design: 1 open · 1 implemented". `n` = plan_changes.counts_for(). #}
+{% macro plan_changes_line(n) %}
+{% if n and n.count %}<span class="pill pill-soft" title="Plan design changes you recorded that cover this renewal">Plan design: {% set parts = [] %}{% for k, v in plan_change_vocab.items() %}{% if n[k] %}{% set _ = parts.append(n[k] ~ " " ~ (v | lower)) %}{% endif %}{% endfor %}{{ parts | join(" · ") }}</span>{% endif %}
 {% endmacro %}
 
-{# The fields of a new change (the panel's "+ Change" and the edit bar). #}
-{% macro change_fields(prefix="", focus=true, required=true) %}
-  <label class="small muted">What changes <input type="text" name="{{ prefix }}title" maxlength="200" {% if required %}required{% endif %} {% if focus %}data-focus-on-open{% endif %} placeholder="e.g. dental removed, deductible 500 → 1'000"></label>
-  <label class="small muted">Detail (optional) <input type="text" name="{{ prefix }}detail" maxlength="1000" placeholder="e.g. client wants to cut cost by 5 %"></label>
-  <div class="pair">
-    <label class="small muted">State <select name="{{ prefix }}status">{% for k, v in plan_change_vocab.items() %}<option value="{{ k }}">{{ v }}</option>{% endfor %}</select></label>
-    <label class="small muted">Since <input type="date" name="{{ prefix }}on" value="{{ today_iso() }}"></label>
-  </div>
+{# "Applies to": the renewals' tick boxes (only when there is a choice). #}
+{% macro cover_fields(renewals, checked, prefix="") %}
+{% if renewals | length > 1 %}
+<fieldset class="pdc-covers"><legend class="small muted">Applies to</legend>
+  {% for r in renewals %}<label><input type="checkbox" name="{{ prefix }}cover" value="{{ r.id }}" {% if r.id in checked %}checked{% endif %}> {{ r.label }}</label>{% endfor %}
+</fieldset>
+{% else %}{% for r in renewals %}<input type="hidden" name="{{ prefix }}cover" value="{{ r.id }}">{% endfor %}{% endif %}
 {% endmacro %}
 
-{# Inside the renewal panel's Strategy section (Martin, 06.11.2026: BM+ and
-   his together, his marked ✎ with the blue edge): BM+'s own plan design
-   facts (`bm_facts`), its suggestion, then his changes. #}
-{% macro plan_changes_block(base, r, pc, back, bm_facts=[]) %}
+{# The outcome and its reason (shown for "not implemented" only). #}
+{% macro outcome_fields(uid, current="open", reason="", prefix="", focus=false) %}
+  <label class="small muted">Outcome <select name="{{ prefix }}outcome" data-shows="#pdc-why-{{ uid }}" data-shows-value="not_implemented" {% if focus %}data-focus-on-open{% endif %}>
+    {% for k, v in plan_change_vocab.items() %}<option value="{{ k }}" {% if k == current %}selected{% endif %}>{{ v }}</option>{% endfor %}</select></label>
+  <label class="small muted" id="pdc-why-{{ uid }}">Why not? <input type="text" name="{{ prefix }}reason" maxlength="1000" value="{{ reason or '' }}" placeholder="e.g. client declined, insurer refused, deferred to next year"></label>
+{% endmacro %}
+
+{# A new change's fields (the block's "+ Change" and the edit bar's). #}
+{% macro change_fields(uid, prefix="", focus=true, required=true) %}
+  <label class="small muted">What changes <input type="text" name="{{ prefix }}title" maxlength="200" {% if required %}required{% endif %} {% if focus %}data-focus-on-open{% endif %} placeholder="e.g. out-patient co-payment 90 %"></label>
+  <label class="small muted">Detail (optional) <input type="text" name="{{ prefix }}detail" maxlength="1000" placeholder="e.g. from 100 % today"></label>
+  <label class="small muted">Premium effect (optional) <input type="text" name="{{ prefix }}cost" maxlength="40" placeholder="e.g. -2.5 % or -25'000 EUR"></label>
+  {{ outcome_fields(uid, prefix=prefix) }}
+{% endmacro %}
+
+{% macro plan_changes_block(base, pc, back) %}
+{% set where = "renewal" if pc.focus is not none else "bundle" %}
 <div class="pdc-block" id="plan-changes" aria-labelledby="pdc-h">
   <div class="mine-head">
     <h4 id="pdc-h">Plan design changes</h4>
     <details class="arrange">
       <summary class="btn btn-small">+ Change</summary>
-      <form method="post" action="{{ base }}/renewals/{{ r.id }}/plan-changes" class="arrange-box stack-form arrange-right prop-form">
+      <form method="post" action="{{ base }}/plan-changes/add" class="arrange-box stack-form arrange-right prop-form">
         <input type="hidden" name="back" value="{{ back }}">
-        {{ change_fields() }}
+        {{ change_fields("new") }}
+        {{ cover_fields(pc.renewals, [pc.focus] if pc.focus is not none else pc.renewals | map(attribute="id") | list) }}
         <div class="actions"><button type="submit" class="btn btn-small btn-primary">Add the change</button></div>
       </form>
     </details>
   </div>
-  {% if bm_facts %}<dl class="facts pdc-bm-facts">{% for label, val in bm_facts %}<dt>{{ label }}</dt><dd>{{ val }}</dd>{% endfor %}</dl>{% endif %}
-  {% if pc.bm %}
+
+  {% if pc.bm %}{% set bm = pc.bm %}
   <div class="pdc-bm">
-    <span class="pill pill-soft" title="BM+ Renewal Strategy sheet">BM+ suggests</span>
-    <span class="pdc-bm-text"><strong>{{ pc.bm.title }}</strong>{% if pc.bm.detail %} <span class="muted">· {{ pc.bm.detail }}</span>{% endif %}</span>
-    <form method="post" action="{{ base }}/renewals/{{ r.id }}/plan-changes/bm"><input type="hidden" name="back" value="{{ back }}"><input type="hidden" name="keep" value="1">
-      <button type="submit" class="btn btn-small" title="Record it as a suggested change of yours">Take it over</button></form>
-    <form method="post" action="{{ base }}/renewals/{{ r.id }}/plan-changes/bm"><input type="hidden" name="back" value="{{ back }}"><input type="hidden" name="keep" value="0">
-      <button type="submit" class="icon-btn" title="Not a change for this renewal: don't offer it again" aria-label="Dismiss BM+'s suggestion">×</button></form>
+    <p class="pdc-bm-head"><span class="pdc-bm-tag">In BM+</span>
+      {% if bm.considered %}<span>Considered: <strong>{{ bm.considered }}</strong></span>{% endif %}
+      {% if bm.reason %}<span class="muted">Reason: {{ bm.reason }}</span>{% endif %}
+      {% if bm.lines %}<span class="info" tabindex="0" role="note" aria-label="Where this comes from">i<span class="tip">From BM+'s Renewal Strategy sheet (types of plan design changes) and the Overview's plan design comments, one line per change. Track one to follow it here; it then covers every renewal of the bundle with the same line in BM+. BM+ itself is never changed.</span></span>{% endif %}</p>
+    {% if bm.lines %}
+    <ul class="pdc-bm-lines">
+      {% for ln in bm.lines %}
+      <li class="is-{{ ln.state }}">
+        <span class="pdc-bm-text">{% if ln.state == "tracked" %}<span class="pdc-check" aria-hidden="true">✓</span> {% endif %}<span class="pdc-bm-line">{{ ln.text }}</span>
+          {%- if pc.renewals | length > 1 and ln.of > 1 %} <span class="muted small">· on {{ ln.of }} of {{ pc.renewals | length }} renewals</span>{% endif %}
+          {%- if ln.state == "tracked" %} <span class="muted small">· tracked below</span>{% elif ln.state == "dismissed" %} <span class="muted small">· not a change here</span>{% endif %}</span>
+        {% if ln.state == "new" %}
+        <form method="post" action="{{ base }}/plan-changes/track"><input type="hidden" name="back" value="{{ back }}"><input type="hidden" name="line" value="{{ ln.text }}">
+          {% for rid in ln.pending_ids %}<input type="hidden" name="cover" value="{{ rid }}">{% endfor %}
+          <button type="submit" class="btn btn-small" title="Follow it here as an open change{% if ln.pending_ids | length > 1 %}, covering the {{ ln.pending_ids | length }} renewals that list it{% endif %}">+ Track</button></form>
+        <form method="post" action="{{ base }}/plan-changes/dismiss"><input type="hidden" name="back" value="{{ back }}"><input type="hidden" name="line" value="{{ ln.text }}">
+          {% for rid in ln.pending_ids %}<input type="hidden" name="cover" value="{{ rid }}">{% endfor %}
+          <button type="submit" class="icon-btn" title="Not a change for {{ 'this renewal' if where == 'renewal' and ln.pending_ids | length == 1 else 'these renewals' }}: don't offer it again" aria-label="Dismiss: {{ ln.text }}">×</button></form>
+        {% elif ln.state == "dismissed" %}
+        <form method="post" action="{{ base }}/plan-changes/dismiss"><input type="hidden" name="back" value="{{ back }}"><input type="hidden" name="line" value="{{ ln.text }}"><input type="hidden" name="undo" value="1">
+          {% for rid in ([pc.focus] if where == "renewal" else ln.dismissed_ids) %}<input type="hidden" name="cover" value="{{ rid }}">{% endfor %}
+          <button type="submit" class="link-btn small" title="Offer it again">Offer again</button></form>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
   </div>
   {% endif %}
+
   {% if pc["items"] %}
   <ul class="pdc-list mine-block">
     {% for c in pc["items"] %}
-    <li class="pdc-item{% if c.status == 'dropped' %} is-dropped{% endif %}">
+    <li class="pdc-item is-{{ c.outcome }}">
       <div class="pdc-main">
-        <strong>{{ c.title }}</strong> {{ status_pill(c) }}{% if c.source == "bm" %} <span class="muted small" title="Taken over from BM+'s Renewal Strategy sheet">from BM+</span>{% endif %}
+        <strong>{{ c.title }}</strong> {{ outcome_pill(c) }}
+        {% if c.cost_amount is not none %}<span class="pill pill-soft" title="Premium effect">{{ cost_text(c) }}</span>{% endif %}
         {% if c.detail %}<div class="prop-note">{{ c.detail }}</div>{% endif %}
-        {% if c.status != "suggested" and c.suggested_on %}<div class="rc-sub">suggested {{ c.suggested_on | dmy }}{% if c.agreed_on and c.status != "agreed" %} · agreed {{ c.agreed_on | dmy }}{% endif %}</div>{% endif %}
+        <div class="rc-sub">
+          {% if c.all_bundle %}all {{ c.covers | length }} renewals of this bundle{% elif c.covers | length > 1 or where == "bundle" %}<span title="{{ c.cover_labels | join(', ') }}">{{ c.cover_labels | join(", ") }}</span>{% endif %}
+          {% if c.outcome == "implemented" and c.takes_effect %}{% if c.all_bundle or c.covers | length > 1 or where == "bundle" %} · {% endif %}takes effect with the renewal of {{ c.takes_effect | dmy }}{% endif %}
+        </div>
+        {% if c.outcome == "not_implemented" %}<div class="pdc-why">Why not: {{ c.reason or "no reason recorded" }}</div>{% endif %}
       </div>
       <div class="prop-actions"><div>
         <details class="arrange">
-          <summary class="btn btn-small" title="Move it on: agreed, implemented or dropped">State…</summary>
-          <form method="post" action="{{ base }}/plan-changes/{{ c.id }}/status" class="arrange-box stack-form arrange-right">
+          <summary class="btn btn-small" title="Implemented, not implemented (and why), or open again">Outcome…</summary>
+          <form method="post" action="{{ base }}/plan-changes/{{ c.id }}/outcome" class="arrange-box stack-form arrange-right">
             <input type="hidden" name="back" value="{{ back }}">
-            <label class="small muted">State <select name="status" data-focus-on-open>{% for k, v in plan_change_vocab.items() %}<option value="{{ k }}" {% if k == c.status %}selected{% endif %}>{{ v }}</option>{% endfor %}</select></label>
-            <label class="small muted">Since <input type="date" name="on" value="{{ today_iso() }}"></label>
+            {{ outcome_fields("o" ~ c.id ~ where, c.outcome, c.reason, focus=true) }}
             <div class="actions"><button type="submit" class="btn btn-small btn-primary">Save</button></div>
           </form>
         </details>
         <details class="arrange">
-          <summary class="icon-btn" title="Change the wording" aria-label="Change this plan design change">{{ _pen }}</summary>
+          <summary class="icon-btn" title="Change the wording, the premium effect or which renewals it applies to" aria-label="Change this plan design change">{{ _pen }}</summary>
           <form method="post" action="{{ base }}/plan-changes/{{ c.id }}/save" class="arrange-box stack-form arrange-right prop-form">
             <input type="hidden" name="back" value="{{ back }}">
             <label class="small muted">What changes <input type="text" name="title" maxlength="200" required value="{{ c.title }}" data-focus-on-open></label>
             <label class="small muted">Detail (optional) <input type="text" name="detail" maxlength="1000" value="{{ c.detail or '' }}"></label>
+            <label class="small muted">Premium effect (optional) <input type="text" name="cost" maxlength="40" value="{{ c.cost_input }}" placeholder="e.g. -2.5 % or -25'000 EUR"></label>
+            {% if c.choices | length > 1 %}<input type="hidden" name="covers" value="1">{{ cover_fields(c.choices, c.renewal_ids) }}{% endif %}
             <div class="actions"><button type="submit" class="btn btn-small btn-primary">Save</button></div>
           </form>
         </details>
-        <form method="post" action="{{ base }}/plan-changes/{{ c.id }}/delete" data-confirm="Delete this plan design change?">
+        <form method="post" action="{{ base }}/plan-changes/{{ c.id }}/delete" data-confirm="Delete this plan design change{% if c.covers | length > 1 %} (from all {{ c.covers | length }} renewals it applies to){% endif %}?">
           <input type="hidden" name="back" value="{{ back }}">
           <button type="submit" class="icon-btn" title="Delete it" aria-label="Delete this plan design change">×</button>
         </form>
@@ -86,35 +132,35 @@
     {% endfor %}
   </ul>
   {% elif not pc.bm %}
-  <p class="muted small">None recorded by you. <a href="{{ base }}/plan-changes">All of this client's →</a></p>
+  <p class="muted small">None recorded yet.</p>
   {% endif %}
-  {% if pc["items"] %}<p class="hint"><a href="{{ base }}/plan-changes">All plan design changes of this client →</a></p>{% endif %}
+  <p class="hint"><a href="{{ base }}/plan-changes">All plan design changes of this client →</a></p>
 </div>
 {% endmacro %}
 
 {# The client-wide overview (in the explorer's middle). #}
 {% macro plan_overview_page(base, client, ov) %}
 <header class="bundle-head"><div><h2 class="bundle-title">Plan design changes · {{ client.name }}</h2>
-  <p class="muted">Every change you recorded on {{ client.name }}'s renewals, by renewal date. Change one from its renewal.</p></div></header>
-<nav class="pdc-filter" aria-label="Filter by state">
-  <a class="pill {% if not ov.status %}pill-net{% else %}pill-soft{% endif %}" href="{{ base }}/plan-changes">All {{ ov.total }}</a>
-  {% for k, v in plan_change_vocab.items() %}<a class="pill {% if ov.status == k %}pill-net{% else %}pill-soft{% endif %}" href="{{ base }}/plan-changes?status={{ k }}">{{ v }} {{ ov.counts[k] }}</a>{% endfor %}
+  <p class="muted">Every change you recorded on {{ client.name }}'s renewals, by renewal date: implemented, not implemented and why, or still open. Change one from its bundle or renewal.</p></div></header>
+<nav class="pdc-filter" aria-label="Filter by outcome">
+  <a class="pill {% if not ov.outcome %}pill-net{% else %}pill-soft{% endif %}" href="{{ base }}/plan-changes">All {{ ov.total }}</a>
+  {% for k, v in plan_change_vocab.items() %}<a class="pill {% if ov.outcome == k %}pill-net{% else %}pill-soft{% endif %}" href="{{ base }}/plan-changes?outcome={{ k }}">{{ v }} {{ ov.counts[k] }}</a>{% endfor %}
 </nav>
 {% if ov["items"] %}
 <div class="table-scroll card">
   <table class="table">
-    <thead><tr><th scope="col">Renewal</th><th scope="col">Change</th><th scope="col">State</th></tr></thead>
+    <thead><tr><th scope="col">Change</th><th scope="col">Applies to</th><th scope="col">Outcome</th></tr></thead>
     <tbody>
     {% for c in ov["items"] %}
-      <tr class="{% if c.status == 'dropped' %}is-dropped{% endif %}">
-        <td><a href="{{ base }}/renewals/{{ c.renewal.id }}#plan-changes">{{ c.renewal.policy_name or "—" }}</a>
-          <div class="rc-sub">{{ c.renewal.country | flag }}{{ c.renewal.country }} · {{ c.renewal.renewal_date | dmy or "no date" }}{% if c.renewal.entity %} · {{ c.renewal.entity }}{% endif %}</div></td>
-        <td><strong>{{ c.title }}</strong>{% if c.detail %}<div class="prop-note">{{ c.detail }}</div>{% endif %}</td>
-        <td class="nowrap">{{ status_pill(c) }}</td>
+      <tr class="is-{{ c.outcome }}">
+        <td><strong>{{ c.title }}</strong>{% if c.cost_amount is not none %} <span class="pill pill-soft" title="Premium effect">{{ cost_text(c) }}</span>{% endif %}{% if c.detail %}<div class="prop-note">{{ c.detail }}</div>{% endif %}</td>
+        <td>{% for r in c.covers %}<div><a href="{{ base }}/renewals/{{ r.id }}#plan-changes">{{ r.policy_name or "—" }}</a>
+          <span class="rc-sub">{{ r.country | flag }}{{ r.country }} · {{ r.renewal_date | dmy or "no date" }}{% if r.entity %} · {{ r.entity }}{% endif %}</span></div>{% endfor %}</td>
+        <td>{{ outcome_pill(c) }}{% if c.outcome == "not_implemented" %}<div class="pdc-why">{{ c.reason or "no reason recorded" }}</div>{% endif %}</td>
       </tr>
     {% endfor %}
     </tbody>
   </table>
 </div>
-{% else %}<div class="card empty"><p>No plan design changes {% if ov.status %}in this state{% else %}recorded for {{ client.name }} yet{% endif %}.</p></div>{% endif %}
+{% else %}<div class="card empty"><p>No plan design changes {% if ov.outcome %}with this outcome{% else %}recorded for {{ client.name }} yet{% endif %}.</p></div>{% endif %}
 {% endmacro %}

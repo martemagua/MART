@@ -82,6 +82,9 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 **D1 ⭐** Which fields typically lag in BM+ besides the strategy: stage, workflow status, plan design changes, insurer, dates, other?
 → **Answered 05.11.2026:** most important: the **strategy** and **proposals received** (from whom, how many). Also: **mark a renewal completed** (only once all tasks are submitted and approved), and an overview of **suggested plan design changes, implemented or not**. Martin wants this to build up into a **backlog per client** for the yearly **stewardship meeting**. See BUILD_PLAN_M3.md.
 
+**D1b** Plan design changes: what are they for, and what does MART need to know about each one?
+→ **Answered 07.11.2026:** brokers and insurers propose them; they are listed in BM+ and in the renewal overview (which the client reads). Who proposed one needn't be recorded: in the end, **was it implemented or not, and if not, why**. Knowing what a change costs would be great, though it rarely comes up. Agreed and implemented were the same thing. One change often applies to **several renewals at once** (one bundled policy over several entities, or one policy split by line of coverage) — one of the reasons for bundles. → MART 0.9.29.
+
 **D2** Should a "BM+ behind" discrepancy automatically become a follow-up for the broker ("please submit the strategy in BM+")?
 → **Answered 05.11.2026:** it must be **visible**; no automatic follow-up.
 

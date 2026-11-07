@@ -133,6 +133,9 @@ STRATEGY_FIELDS = [
     ("Expected renewal rate adjustment", "Expected renewal rate adjustment", None),
     ("Expected date for the final renewal terms", "Expected date to receive the final renewal terms", None),
 ]
+# shown once, in the panel's plan design changes block (services/plan_changes),
+# not again among the Strategy sheet's facts
+PDC_LABELS = ("Plan design changes considered?", "Types of plan design changes", "Reasons for plan design changes")
 LAST_RENEWAL_FIELDS = [
     ("Last renewal strategy", "Last Renewal Strategy", None),
     ("Last year of remarketing", "Last Year of Remarketing", None),

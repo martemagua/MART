@@ -65,8 +65,9 @@
     <details class="arrange">
       <summary class="btn btn-small">Plan design…</summary>
       <div class="arrange-box stack-form prop-form">
-        {{ change_fields(prefix="pdc_", focus=false, required=false) }}
-        <div class="actions"><button type="submit" class="btn btn-small btn-primary" formaction="{{ base }}/bulk/plan-changes" data-pick-submit>Add to the selected</button></div>
+        {{ change_fields("bulk", prefix="pdc_", focus=false, required=false) }}
+        <p class="hint">One change, applying to all the selected renewals.</p>
+        <div class="actions"><button type="submit" class="btn btn-small btn-primary" formaction="{{ base }}/bulk/plan-changes" data-pick-submit>Add for the selected</button></div>
       </div>
     </details>
     <details class="arrange">

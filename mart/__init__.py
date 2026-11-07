@@ -10,8 +10,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-__version__ = "0.9.28"
-RELEASE_LABEL = "M3 · Explorer ⇄ Board, clients on Home"
+__version__ = "0.9.29"
+RELEASE_LABEL = "M3 · plan design changes, bundled"
 
 APP_ROOT = Path(__file__).resolve().parent.parent
 VENDOR_DIR = APP_ROOT / "vendor"

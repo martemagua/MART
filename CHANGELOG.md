@@ -6,6 +6,52 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.29 — 07.11.2026 · plan design changes, reshaped
+
+Martin, 07.11.2026 (QUESTIONS D1b): "BM+ suggests" wasn't intuitive. What a
+plan design change needs to say in the end: implemented or not, and if
+not, why; and it often applies to several renewals at once.
+
+### Changed
+- **One change for several renewals.** A plan design change now applies to
+  one or more renewals: all of a bundle's when added from the bundle (untick
+  the ones it doesn't cover), the renewal itself when added from a renewal
+  (tick others of its bundle). ✎ changes which renewals it applies to.
+- **Open → implemented, or not implemented with why.** "Suggested",
+  "agreed" and "dropped" are gone; "Outcome…" records implemented (it takes
+  effect with the renewal) or not implemented, which asks why (client
+  declined, insurer refused, deferred…).
+- **BM+'s text once, one line per change.** The bundle page and the renewal
+  panel show BM+'s plan design text once, as "In BM+": considered, the
+  reason, and each change on its own line (split at line breaks and
+  bullets), with **+ Track** and **×**. Tracking a line covers every renewal
+  of the bundle whose BM+ text lists it; a tracked line shows ✓, a dismissed
+  one can be offered again. The Strategy section no longer repeats BM+'s
+  three plan design rows.
+- **The bundle page has its own plan design block**, under the bundle's
+  to-dos and notes; its header counts open / implemented / not implemented.
+- **The edit bar's "Plan design…" adds ONE change** covering the ticked
+  renewals (it used to add a copy to each).
+- The client's overview lists each change once, with the renewals it
+  applies to, filtered by outcome.
+
+### Added
+- **Premium effect (optional)** on a change: "-2.5 %" or "-25'000 EUR", as
+  typed (no k or m).
+
+### Kept
+- Every change recorded before is kept (migration 18): suggested and
+  agreed ones are open, implemented stay implemented, dropped ones are not
+  implemented (no reason recorded). A BM+ suggestion taken over or
+  dismissed before counts for every line of that BM+ text.
+
+### What to try
+1. A bundle where BM+ lists plan design changes → "In BM+" → **+ Track** on
+   one line: it applies to every renewal of the bundle that lists it.
+2. **+ Change** on the bundle → untick one renewal, premium effect "-2 %".
+3. **Outcome…** → Not implemented → why. Then the client's Plan design
+   changes page → Not implemented.
+
 ## 0.9.28 — 07.11.2026 · Explorer ⇄ Board, your clients on Home
 
 ### Added

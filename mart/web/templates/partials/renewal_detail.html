@@ -78,8 +78,7 @@
     {% if a.strategy_reason %}<span class="mine-why">{{ a.strategy_reason }}</span>{% endif %}</div>
   {% endif %}
   {% if detail.strategy %}{{ facts(detail.strategy) }}{% else %}<p class="muted small">Nothing filled in BM+ yet.</p>{% endif %}
-  {{ plan_changes_block(base, r, detail.plan_changes, here,
-       [("Considered (BM+)", f.pdc_considered), ("Comments (BM+)", f.pdc_comments)] | selectattr(1) | list) }}
+  {{ plan_changes_block(base, detail.plan_changes, here) }}
   {% if detail.last_renewal %}<h4>From the last renewal</h4>{{ facts(detail.last_renewal) }}{% endif %}
   {% if detail.claims %}<h4>Claims</h4>{{ facts(detail.claims) }}{% endif %}
   {% if detail.questions %}<h4>Client-specific questions</h4>{{ facts(detail.questions) }}{% endif %}
