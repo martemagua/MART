@@ -748,3 +748,17 @@ ul.pdc-list.mine-block { padding-left: 12px; }
 .ccard-cols h3 { margin: 0 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
 .ccard-cols .cc-counts { margin: 0; }
 .ccard-foot { margin-top: auto; border-top: 1px solid var(--border); padding-top: 10px; color: var(--muted); }
+/* a to-do's repeat (partials/mine.html repeat_fields, M3 day 8) */
+.repeat-row { display: flex; flex-direction: column; gap: 4px; }
+.repeat-row > label { display: flex; flex-direction: column; gap: 2px; }
+.repeat-pair { display: flex; gap: 6px; }
+.repeat-pair input[type=number] { width: 64px; min-height: 32px; }
+.repeat-pair select { min-height: 32px; }
+.repeat-days { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.repeat-days legend { float: left; margin-right: 4px; }
+.day-chip { cursor: pointer; }
+.day-chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.day-chip span { display: inline-block; min-width: 34px; text-align: center; font-size: 12px; padding: 2px 6px; border: 1px solid var(--border); border-radius: 6px; }
+.day-chip input:checked + span { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.day-chip input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 1px; }
+.repeat-pill { font-weight: 500; }

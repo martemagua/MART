@@ -6,6 +6,27 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.24 — 07.11.2026 · M3 day 8 · repeating to-dos
+
+### Added
+- **Repeating to-dos** (Martin, 05.11.2026, QUESTIONS M3b): "Repeat every
+  [N] [days / weeks / months]" in every to-do's add form and Edit menu; for
+  weeks, tick the weekdays (Mon … Sun). No working days, no holidays.
+- **Ticking one done adds the next**, due one step after its due date (or
+  after today when it has none): the same place (renewal, bundle, client
+  topic), title, urgency, description and subtasks (unticked), and the same
+  repeat. A monthly one on the 31st falls on the month's last day and comes
+  back to the 31st. Ticked very late, the next one still lands after today.
+- Unticking leaves the next one as it is, and ticking again never adds a
+  second one. "— doesn't repeat —" in Edit stops it.
+- A repeating to-do shows "↻ every month" (or "↻ every 2 weeks on Mon,
+  Thu") beside its title.
+
+### What to try
+1. Client notes & to-dos → Partner tracker → + To-do "Release the partner
+   tracker", due the last day of the month, repeat every 1 month → tick it:
+   next month's is there.
+
 ## 0.9.23 — 07.11.2026 · M3 day 7 · client topics
 
 ### Added

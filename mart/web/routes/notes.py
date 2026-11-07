@@ -45,7 +45,15 @@ def note_delete(request: Request, note_id: int) -> Response:
 def todo_add(request: Request) -> Response:
     return _do(request, lambda: notes_service.add_todo(
         request.arg("scope") or "", request.arg("ref") or "", request.arg("title"), request.arg("due"),
-        request.arg("urgency"), request.arg("topic")))
+        request.arg("urgency"), request.arg("topic"), _repeat(request)))
+
+
+def _repeat(request: Request) -> dict | None:
+    """The repeat fields (partials/mine.html `repeat_fields`), when the form has them."""
+    if "repeat_unit" not in request.form:
+        return None
+    return {"unit": request.arg("repeat_unit"), "every": request.arg("repeat_every"),
+            "weekdays": request.args("repeat_weekdays")}
 
 
 DETAIL_FIELDS = ("description", "urgency", "status", "waiting_kind", "waiting_on", "waiting_since")
@@ -56,7 +64,7 @@ def todo_save(request: Request, todo_id: int) -> Response:
     # the full edit form carries the M2 extras (it always sends "status")
     details = {k: request.arg(k) for k in DETAIL_FIELDS} if "status" in request.form else None
     return _do(request, lambda: notes_service.edit_todo(todo_id, request.arg("title"), request.arg("due"),
-                                                         details), anchor=f"todo-{todo_id}")
+                                                         details, _repeat(request)), anchor=f"todo-{todo_id}")
 
 
 @router.route("/todos/{todo_id:int}/steps/add", methods=("POST",))

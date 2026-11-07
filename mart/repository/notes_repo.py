@@ -169,3 +169,31 @@ def bundle_keys_with_content(conn: sqlite3.Connection, client_id: int) -> set[st
            UNION SELECT ref FROM todos WHERE client_id = ? AND scope = 'bundle' AND done_at IS NULL""",
         (client_id, client_id))
     return {r["ref"].split("|", 1)[1] for r in rows if "|" in r["ref"]}
+
+
+# -- repeating to-dos (migration 17) ----------------------------------------------------
+REPEAT_FIELDS = ("repeat_unit", "repeat_every", "repeat_weekdays", "repeat_day")
+
+
+def set_repeat(conn: sqlite3.Connection, todo_id: int, spec: dict[str, Any] | None) -> None:
+    """The repeat (already validated); None = doesn't repeat."""
+    spec = spec or {}
+    conn.execute(f"UPDATE todos SET {', '.join(f + ' = ?' for f in REPEAT_FIELDS)} WHERE id = ?",
+                 (*[spec.get(f) for f in REPEAT_FIELDS], todo_id))
+
+
+def add_next(conn: sqlite3.Connection, todo: dict[str, Any], due_date: str) -> int:
+    """The next one of a repeating to-do: the same target, title, topic,
+    urgency, description and repeat, open again, its subtasks unticked."""
+    cur = conn.execute(
+        """INSERT INTO todos (scope, ref, client_id, title, due_date, urgency, description, topic_id,
+                              repeat_unit, repeat_every, repeat_weekdays, repeat_day)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (todo["scope"], todo["ref"], todo["client_id"], todo["title"], due_date, todo["urgency"],
+         todo["description"], todo.get("topic_id"), *[todo[f] for f in REPEAT_FIELDS]))
+    new_id = int(cur.lastrowid)
+    conn.execute("""INSERT INTO todo_steps (todo_id, title, position)
+                    SELECT ?, title, position FROM todo_steps WHERE todo_id = ? ORDER BY position""",
+                 (new_id, todo["id"]))
+    conn.execute("UPDATE todos SET repeat_next_id = ? WHERE id = ?", (new_id, todo["id"]))
+    return new_id
