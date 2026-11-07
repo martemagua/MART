@@ -5,7 +5,7 @@ page (Martin, 06.11.2026: one page for both); `/board` leads there."""
 from __future__ import annotations
 
 from mart.services import board_service, client_service
-from mart.web.framework import HTTPError, Request, Response, Router
+from mart.web.framework import HTTPError, Request, Response, Router, local_path
 from mart.web.templating import render
 
 router = Router()
@@ -37,7 +37,5 @@ def board_stage(request: Request, client_id: int) -> Response:
                                 complete=request.arg("complete") == "1")
     except board_service.Invalid as exc:
         raise HTTPError(400, str(exc)) from exc
-    back = request.arg("back") or ""
-    if not back.startswith("/") or back.startswith("//") or "\\" in back:
-        back = f"/clients/{client_id}/board"
+    back = local_path(request.arg("back"), f"/clients/{client_id}/board")
     return Response.redirect(back.split("#", 1)[0])

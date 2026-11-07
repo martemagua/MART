@@ -8,7 +8,7 @@ from __future__ import annotations
 from urllib.parse import parse_qsl, urlencode, urlsplit
 
 from mart.services import actuals, plan_changes, proposals
-from mart.web.framework import HTTPError, Request, Response, Router
+from mart.web.framework import HTTPError, Request, Response, Router, local_path
 
 router = Router()
 _PROPOSAL = ("insurer", "plan_design", "label", "round", "received_on", "currency", "rate_change", "note")
@@ -23,9 +23,7 @@ def _ids(request: Request) -> list[int]:
 
 def _done(request: Request, client_id: int, message: str) -> Response:
     """Back to the page the form was on (a path on MART), with `done=`."""
-    back = request.arg("back") or ""
-    if not back.startswith("/") or back.startswith("//") or "\\" in back:
-        back = f"/clients/{client_id}"
+    back = local_path(request.arg("back"), f"/clients/{client_id}")
     parts = urlsplit(back.split("#", 1)[0])
     query = [(k, v) for k, v in parse_qsl(parts.query) if k != "done"] + [("done", message)]
     return Response.redirect(f"{parts.path}?{urlencode(query)}")

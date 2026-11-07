@@ -141,7 +141,8 @@ def _new_bundle(key: str, country: str, today: date, custom: dict[str, Any] | No
 
 def explorer(client_id: int, bundle: str | None = None,
              show_all: bool = False, today: date | None = None,
-             renewal_id: int | None = None, with_detail: bool = True) -> dict[str, Any]:
+             renewal_id: int | None = None, with_detail: bool = True,
+             cards: bool = True) -> dict[str, Any]:
     """The explorer's side panel (bundles, grouped) and the selected bundle:
     the one asked for, else the one holding `renewal_id`, else the first in
     the panel. A renewal is in its default bundle (country + date) unless Martin
@@ -253,7 +254,11 @@ def explorer(client_id: int, bundle: str | None = None,
                     "plan_changes": plan_changes.view(change_rows.get(rid, []))}
             return _with_stages(_enrich({**r, **mine}, today), stage_of[rid])
 
-        items = sorted((card(r) for r in selected["renewals"]),
+        # `cards=False`: the pages that show the side panel and something else in
+        # the middle (a renewal, the client's notes, plan design changes,
+        # regions) need the bundle, not its cards (QA 07.11.2026: 0.59 s → 0.02 s
+        # on a 300-renewal bundle)
+        items = sorted((card(r) for r in selected["renewals"]) if cards else selected["renewals"],
                        key=lambda r: ((r["policy_name"] or "").casefold(), r["entity"] or ""))
         detail = {
             **selected, "renewals": items,
@@ -262,7 +267,7 @@ def explorer(client_id: int, bundle: str | None = None,
             "strategies": Counter((r["actual"]["effective"] or "—", bool(r["actual"]["strategy"]))
                                   for r in items),
             "open_ids": [r["id"] for r in items if not r["actual"]["completed"]],
-            "pdc_counts": {s: sum(r["plan_changes"]["counts"][s] for r in items)
+            "pdc_counts": {s: sum(r["plan_changes"]["counts"][s] for r in items) if cards else 0
                            for s in plan_changes.STATUSES},
             "statuses": Counter(r["workflow_status"] or "—" for r in items),
             "move_targets": move_targets(customs, bundles, selected["country"], selected["custom_id"]),

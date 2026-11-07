@@ -52,7 +52,7 @@ def change_delete(request: Request, client_id: int, change_id: int) -> Response:
 def client_plan_changes(request: Request, client_id: int) -> Response:
     """Every plan design change of the client in the middle; the bundles stay."""
     try:
-        view = client_service.explorer(client_id, show_all=request.arg("all") == "1")
+        view = client_service.explorer(client_id, show_all=request.arg("all") == "1", cards=False)
         overview = plan_changes.client_overview(client_id, request.arg("status"))
     except (client_service.NotFound, plan_changes.Invalid) as exc:
         raise HTTPError(404, str(exc)) from exc

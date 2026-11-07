@@ -14,7 +14,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import cached_property
 from typing import Any
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, urlsplit
 
 Handler = Callable[..., "Response"]
 
@@ -25,6 +25,22 @@ class HTTPError(Exception):
         self.status = status
         self.message = message
 
+
+
+_CONTROL = re.compile(r"[\x00-\x1f\x7f]")
+
+
+def local_path(value: str | None, default: str) -> str:
+    r"""`value` when it is a path on THIS site (where a form returns to: the
+    `back` field), else `default`. Refuses another site in any spelling
+    ("//x", "/\x", "https://x"), and control characters, which a browser
+    strips ("/<tab>/x" would become "//x") or which would split the Location
+    header (QA 07.11.2026: one rule instead of four copies)."""
+    v = value or ""
+    if not v.startswith("/") or v.startswith("//") or "\\" in v or _CONTROL.search(v):
+        return default
+    parts = urlsplit(v)
+    return default if parts.scheme or parts.netloc else v
 
 @dataclass
 class Request:
@@ -92,6 +108,9 @@ class Response:
 
     @classmethod
     def redirect(cls, location: str, status: int = 303) -> Response:
+        # a control character in a header would split it (http.server checks nothing)
+        if _CONTROL.search(location):
+            raise ValueError("A redirect location must not contain control characters.")
         return cls(b"", status, headers=[("Location", location)])
 
     @classmethod

@@ -85,6 +85,9 @@ def upload_commit(request: Request, upload_id: int) -> Response:
     if summary.get("skipped"):
         msg += (f" {summary['skipped']} not loaded (implementation / contract tasks, "
                 "or no renewal in MART).")
+    if summary.get("kept_with_client"):
+        msg += (f" {summary['kept_with_client']} stayed with the client MART already had them under "
+                "(the export spells that client differently).")
     return _after_commit(msg)
 
 

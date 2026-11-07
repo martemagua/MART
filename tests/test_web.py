@@ -178,3 +178,18 @@ def test_country_flags_ship_with_mart_and_cover_bm_spellings():
     assert 'alt=""' in countries.flag("Poland") and "<script" not in countries.flag('<script>"')
     r = serve_static("/static/flags/pl.svg")
     assert r.status == 200 and r.content_type == "image/svg+xml"
+
+
+def test_back_stays_on_mart_in_every_spelling(app, configured):
+    """QA 07.11.2026: ONE rule for every form's `back` (framework.local_path);
+    a control character (a browser strips "/\\t/x" to "//x") or another site
+    in any spelling falls back to MART's own page."""
+    from mart.web.framework import Response, local_path
+    for bad in ("//evil.example", "/\\evil.example", "https://evil.example/", "/\t/evil.example",
+                "/x\r\nSet-Cookie: a=b", "javascript:alert(1)", "", None):
+        assert local_path(bad, "/todos") == "/todos", bad
+    assert local_path("/clients/1?bundle=Poland%7C2027-01-01#mine", "/todos").startswith("/clients/1?")
+    r = post(app, "/notes/add", {"scope": "client", "ref": "1", "body": "x", "back": "/\t/evil.example"})
+    assert r.status in (303, 400) and "evil" not in dict(r.headers).get("Location", "")
+    with pytest.raises(ValueError):
+        Response.redirect("/x\r\nSet-Cookie: a=b")

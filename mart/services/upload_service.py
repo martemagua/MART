@@ -175,7 +175,8 @@ def commit(upload_id: int, mine_keys: set[str], allow_older: bool = False) -> di
         ctx = adapter.context(rows)
         by_client = _by_client(rows)
         summary = {"new": 0, "changed": 0, "unchanged": 0, "returned": 0, "left_export": 0,
-                   "skipped": 0, "clients_loaded": [], "clients_ignored": [], "tracker": adapter.tracker}
+                   "skipped": 0, "clients_loaded": [], "clients_ignored": [], "tracker": adapter.tracker,
+                   "kept_with_client": 0}
         for c in view["clients"]:
             key, mine = c["key"], c["key"] in mine_keys
             client_rows = by_client.get(key, [])
@@ -191,7 +192,13 @@ def commit(upload_id: int, mine_keys: set[str], allow_older: bool = False) -> di
             for r in kept:
                 e = stored.get(_key(r))
                 outcome = adapter.outcome(r, e, ctx)
-                adapter.save(conn, r, e, client_id, upload_id, ctx, outcome)
+                # BM+'s ids are unique: an item MART has stays with the client it
+                # belongs to, even when an export spells that client differently
+                # (QA 07.11.2026: it moved to a new client, leaving its bundle,
+                # to-dos and links behind)
+                owner = e["client_id"] if e and e.get("client_id") else client_id
+                summary["kept_with_client"] += int(owner != client_id)
+                adapter.save(conn, r, e, owner, upload_id, ctx, outcome)
                 summary[outcome] += 1
             gone = adapter.in_export(conn, [client_id])[client_id] - {_key(r) for r in client_rows}
             gone -= adapter.not_news(conn, upload, gone)

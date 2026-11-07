@@ -16,7 +16,7 @@ from mart.services import (
     proposals,
     renewal_service,
 )
-from mart.web.framework import HTTPError, Request, Response, Router
+from mart.web.framework import HTTPError, Request, Response, Router, local_path
 from mart.web.templating import render
 
 router = Router()
@@ -63,7 +63,8 @@ def renewal_page(request: Request, client_id: int, renewal_id: int) -> Response:
     except renewal_service.NotFound as exc:
         raise HTTPError(404, str(exc)) from exc
     r = detail["renewal"]
-    view = _explorer(request, client_id, renewal_id=renewal_id, show_all=not r["in_latest_export"])
+    view = _explorer(request, client_id, renewal_id=renewal_id, show_all=not r["in_latest_export"],
+                     cards=False)
     if view["selected"]:                    # the bundle's broker deadline pauses the stale clock
         detail["freshness"] = freshness.pause(detail["freshness"], view["selected"]["deadline"])
     mine = notes_service.for_renewal(r, view["selected"])
@@ -74,7 +75,7 @@ def renewal_page(request: Request, client_id: int, renewal_id: int) -> Response:
 @router.route("/clients/{client_id:int}/notes")
 def client_notes(request: Request, client_id: int) -> Response:
     """The client's own notes and to-dos in the middle; the bundles stay."""
-    view = _explorer(request, client_id)
+    view = _explorer(request, client_id, cards=False)
     try:
         mine = notes_service.for_client(client_id)
     except notes_service.Invalid as exc:
@@ -110,8 +111,8 @@ def bundle_rename(request: Request, client_id: int) -> Response:
 # -- broker deadlines on bundles (services/deadlines) ----------------------------------
 def _after_deadline(request: Request, client_id: int, key: str, anchor: str = "deadline") -> Response:
     """Back to the page the form was on (a path on MART), else the bundle."""
-    back = request.arg("back") or ""
-    if back.startswith("/") and not back.startswith("//") and "\\" not in back:
+    back = local_path(request.arg("back"), "")
+    if back:
         return Response.redirect(back.split("#", 1)[0] + "#" + anchor)
     return _to_bundle(client_id, key)
 

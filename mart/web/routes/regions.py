@@ -15,7 +15,7 @@ router = Router()
 @router.route("/clients/{client_id:int}/regions")
 def regions_page(request: Request, client_id: int) -> Response:
     try:
-        view = client_service.explorer(client_id, show_all=request.arg("all") == "1")
+        view = client_service.explorer(client_id, show_all=request.arg("all") == "1", cards=False)
         page = regions.for_client(client_id)
     except (client_service.NotFound, regions.Invalid) as exc:
         raise HTTPError(404, str(exc)) from exc
