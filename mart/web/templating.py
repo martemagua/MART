@@ -14,7 +14,7 @@ from typing import Any
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from mart import RELEASE_LABEL, __version__
-from mart.services import actuals, board, plan_changes, proposals, todo_details, topics, trackers
+from mart.services import actuals, board, plan_changes, proposals, repeats, todo_details, topics, trackers
 from mart.web import colors, countries
 from mart.web.framework import Response
 
@@ -94,6 +94,9 @@ _env.globals["plan_change_vocab"] = plan_changes.STATUSES
 _env.globals["board_labels"] = board.LABELS
 _env.globals["board_hints"] = board.HINTS
 _env.globals["topic_colors"] = topics.COLORS
+_env.globals["repeat_units"] = repeats.UNITS
+_env.globals["repeat_weekdays"] = repeats.WEEKDAYS
+_env.filters["repeat_text"] = repeats.describe
 _env.globals["topic_statuses"] = topics.STATUSES
 _env.globals["proposal_vocab"] = {"rounds": proposals.ROUNDS, "designs": proposals.PLAN_DESIGNS}
 _env.globals["today_iso"] = lambda: date.today().isoformat()

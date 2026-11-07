@@ -3,7 +3,7 @@
    open to-dos first, then pinned notes (key facts), then the newest notes;
    a footer "2 open · next due 08.11". General is the topic without a row:
    always there, never renamed. Written in MART, so the mine rail. #}
-{% from "partials/mine.html" import todo_row, note_item %}
+{% from "partials/mine.html" import todo_row, note_item, repeat_fields %}
 
 {% macro topic_fields(tb, t=none) %}
   <label class="small muted">Name <input type="text" name="name" maxlength="60" required value="{{ t.name if t else '' }}" placeholder="e.g. Partner tracker" data-focus-on-open></label>
@@ -28,6 +28,7 @@
         <label class="small muted">Due (optional) <input type="date" name="due"></label>
         <label class="small muted">Urgency <select name="urgency">{% for k, label in todo_vocab.urgencies.items() %}<option value="{{ k }}" {% if k == "normal" %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
       </div>
+      {{ repeat_fields(none, "topic-" ~ (col.id or "general")) }}
       <div class="actions"><button type="submit" class="btn btn-small btn-primary">Add to-do</button></div>
     </form>
   </details>

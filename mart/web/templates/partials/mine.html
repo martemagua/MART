@@ -15,6 +15,25 @@
 </form>
 {% endmacro %}
 
+{# A to-do's repeat (services/repeats, M3 day 8): every N days, weeks (on
+   chosen weekdays) or months. `uid` keeps the weekday box's id unique on a
+   page with several forms. #}
+{% macro repeat_fields(t, uid) %}
+<div class="repeat-row">
+  <label class="small muted">Repeat every <span class="repeat-pair">
+    <input type="number" name="repeat_every" min="1" max="365" value="{{ t.repeat_every if t and t.repeat_every else 1 }}" aria-label="Repeat every how many">
+    <select name="repeat_unit" data-shows="#rep-wd-{{ uid }}" data-shows-value="week" aria-label="Repeat unit">
+      <option value="">— doesn't repeat —</option>
+      {% for k, names in repeat_units.items() %}<option value="{{ k }}" {% if t and t.repeat_unit == k %}selected{% endif %}>{{ names[1] }}</option>{% endfor %}
+    </select></span></label>
+  <fieldset class="repeat-days" id="rep-wd-{{ uid }}"><legend class="small muted">on</legend>
+    {% set chosen = (t.repeat_weekdays or "").split(",") if t else [] %}
+    {% for d in repeat_weekdays %}<label class="day-chip"><input type="checkbox" name="repeat_weekdays" value="{{ loop.index0 }}" {% if (loop.index0 | string) in chosen %}checked{% endif %}><span>{{ d }}</span></label>{% endfor %}
+  </fieldset>
+  <p class="hint">Ticking it done adds the next one, from its due date.</p>
+</div>
+{% endmacro %}
+
 {% macro todo_row(t, back, show_target=false, topics=none) %}
 {% set waiting = t.status == "waiting" and not t.done_at %}
 <li class="todo urg-{{ t.urgency }}{% if t.done_at %} is-done{% endif %}{% if t.overdue %} is-overdue{% endif %}" id="todo-{{ t.id }}">
@@ -29,6 +48,7 @@
     {% if waiting %}<span class="pill pill-wait" title="Waiting since {{ t.waiting_since | dmy }}">waiting on {{ todo_vocab.kinds.get(t.waiting_kind, "someone") }}{% if t.waiting_on %} {{ t.waiting_on }}{% endif %} since {{ t.waiting_since | dmy }}</span>
     {% elif not t.done_at and t.status == "in_progress" %}<span class="pill pill-soft">in progress</span>{% endif %}
     {% if t.steps %}<span class="todo-due" title="Subtasks done">☑ {{ t.steps_done }}/{{ t.steps | length }}</span>{% endif %}
+    {% if t.repeat_unit %}<span class="pill pill-soft repeat-pill" title="Repeats: ticking it done adds the next one{% if t.repeat_next_id %} (already added){% endif %}">↻ {{ t | repeat_text }}</span>{% endif %}
     {% if t.due_date %}<span class="todo-due">{{ "due " if not t.done_at }}{{ t.due_date | dmy }}{% if t.overdue %} · overdue{% endif %}</span>{% endif %}
     {% if t.done_at %}<span class="todo-due">done {{ t.done_at | dmy(True) }}</span>{% endif %}
     {% if show_target %}<a class="todo-target" href="{{ t.target.url }}">{{ t.client_name }} · {{ t.target.country | flag }}{{ t.target.country }}{% if t.target.renewal_date %} · {{ t.target.renewal_date | dmy }}{% endif %} · {{ t.target.name }}</a>{% if t.topic %} <span class="tc-chip tc-{{ t.topic.color }}" title="Topic of {{ t.client_name }}">{{ t.topic.name }}</span>{% endif %}{% endif %}
@@ -59,6 +79,7 @@
         <label>Since <input type="date" name="waiting_since" value="{{ t.waiting_since or '' }}"></label>
       </div>
       <textarea name="description" rows="3" maxlength="5000" placeholder="Description (optional)" aria-label="Description">{{ t.description or '' }}</textarea>
+      {{ repeat_fields(t, "t" ~ t.id) }}
       <div class="actions"><button type="submit" class="btn btn-small btn-primary">Save</button></div>
     </form>
     <div class="todo-edit-steps">
@@ -120,6 +141,7 @@
             <label class="small muted">Due (optional) <input type="date" name="due" aria-label="Due date (optional)"></label>
             <label class="small muted">Urgency <select name="urgency">{% for k, label in todo_vocab.urgencies.items() %}<option value="{{ k }}" {% if k == "normal" %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
           </div>
+          {{ repeat_fields(none, "add-" ~ m.target.scope ~ "-" ~ (m.target.ref | replace("|", "-") | replace(" ", "-"))) }}
           <div class="actions"><button type="submit" class="btn btn-small btn-primary">Add to-do</button></div>
         </form>
       </details>

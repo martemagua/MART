@@ -432,6 +432,17 @@ MIGRATIONS: list[tuple[int, str]] = [
         -- a pinned note = a key fact, at the top of its topic (NULL = not pinned)
         ALTER TABLE notes ADD COLUMN pinned_at TEXT;
     """),
+    (17, """
+        -- M3 day 8: repeating to-dos (Martin 05.11.2026, QUESTIONS M3b): every
+        -- N days / N weeks (on chosen weekdays) / N months. USER data. Ticking
+        -- one done creates the next (services/repeats); `repeat_next_id` = the
+        -- one it created, so ticking it again never makes a second.
+        ALTER TABLE todos ADD COLUMN repeat_unit     TEXT;      -- day | week | month; NULL = doesn't repeat
+        ALTER TABLE todos ADD COLUMN repeat_every    INTEGER;
+        ALTER TABLE todos ADD COLUMN repeat_weekdays TEXT;      -- "0,3" = Mon, Thu (weeks only)
+        ALTER TABLE todos ADD COLUMN repeat_day      INTEGER;   -- day of the month (months only)
+        ALTER TABLE todos ADD COLUMN repeat_next_id  INTEGER REFERENCES todos(id);
+    """),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1][0]

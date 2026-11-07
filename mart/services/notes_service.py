@@ -24,6 +24,7 @@ from urllib.parse import quote
 from mart.repository import bundles_repo, clients_repo, notes_repo, renewals_repo, topics_repo
 from mart.repository.db import connection
 from mart.services import bundles as bx
+from mart.services import repeats
 from mart.services import todo_details as td
 
 SCOPES = ("renewal", "bundle", "client")
@@ -262,23 +263,38 @@ def delete_note(note_id: int) -> None:
 
 
 def add_todo(scope: str, ref: str, title: str | None, due: str | None, urgency: str | None = None,
-             topic_id: Any = None) -> int:
+             topic_id: Any = None, repeat: dict[str, Any] | None = None) -> int:
+    """`repeat` = the form's repeat fields (unit, every, weekdays), see services/repeats."""
+    due = _clean_due(due)
+    spec = repeats.clean(*_repeat_args(repeat), due) if repeat else None
     with connection() as conn:
         t = _target(conn, scope, ref)
-        return notes_repo.add_todo(conn, t["scope"], t["ref"], t["client_id"], _clean_title(title),
-                                   _clean_due(due), td.urgency(urgency),
-                                   topic_of(conn, t["client_id"], t["scope"], topic_id))
+        tid = notes_repo.add_todo(conn, t["scope"], t["ref"], t["client_id"], _clean_title(title),
+                                  due, td.urgency(urgency),
+                                  topic_of(conn, t["client_id"], t["scope"], topic_id))
+        if spec:
+            notes_repo.set_repeat(conn, tid, spec)
+        return tid
+
+
+def _repeat_args(repeat: dict[str, Any]) -> tuple:
+    return repeat.get("unit"), repeat.get("every"), repeat.get("weekdays")
 
 
 def edit_todo(todo_id: int, title: str | None, due: str | None,
-              details: dict[str, str | None] | None = None) -> None:
-    """Title and due date; with `details` (the edit form) also the M2 extras."""
+              details: dict[str, str | None] | None = None, repeat: dict[str, Any] | None = None) -> None:
+    """Title and due date; with `details` (the edit form) also the M2 extras,
+    with `repeat` its repeat (an empty unit = doesn't repeat any more)."""
+    due = _clean_due(due)
     with connection() as conn:
         _own(conn, notes_repo.get_todo, todo_id)
         extras = td.clean(details) if details is not None else None
-        notes_repo.update_todo(conn, todo_id, _clean_title(title), _clean_due(due))
+        spec = repeats.clean(*_repeat_args(repeat), due) if repeat is not None else None
+        notes_repo.update_todo(conn, todo_id, _clean_title(title), due)
         if extras is not None:
             notes_repo.update_details(conn, todo_id, extras)
+        if repeat is not None:
+            notes_repo.set_repeat(conn, todo_id, spec)
 
 
 def add_step(todo_id: int, title: str | None) -> int:
@@ -310,10 +326,17 @@ def delete_step(step_id: int) -> int:
         return step["todo_id"]
 
 
-def set_done(todo_id: int, done: bool) -> None:
+def set_done(todo_id: int, done: bool, today: date | None = None) -> int | None:
+    """Tick a to-do (or untick it). A repeating one, ticked for the first
+    time, creates the next (services/repeats); returns its id. Unticking
+    leaves the next one as it is."""
     with connection() as conn:
-        _own(conn, notes_repo.get_todo, todo_id)
+        todo = _own(conn, notes_repo.get_todo, todo_id)
         notes_repo.set_done(conn, todo_id, done)
+        if done and todo.get("repeat_unit") and not todo.get("repeat_next_id"):
+            nxt = repeats.next_due(todo, todo.get("due_date"), today)
+            return notes_repo.add_next(conn, todo, nxt.isoformat())
+    return None
 
 
 def delete_todo(todo_id: int) -> None:
