@@ -1,0 +1,40 @@
+{# The bundle filters, ONE box for the explorer's side panel and the board
+   (mart.js [data-bundle-filters]): text, region(s), country(ies), renewal
+   dates from / until. Regions and countries take several values (Martin,
+   07.11.2026): a pop-over of tick boxes each; ticking a region narrows the
+   country list to that region's countries (each country carries its region
+   for this client, `filters.country_regions`). A longer list opens with a
+   "Type to find…" box (Enter ticks the first match). Remembered per client
+   per tab. #}
+
+{% macro multi(name, label_all, values, regions=none) %}
+<details class="arrange f-multi" data-f-multi="{{ name }}">
+  <summary class="f-multi-btn" data-f-all="{{ label_all }}"><span data-f-label>{{ label_all }}</span><span aria-hidden="true" class="f-caret">▾</span></summary>
+  <fieldset class="arrange-box f-multi-box">
+    <legend class="visually-hidden">{{ label_all }}</legend>
+    {% if values | length > 6 %}<input type="search" class="f-find" placeholder="Type to find…" aria-label="Find a {{ name }}" data-f-find data-focus-on-open autocomplete="off">
+    <p class="small muted f-none" data-f-nomatch hidden>No {{ name }} matches.</p>{% endif %}
+    {% for v in values %}<label{% if regions is not none %} data-region="{{ regions.get(v) or '' }}"{% endif %}><input type="checkbox" value="{{ v }}" data-f-opt> {% if name == "country" %}{{ v | flag }}{% endif %}{{ v }}</label>{% endfor %}
+    <button type="button" class="link-btn small" data-f-none>Untick all</button>
+  </fieldset>
+</details>
+{% endmacro %}
+
+{% macro bundle_filters(f, client_id, list, what="bundles", fresh=false, cls="") %}
+<div class="nav-filters {{ cls }}" data-bundle-filters="{{ client_id }}" data-list="{{ list }}"{% if fresh %} data-fresh{% endif %}>
+  <input type="search" class="nav-filter" placeholder="Filter: policy, entity, insurer…" aria-label="Filter {{ what }}" data-f="text">
+  {% if f.regions | length > 1 or f.countries | length > 1 %}
+  <div class="f-pair">{# side by side: an open box never covers the other button #}
+    {% if f.regions | length > 1 %}{{ multi("region", "All regions", f.regions) }}{% endif %}
+    {% if f.countries | length > 1 %}{{ multi("country", "All countries", f.countries, f.country_regions) }}{% endif %}
+  </div>
+  {% endif %}
+  {% if f.first and f.first != f.last %}
+  <div class="nav-range">
+    <label>From<input type="date" data-f="from" min="{{ f.first }}" max="{{ f.last }}" aria-label="Renewing from"></label>
+    <label>Until<input type="date" data-f="until" min="{{ f.first }}" max="{{ f.last }}" aria-label="Renewing until"></label>
+  </div>
+  {% endif %}
+  <p class="small nav-filter-summary" data-f-summary hidden><span data-f-count></span> · <button type="button" class="link-btn" data-f-clear>Clear filters</button></p>
+</div>
+{% endmacro %}

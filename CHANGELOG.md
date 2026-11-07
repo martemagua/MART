@@ -6,6 +6,53 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.27 — 07.11.2026 · type to find a country
+
+### Added
+- **Type to find** (Martin, 07.11.2026): a filter list of more than six
+  names (countries, and regions where a client has that many) opens with a
+  "Type to find…" box, the cursor already in it. Typing shows the names
+  that contain it (case and accents ignored), within the ticked regions;
+  Enter ticks the first one shown and empties the box for the next, so
+  "bel ⏎ kor ⏎" ticks Belgium and Korea without scrolling.
+
+### What to try
+1. Explorer or board → All countries → type "bel", Enter, "kor", Enter.
+
+## 0.9.26 — 07.11.2026 · several regions and countries
+
+### Changed
+- **Several regions and countries at once** (Martin, 07.11.2026): in the
+  explorer's side panel and on the board, "All regions" and "All countries"
+  open a list of tick boxes; tick as many as you like. A bundle shows when
+  it is in one of the ticked regions and one of the ticked countries.
+- **The filters follow each other:** ticking a region narrows the country
+  list to that region's countries (this client's own regions). A country
+  hidden that way is unticked, so nothing filters out of sight. "Untick all"
+  in each list, "Clear filters" for everything.
+- The two lists sit side by side in the side panel, so an open one never
+  covers the other. The filters are still remembered per client in the
+  tab, the single region or country of an older version too.
+- One filter box (`partials/filters.html`) for the explorer and the board.
+
+### What to try
+1. A client's explorer → All regions → tick one: the country list shows only
+   its countries. Tick a second region, then two countries.
+2. Open a bundle: the filters stay. The board has the same filters.
+
+## 0.9.25 — 07.11.2026 · an open Edit stands apart
+
+### Changed
+- **An open Edit sits on a light panel** (Martin, 07.11.2026): a to-do's or
+  a note's Edit opens on a lightly shaded box with a thin border, so it is
+  clear where this item's fields end and the next item starts. Everywhere
+  the Edit menu is (topic board, renewal and bundle pages, To-dos page),
+  light and dark.
+
+### What to try
+1. Client notes & to-dos → a to-do → Edit: its fields sit on a grey panel,
+   the next to-do below it is clearly apart.
+
 ## 0.9.24 — 07.11.2026 · M3 day 8 · repeating to-dos
 
 ### Added

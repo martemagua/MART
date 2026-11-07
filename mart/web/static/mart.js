@@ -41,29 +41,59 @@
   });
 
   // [data-bundle-filters="<client id>"]: the explorer's side panel filters (and the board's) —
-  // text, region, country, and renewal dates from / until (ISO, so they compare as text) — hide the bundles that
-  // don't match, and the groups left empty. They are remembered per client
-  // in this browser tab (clicking a bundle reloads the page); [data-fresh]
-  // (the client opened from the list) starts without them.
+  // text, regions, countries, and renewal dates from / until (ISO, so they compare as text) — hide the
+  // bundles that don't match, and the groups left empty. Regions and countries are tick boxes in a
+  // pop-over ([data-f-multi]), several of each (Martin, 07.11.2026); ticked regions narrow the country
+  // list to their own countries (a country's label carries its region), and a country hidden that way
+  // is unticked, so no filter is ever at work out of sight. They are remembered per client in this
+  // browser tab (clicking a bundle reloads the page); [data-fresh] (the client opened from the list)
+  // starts without them.
   document.querySelectorAll("[data-bundle-filters]").forEach(function (box) {
     var list = document.querySelector(box.getAttribute("data-list"));
     if (!list) return;
     var key = "mart-filters-" + box.getAttribute("data-bundle-filters");
     var fields = box.querySelectorAll("[data-f]");
+    var multis = box.querySelectorAll("[data-f-multi]");
     var summary = box.querySelector("[data-f-summary]"), count = box.querySelector("[data-f-count]");
     function val(name) {
       var el = box.querySelector('[data-f="' + name + '"]');
       return el ? el.value.trim() : "";
     }
+    function multi(name) { return box.querySelector('[data-f-multi="' + name + '"]'); }
+    function ticked(name) {
+      var m = multi(name), out = [];
+      if (m) m.querySelectorAll("[data-f-opt]:checked").forEach(function (o) { out.push(o.value); });
+      return out;
+    }
+    function narrow() {
+      var regions = ticked("region"), m = multi("country");
+      if (!m) return;
+      m.querySelectorAll("label[data-region]").forEach(function (l) {
+        var off = regions.length > 0 && regions.indexOf(l.getAttribute("data-region")) === -1;
+        l.hidden = off;
+        if (off) l.querySelector("[data-f-opt]").checked = false;
+      });
+    }
+    function label(m) {
+      var names = [];
+      m.querySelectorAll("[data-f-opt]:checked").forEach(function (o) { names.push(o.value); });
+      var all = m.querySelector("[data-f-all]");
+      var text = names.length === 0 ? all.getAttribute("data-f-all")
+        : names.length <= 2 ? names.join(", ") : names[0] + " +" + (names.length - 1);
+      m.querySelector("[data-f-label]").textContent = text;
+      m.classList.toggle("is-on", names.length > 0);
+      all.title = names.join(", ");
+    }
     function apply() {
-      var q = val("text").toLowerCase(), country = val("country"), region = val("region");
+      narrow();
+      var q = val("text").toLowerCase(), countries = ticked("country"), regions = ticked("region");
       var from = val("from"), until = val("until");
       var shown = 0, total = 0, saved = {};
       list.querySelectorAll("[data-filter-item]").forEach(function (el) {
         var first = el.getAttribute("data-first"), last = el.getAttribute("data-last");
         var ok = (!q || el.textContent.toLowerCase().indexOf(q) !== -1)
-          && (!country || el.getAttribute("data-country") === country)
-          && (!region || el.getAttribute("data-region") === region)
+          && (!countries.length || countries.indexOf(el.getAttribute("data-country")) !== -1)
+          && (!regions.length || regions.indexOf(el.getAttribute("data-region")) !== -1)
           && (!from || (last !== "" && last >= from))
           && (!until || (first !== "" && first <= until));
         el.hidden = !ok;
@@ -78,9 +108,12 @@
         var n = col.querySelector("[data-filter-count]");
         if (n) n.textContent = col.querySelectorAll("[data-filter-item]:not([hidden])").length;
       });
+      multis.forEach(label);
       fields.forEach(function (f) { saved[f.getAttribute("data-f")] = f.value; });
+      saved.region = regions;
+      saved.country = countries;
       if (summary) {
-        summary.hidden = !(q || country || region || from || until);
+        summary.hidden = !(q || countries.length || regions.length || from || until);
         count.textContent = shown + " of " + total + " bundle" + (total === 1 ? "" : "s");
       }
       try { sessionStorage.setItem(key, JSON.stringify(saved)); } catch (e) { /* not remembered */ }
@@ -90,7 +123,15 @@
       var saved = JSON.parse(sessionStorage.getItem(key) || "{}");
       fields.forEach(function (f) {
         var v = saved[f.getAttribute("data-f")];
-        if (v && (f.tagName !== "SELECT" || f.querySelector('option[value="' + CSS.escape(v) + '"]'))) f.value = v;
+        if (typeof v === "string" && v) f.value = v;
+      });
+      multis.forEach(function (m) {
+        var v = saved[m.getAttribute("data-f-multi")];
+        if (typeof v === "string") v = v ? [v] : [];          // remembered by MART 0.9.25 and older: one value
+        (v || []).forEach(function (one) {
+          var o = m.querySelector('[data-f-opt][value="' + CSS.escape(one) + '"]');
+          if (o) o.checked = true;
+        });
       });
     } catch (e) { /* storage blocked: start without filters */ }
     fields.forEach(function (f) {
@@ -98,9 +139,48 @@
       // Enter in the text filter must not submit anything.
       f.addEventListener("keydown", function (e) { if (e.key === "Enter") e.preventDefault(); });
     });
+    // "Type to find…" in a longer list: shows the names that contain what is typed (case and
+    // accents ignored); Enter ticks the first one shown and empties the box for the next.
+    function fold(s) { return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim(); }
+    function find(m) {
+      var input = m.querySelector("[data-f-find]");
+      if (!input) return;
+      var q = fold(input.value), any = false;
+      m.querySelectorAll("label").forEach(function (l) {
+        var off = q !== "" && fold(l.textContent).indexOf(q) === -1;
+        l.classList.toggle("is-nomatch", off);
+        if (!off && !l.hidden) any = true;
+      });
+      m.querySelector("[data-f-nomatch]").hidden = any;
+    }
+    multis.forEach(function (m) {
+      var input = m.querySelector("[data-f-find]");
+      if (input) {
+        input.addEventListener("input", function () { find(m); });
+        input.addEventListener("keydown", function (e) {
+          if (e.key !== "Enter") return;
+          e.preventDefault();
+          var first = m.querySelector("label:not([hidden]):not(.is-nomatch) [data-f-opt]");
+          if (input.value.trim() && first) {
+            first.checked = true;
+            input.value = "";
+            find(m);
+            apply();
+          }
+        });
+        m.addEventListener("toggle", function () { if (m.open) { input.value = ""; find(m); } });
+      }
+      m.addEventListener("change", function (e) { if (e.target !== input) apply(); });
+      var none = m.querySelector("[data-f-none]");
+      if (none) none.addEventListener("click", function () {
+        m.querySelectorAll("[data-f-opt]").forEach(function (o) { o.checked = false; });
+        apply();
+      });
+    });
     var clear = box.querySelector("[data-f-clear]");
     if (clear) clear.addEventListener("click", function () {
       fields.forEach(function (f) { f.value = ""; });
+      box.querySelectorAll("[data-f-opt]").forEach(function (o) { o.checked = false; });
       apply();
     });
     apply();

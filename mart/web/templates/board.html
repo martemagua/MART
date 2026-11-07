@@ -9,6 +9,7 @@
 {% from "partials/stages.html" import stage_dots %}
 {% from "partials/actual.html" import strategy_pill %}
 {% from "partials/board_stage.html" import stage_form, stage_history %}
+{% from "partials/filters.html" import bundle_filters %}
 {% block title %}Board · {{ client.name }}{% endblock %}
 {% block head %}<link rel="stylesheet" href="/static/board.css">{% endblock %}
 {% block content_class %}content-board{% endblock %}
@@ -67,23 +68,7 @@
       A card sits at its least advanced renewal's stage until you drag it; your stage is kept beside BM+'s.
       {% if not has_task_data %}<strong>No Task Tracker uploaded yet:</strong> without BM+'s stages every card starts in Not started.{% endif %}</p>
   </div>
-  {% set f = filters %}
-  <div class="nav-filters board-filters" data-bundle-filters="{{ client.id }}" data-list="#board">
-    <input type="search" class="nav-filter" placeholder="Filter: policy, entity, insurer…" aria-label="Filter cards" data-f="text">
-    {% if f.regions | length > 1 %}
-    <select data-f="region" aria-label="Region"><option value="">All regions</option>{% for g in f.regions %}<option value="{{ g }}">{{ g }}</option>{% endfor %}</select>
-    {% endif %}
-    {% if f.countries | length > 1 %}
-    <select data-f="country" aria-label="Country"><option value="">All countries</option>{% for c in f.countries %}<option value="{{ c }}">{{ c }}</option>{% endfor %}</select>
-    {% endif %}
-    {% if f.first and f.first != f.last %}
-    <div class="nav-range">
-      <label>From<input type="date" data-f="from" min="{{ f.first }}" max="{{ f.last }}" aria-label="Renewing from"></label>
-      <label>Until<input type="date" data-f="until" min="{{ f.first }}" max="{{ f.last }}" aria-label="Renewing until"></label>
-    </div>
-    {% endif %}
-    <p class="small nav-filter-summary" data-f-summary hidden><span data-f-count></span> · <button type="button" class="link-btn" data-f-clear>Clear filters</button></p>
-  </div>
+  {{ bundle_filters(filters, client.id, "#board", "cards", cls="board-filters") }}
 </header>
 
 <div class="board" id="board" data-board data-dialog="#board-move">
