@@ -164,6 +164,7 @@ def explorer(client_id: int, bundle: str | None = None,
         actual_rows = actuals_repo.for_client(conn, client_id)
         proposal_rows = proposals_repo.for_client(conn, client_id)
         change_rows = plan_changes_repo.for_client(conn, client_id)
+        dismissed = plan_changes_repo.dismissed_of_client(conn, client_id) if with_detail and cards else {}
         stage_rows = board_repo.current(conn, client_id)
         stage_moves = board_repo.history_of_client(conn, client_id)
 
@@ -251,7 +252,7 @@ def explorer(client_id: int, bundle: str | None = None,
                     "actual": actuals.view(actual_rows.get(rid, []), r.get("upcoming_strategy"),
                                            stage_of[rid]),
                     "proposals": proposals.view(proposal_rows.get(rid, [])),
-                    "plan_changes": plan_changes.view(change_rows.get(rid, []))}
+                    "plan_changes": plan_changes.counts_for(change_rows, rid)}
             return _with_stages(_enrich({**r, **mine}, today), stage_of[rid])
 
         # `cards=False`: the pages that show the side panel and something else in
@@ -267,8 +268,10 @@ def explorer(client_id: int, bundle: str | None = None,
             "strategies": Counter((r["actual"]["effective"] or "—", bool(r["actual"]["strategy"]))
                                   for r in items),
             "open_ids": [r["id"] for r in items if not r["actual"]["completed"]],
-            "pdc_counts": {s: sum(r["plan_changes"]["counts"][s] for r in items) if cards else 0
-                           for s in plan_changes.STATUSES},
+            # one change can cover several of the bundle's renewals (Martin, 07.11.2026)
+            "plan_changes": plan_changes.view(
+                change_rows, [{**r, "details": details.get(r["id"]) or {}} for r in selected["renewals"]],
+                dismissed, {r["id"]: r for r in renewals}) if cards else None,
             "statuses": Counter(r["workflow_status"] or "—" for r in items),
             "move_targets": move_targets(customs, bundles, selected["country"], selected["custom_id"]),
         }

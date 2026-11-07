@@ -6,7 +6,7 @@
 {% from "partials/mine.html" import mine_section, mine_badges %}
 {% from "partials/actual.html" import strategy_cell, strategy_pill, completed_badge, completed_form %}
 {% from "partials/proposals.html" import proposals_line %}
-{% from "partials/plan_changes.html" import plan_changes_line, plan_overview_page %}
+{% from "partials/plan_changes.html" import plan_changes_line, plan_overview_page, plan_changes_block %}
 {% from "partials/board_stage.html" import stage_pill %}
 {% from "partials/filters.html" import bundle_filters %}
 {% from "partials/view_switch.html" import view_switch %}
@@ -129,8 +129,8 @@
         <div><dt><a href="{{ base }}/board" class="dt-link" title="{{ client.name }}'s board">Board</a></dt><dd>{{ stage_pill(base, s, here) }}</dd></div>
         <div><dt>BM+ workflow</dt><dd>{% for k, n in s.statuses.most_common() %}<span class="pill pill-soft">{{ k }}{% if n > 1 %} ×{{ n }}{% endif %}</span>{% endfor %}</dd></div>
         <div><dt>Proposals</dt><dd>{% if s.proposal_count %}<span class="muted small" title="{{ s.proposal_insurers | join(', ') }}">{{ s.proposal_count }} from {{ s.proposal_insurers | length }} insurer{{ "s" if s.proposal_insurers | length != 1 }}</span>{% else %}<span class="muted small">none yet</span>{% endif %}</dd></div>
-        {% set pdc = s.pdc_counts %}
-        <div><dt>Plan design</dt><dd>{% if pdc.suggested or pdc.agreed or pdc.implemented %}<span class="muted small">{% for st in ("suggested", "agreed", "implemented") %}{% if pdc[st] %}{{ pdc[st] }} {{ st }}{% if not loop.last %} · {% endif %}{% endif %}{% endfor %}</span>{% else %}<span class="muted small">none yet</span>{% endif %}</dd></div>
+        {% set pdc = s.plan_changes %}
+        <div><dt><a href="#plan-changes" class="dt-link" title="This bundle's plan design changes, below">Plan design</a></dt><dd><span class="muted small">{% if pdc and pdc.count %}{% set parts = [] %}{% for k, v in plan_change_vocab.items() %}{% if pdc.counts[k] %}{% set _ = parts.append(pdc.counts[k] ~ " " ~ (v | lower)) %}{% endif %}{% endfor %}{{ parts | join(" · ") }}{% elif pdc and pdc.bm and pdc.bm.new %}{{ pdc.bm.new }} in BM+ to look at{% else %}none yet{% endif %}</span></dd></div>
         <div id="completed"><dt>Completed</dt><dd><span class="muted small">{{ s.completed }} of {{ s.renewals | length }}</span>
           {% if s.open_ids %}
           <details class="arrange">
@@ -145,6 +145,11 @@
     {{ deadline_line(base, s, here) }}
 
     {{ mine_section(bundle_mine, here, heading="To-dos and notes on this bundle") }}
+
+    {% if s.renewals and s.plan_changes %}
+    {# one change can cover several of the bundle's renewals (Martin, 07.11.2026) #}
+    <section class="rd-section pdc-bundle">{{ plan_changes_block(base, s.plan_changes, here) }}</section>
+    {% endif %}
 
     {% if not s.renewals %}
     <div class="card empty"><p>No renewals left in this bundle: they were moved to other bundles. Its notes and to-dos stay here.</p></div>

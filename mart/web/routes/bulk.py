@@ -77,8 +77,9 @@ def bulk_completed(request: Request, client_id: int) -> Response:
 def bulk_plan_changes(request: Request, client_id: int) -> Response:
     ids = _ids(request)
     try:
-        added = plan_changes.add_many(client_id, ids, request.arg("pdc_title"), request.arg("pdc_detail"),
-                                      request.arg("pdc_status"), request.arg("pdc_on"))
+        plan_changes.add(client_id, ids, request.arg("pdc_title"), request.arg("pdc_detail"),
+                         request.arg("pdc_outcome"), request.arg("pdc_reason"), request.arg("pdc_cost"))
     except plan_changes.Invalid as exc:
         raise HTTPError(400, str(exc)) from exc
-    return _done(request, client_id, f"Plan design change added to {_n(len(added))}.")
+    # ONE change covering the ticked renewals (Martin, 07.11.2026)
+    return _done(request, client_id, f"Plan design change added, covering {_n(len(ids))}.")

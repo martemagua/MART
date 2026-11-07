@@ -13,6 +13,7 @@ from mart.services import (
     deadlines,
     freshness,
     notes_service,
+    plan_changes,
     proposals,
     renewal_service,
     topics,
@@ -68,6 +69,9 @@ def renewal_page(request: Request, client_id: int, renewal_id: int) -> Response:
                      cards=False)
     if view["selected"]:                    # the bundle's broker deadline pauses the stale clock
         detail["freshness"] = freshness.pause(detail["freshness"], view["selected"]["deadline"])
+    # its plan design changes, with the bundle's other renewals they can cover
+    bundle_ids = [x["id"] for x in view["selected"]["renewals"]] if view["selected"] else []
+    detail["plan_changes"] = plan_changes.panel(client_id, bundle_ids, focus=renewal_id)
     mine = notes_service.for_renewal(r, view["selected"])
     return render("client_explorer.html", active="clients", detail=detail, here=request.url,
                   mine=mine, mine_counts={}, client_counts=_client_counts(client_id), **view)

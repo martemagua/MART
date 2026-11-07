@@ -443,6 +443,60 @@ MIGRATIONS: list[tuple[int, str]] = [
         ALTER TABLE todos ADD COLUMN repeat_day      INTEGER;   -- day of the month (months only)
         ALTER TABLE todos ADD COLUMN repeat_next_id  INTEGER REFERENCES todos(id);
     """),
+    (18, """
+        -- Plan design changes, second shape (Martin, 07.11.2026): ONE change
+        -- covers SEVERAL renewals (a bundled policy over several entities, or
+        -- one policy split by line of coverage), and ends implemented or not
+        -- (with why); open until then. An optional premium effect (an amount
+        -- in a currency, or a %). USER data. `bm_line` = the line of BM+'s
+        -- text it was tracked from (BM+'s text is split into one change per
+        -- line). `plan_changes` (migration 13) stays as it was, unused.
+        CREATE TABLE design_changes (
+            id          INTEGER PRIMARY KEY,
+            client_id   INTEGER NOT NULL REFERENCES clients(id),
+            title       TEXT NOT NULL,
+            detail      TEXT,
+            outcome     TEXT NOT NULL DEFAULT 'open',   -- open | implemented | not_implemented
+            reason      TEXT,                           -- why not implemented
+            decided_on  TEXT,                           -- when the outcome was recorded
+            cost_amount REAL,                           -- the premium effect, e.g. -25000 or -2.5
+            cost_unit   TEXT,                           -- a currency code, or '%'
+            source      TEXT NOT NULL DEFAULT 'you',    -- you | bm
+            bm_line     TEXT,
+            created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE TABLE design_change_renewals (
+            change_id   INTEGER NOT NULL REFERENCES design_changes(id) ON DELETE CASCADE,
+            renewal_id  INTEGER NOT NULL REFERENCES renewals(id),
+            PRIMARY KEY (change_id, renewal_id)
+        );
+        CREATE INDEX ix_design_change_renewals ON design_change_renewals(renewal_id);
+        -- a line of BM+'s text Martin said is not a change for this renewal
+        CREATE TABLE design_change_dismissed (
+            renewal_id  INTEGER NOT NULL REFERENCES renewals(id),
+            line        TEXT NOT NULL,
+            created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+            PRIMARY KEY (renewal_id, line)
+        );
+        -- carried over: suggested / agreed -> open, implemented -> implemented,
+        -- dropped -> not implemented; a dismissed BM+ suggestion stays dismissed
+        INSERT INTO design_changes (id, client_id, title, detail, outcome, decided_on, source, bm_line,
+                                    created_at, updated_at)
+            SELECT c.id, r.client_id, c.title, c.detail,
+                   CASE c.status WHEN 'implemented' THEN 'implemented'
+                                 WHEN 'dropped' THEN 'not_implemented' ELSE 'open' END,
+                   CASE c.status WHEN 'implemented' THEN c.implemented_on
+                                 WHEN 'dropped' THEN c.dropped_on END,
+                   c.source, CASE WHEN c.source = 'bm' THEN c.title END, c.created_at, c.updated_at
+              FROM plan_changes c JOIN renewals r ON r.id = c.renewal_id
+             WHERE NOT (c.source = 'bm' AND c.status = 'dropped');
+        INSERT INTO design_change_renewals (change_id, renewal_id)
+            SELECT c.id, c.renewal_id FROM plan_changes c
+             WHERE NOT (c.source = 'bm' AND c.status = 'dropped');
+        INSERT OR IGNORE INTO design_change_dismissed (renewal_id, line, created_at)
+            SELECT renewal_id, title, created_at FROM plan_changes WHERE source = 'bm' AND status = 'dropped';
+    """),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1][0]
