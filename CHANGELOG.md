@@ -6,6 +6,19 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.25 — 07.11.2026 · an open Edit stands apart
+
+### Changed
+- **An open Edit sits on a light panel** (Martin, 07.11.2026): a to-do's or
+  a note's Edit opens on a lightly shaded box with a thin border, so it is
+  clear where this item's fields end and the next item starts. Everywhere
+  the Edit menu is (topic board, renewal and bundle pages, To-dos page),
+  light and dark.
+
+### What to try
+1. Client notes & to-dos → a to-do → Edit: its fields sit on a grey panel,
+   the next to-do below it is clearly apart.
+
 ## 0.9.24 — 07.11.2026 · M3 day 8 · repeating to-dos
 
 ### Added
