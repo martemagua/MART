@@ -6,6 +6,24 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.28 — 07.11.2026 · Explorer ⇄ Board, your clients on Home
+
+### Added
+- **Your clients on Home** (Martin, 07.11.2026): the first card on Home
+  lists your clients, those needing attention first, each with what is
+  waiting (updates passed, new entries, gone quiet, open to-dos) and two
+  buttons, **Explorer** and **Board**. With more than 12 clients the rest
+  fold behind "N more clients". It replaces the client cards that sat
+  below Today.
+- **Explorer | Board** switch (Martin, 07.11.2026): two joined buttons
+  under the client's name in the explorer's side panel and beside the
+  board's title; the page you are on is filled. It replaces the
+  "Board →" link in the side panel.
+
+### What to try
+1. Home → Your clients → Board on a client; then Explorer on the board's
+   switch, and Board again in the side panel.
+
 ## 0.9.27 — 07.11.2026 · type to find a country
 
 ### Added

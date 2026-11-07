@@ -11,9 +11,38 @@
 <div class="notice notice-ok" role="status">MART is set up. Your data lives in <code>{{ status_info.data_dir }}</code>, backups go to <code>{{ status_info.backup_dir }}</code>.</div>
 {% endif %}
 
+{# one line of "Your clients": the name (→ explorer), what is waiting, Explorer / Board #}
+{% macro go_row(c) %}{% set k = c.counts %}{% set base = "/clients/" ~ c.id %}
+    <li>
+      <span class="go-name"><strong><a href="{{ base }}">{{ c.name }}</a></strong>
+        <span class="go-meta">{{ c.renewals }} renewal{{ "s" if c.renewals != 1 }}{% if c.next_renewal %} · next {{ c.next_renewal | dmy }}{% endif %}
+          {%- if k.passed %} · <span class="cc-red">{{ k.passed }} update{{ "s" if k.passed != 1 }} passed</span>{% endif %}
+          {%- if k.soon %} · {{ k.soon }} expected this week{% endif %}
+          {%- if k.new %} · <span class="cc-new">{{ k.new }} new entr{{ "y" if k.new == 1 else "ies" }}</span>{% endif %}
+          {%- if k.stale %} · {{ k.stale }} gone quiet{% endif %}
+          {%- if k.todos %} · {{ k.todos }} open to-do{{ "s" if k.todos != 1 }}{% endif %}</span></span>
+      <span class="go-btns">
+        <a class="btn btn-small" href="{{ base }}" title="{{ c.name }}'s bundles and renewals">Explorer</a>
+        <a class="btn btn-small" href="{{ base }}/board" title="{{ c.name }}'s board: a card per bundle, in its stage">Board</a>
+      </span>
+    </li>
+{% endmacro %}
+
 {% macro more(block, label) %}{% if block.more %}<p class="small muted">… and {{ block.more }} more {{ label }} (on the client pages).</p>{% endif %}{% endmacro %}
 
 {% if data.mine %}
+{# ── Your clients: a shortcut to each one's explorer or board (Martin,
+   07.11.2026), those needing attention first, with what is waiting ── #}
+<section class="card go-card" aria-labelledby="go-h">
+  <h2 id="go-h">Your clients</h2>
+  {% set shown = 12 %}{# fills 2 or 3 columns evenly #}
+  <ul class="go-list">{% for c in t.clients[:shown] %}{{ go_row(c) }}{% endfor %}</ul>
+  {% if t.clients | length > shown %}
+  <details class="done-fold"><summary>{{ t.clients | length - shown }} more client{{ "s" if t.clients | length - shown != 1 }}</summary>
+    <ul class="go-list">{% for c in t.clients[shown:] %}{{ go_row(c) }}{% endfor %}</ul></details>
+  {% endif %}
+</section>
+
 {# ── Today: one list of what needs you (services/today) ─────────────────────── #}
 <section class="card today" aria-labelledby="today-h">
   <h2 id="today-h">Today</h2>
@@ -70,24 +99,6 @@
   {% endif %}
 </section>
 
-{# ── one card per client, those needing attention first ──────────────────── #}
-<h2 class="section-title">Your clients</h2>
-<div class="client-cards">
-  {% for c in t.clients %}
-  <a class="card client-card" href="/clients/{{ c.id }}">
-    <h3>{{ c.name }}</h3>
-    <p class="muted small">{{ c.renewals }} renewal{{ "s" if c.renewals != 1 }} in the export{% if c.next_renewal %} · next {{ c.next_renewal | dmy }}{% endif %}</p>
-    <ul class="cc-counts">
-      {% if c.counts.passed %}<li class="cc-red">{{ c.counts.passed }} expected update{{ "s" if c.counts.passed != 1 }} passed</li>{% endif %}
-      {% if c.counts.soon %}<li>{{ c.counts.soon }} update{{ "s" if c.counts.soon != 1 }} expected this week</li>{% endif %}
-      {% if c.counts.new %}<li class="cc-new">{{ c.counts.new }} new overview entr{{ "y" if c.counts.new == 1 else "ies" }}</li>{% endif %}
-      {% if c.counts.stale %}<li>{{ c.counts.stale }} bundle{{ "s" if c.counts.stale != 1 }} gone quiet</li>{% endif %}
-      {% if c.counts.todos %}<li>{{ c.counts.todos }} open to-do{{ "s" if c.counts.todos != 1 }}</li>{% endif %}
-      {% if not (c.counts.passed or c.counts.soon or c.counts.new or c.counts.stale or c.counts.todos) %}<li class="muted">nothing waiting</li>{% endif %}
-    </ul>
-  </a>
-  {% endfor %}
-</div>
 {% endif %}
 
 <div class="grid spaced-card">

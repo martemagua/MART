@@ -9,6 +9,7 @@
 {% from "partials/plan_changes.html" import plan_changes_line, plan_overview_page %}
 {% from "partials/board_stage.html" import stage_pill %}
 {% from "partials/filters.html" import bundle_filters %}
+{% from "partials/view_switch.html" import view_switch %}
 {% block title %}{{ client.name }}{% endblock %}
 {% block content_class %}content-explorer{% endblock %}
 {% block head %}{% if topic_board %}<link rel="stylesheet" href="/static/topics.css">{% endif %}{% endblock %}
@@ -22,6 +23,7 @@
   <aside class="bundle-nav" aria-label="Bundles" data-keep-scroll="bundle-nav-{{ client.id }}"{% if fresh %} data-fresh{% endif %}>
     <p class="crumbs"><a href="/clients">Clients</a></p>
     <h1 class="nav-title">{{ client.name }}</h1>
+    {{ view_switch(client.id, "explorer") }}
     <p class="muted small">{{ renewal_count }} renewals in {{ bundle_count }} bundles</p>
     {% set fr = freshness %}
     <p class="small freshness {% if fr.stale %}is-stale{% endif %}" title="The overview comes from single-client Renewal Tracker exports. Limit: {{ fr.limit }} days (Settings → Time limits).">
@@ -35,7 +37,6 @@
       <span class="cn-text"><span class="cn-title">Client notes &amp; to-dos</span><span class="cn-sub">about {{ client.name }} as a whole</span></span>
       {{ mine_badges(client_counts) }}</a>
     <p class="client-pages">
-      <a class="client-pages-link" href="{{ base }}/board" title="A card per bundle, in its actual stage">Board →</a>
       <a class="client-pages-link {% if plan_overview %}is-selected{% endif %}" href="{{ base }}/plan-changes{{ q_all1 }}">Plan design changes →</a>
       <a class="client-pages-link {% if region_page %}is-selected{% endif %}" href="{{ base }}/regions{{ q_all1 }}" title="This client's own regions, per country">Regions →</a>
     </p>

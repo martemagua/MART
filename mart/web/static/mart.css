@@ -566,10 +566,26 @@ h3 .fr-badge { vertical-align: 2px; margin-left: 4px; }
 .tg-red h3 { color: var(--err-ink); }
 .tg-new h3 { color: var(--ok-ink); }
 .section-title { font-size: 18px; margin: 24px 0 10px; }
-.client-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
-.client-card { display: block; text-decoration: none; color: var(--ink); }
-.client-card:hover { border-color: var(--accent); }
-.client-card h3 { margin: 0 0 2px; font-size: 16px; }
+/* Explorer | Board (partials/view_switch.html): two joined buttons, the page you are on filled. */
+.view-switch { display: inline-flex; align-self: flex-start; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.view-switch a { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; font-size: 13px; font-weight: 600; color: var(--ink-2); text-decoration: none; }
+.view-switch a + a { border-left: 1px solid var(--border); }
+.view-switch a:hover { background: var(--soft-bg); color: var(--ink); }
+.view-switch a.is-on { background: var(--accent); color: var(--accent-ink); }
+.view-switch a:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.view-switch svg { width: 14px; height: 14px; }
+.bundle-nav .view-switch { margin: 6px 0 4px; }
+/* Home's "Your clients": one line per client, straight to its explorer or board. */
+.go-card { margin-bottom: 16px; }
+.go-list { list-style: none; margin: 0; padding: 0; }
+.go-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); column-gap: 28px; }
+.go-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.go-card .done-fold { margin-top: 8px; }
+.go-name { flex: 1 1 220px; min-width: 0; }
+.go-name strong a { color: var(--ink); text-decoration: none; }
+.go-name strong a:hover { text-decoration: underline; }
+.go-meta { display: block; font-size: 12px; color: var(--muted); }
+.go-btns { display: flex; gap: 6px; }
 .cc-counts { list-style: none; margin: 8px 0 0; padding: 0; font-size: 13px; display: flex; flex-direction: column; gap: 2px; }
 .cc-red { color: var(--err-ink); font-weight: 600; }
 .cc-new { color: var(--ok-ink); font-weight: 600; }
