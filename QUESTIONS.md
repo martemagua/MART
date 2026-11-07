@@ -149,7 +149,7 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 → **Answered 07.11.2026 (at least "into MART"):** Martin's goal: Claude (Sonnet 5 / 4.6) connects over MCP and reads and EDITS MART's data. Example: a scheduled task goes through his emails, finds new proposals from an insurer (one with the expiring conditions, one with cost containment measures), records them as proposals and a plan design change, and writes a note in MART logging the message and its contents.
 
 **H3 ⭐** What may the agent *write*? Proposal: notes, to-dos, deadlines, seen-marks, contact log entries freely. **Actual-state changes only as suggestions you confirm.** Never BM+ data.
-→
+→ **Answered 07.11.2026:** the agent **writes directly** (proposals, plan design changes, notes…), no confirm step. Still never BM+ data, and every AI write marked as AI with its source and undoable (CHARTER rule 5).
 
 **H4** ~~Two MCP servers or one?~~
 → **Answered:** MART has its own MCP server; it does not depend on MAPT's.
@@ -158,7 +158,10 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 →
 
 **H5** Should the plugin include **scheduled routines** (e.g. a weekday morning brief, a weekly stale-overview sweep)?
-→
+→ **Answered 07.11.2026:** yes, the agent app can run scheduled tasks. The email sweep should run **every few hours**.
+
+**H5b** (07.11.2026) Attachments: when the agent finds an email with relevant information, it must **review the developments in the whole thread and read ALL attachments** (quotes often come as PDF / Excel). MART stores the values and the reference (sender, date, subject, file names), never the files.
+→ **Answered 07.11.2026:** yes, very important (Martin).
 
 **H6** Output formats for the templates: markdown in chat, Excel, Word, an email draft (Outlook `mailto:` / .eml), a MART note?
 →
