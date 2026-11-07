@@ -166,7 +166,8 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
     others = sorted((t for t in mine if not _STAGE_KEYS.get(norm(t.get("task_name")))),
                     key=lambda t: t.get("due_date") or "")
     days = (datetime.fromisoformat(r["renewal_date"]).date() - today).days if r["renewal_date"] else None
-    stages_ = stages(mine, today, r.get("upcoming_strategy"))
+    # Martin's strategy, else BM+'s, decides whether Proposals is needed (QA 07.11.2026)
+    stages_ = stages(mine, today, actuals.view(actual_rows, r.get("upcoming_strategy"))["effective"])
     partners = capabilities.for_country(r["country"])["partners"] if r.get("country") else []
     return {
         "client": client, "renewal": r, "fields": f, "days_until": days,
@@ -189,7 +190,7 @@ def detail(client_id: int, renewal_id: int, today: date | None = None) -> dict[s
         "proposals": proposals_,
         "savings": _facts(savings, rspec.SAVINGS_FIELDS), "savings_amounts": amounts,
         "overview": ov.timeline(f.get("overview_all"), f.get("overview_client_ready"), today),
-        "freshness": freshness.of(freshness.latest(f), freshness.limits(today)),
+        "freshness": freshness.of(freshness.latest(f, today), freshness.limits(today)),
         "overview_state": ov.flag(f.get("overview_all"), f.get("overview_client_ready"))["state"],
         "feed": sorted(ov.entries(f.get("renewal_feed")), key=lambda e: e["date"], reverse=True),
         "bm": r["bm"], "bm_sections": bm_sections(r["bm"]),

@@ -145,3 +145,33 @@ def test_panel_and_card_show_it(app):
     assert _card(cid, "Life")["actual"]["state"] == "behind"
     assert 'class="pill pill-st st-mine" title="Your strategy, set in MART">✎ Canceled' in \
         get(app, f"{base}?bundle=Poland%7C2027-01-01").body_bytes.decode()
+
+
+def test_editing_only_the_reason_keeps_a_conflict_with_bm(app):
+    """QA 07.11.2026: changing just the reason stored BM+'s CURRENT value as
+    "BM+ then", so a conflict (BM+ moved since) turned into "behind"."""
+    cid, ids = _book(med="TBC")
+    actuals.set_strategy(cid, ids["Medical"], "Remarketing", "HR call")
+    _book(med="Incumbent with Rate Guarantee", report="10 Nov 2026")      # BM+ moves elsewhere
+    assert _card(cid, "Medical")["actual"]["state"] == "conflict"
+    actuals.set_strategy(cid, ids["Medical"], "Remarketing", "HR call of 28.10")
+    a = _card(cid, "Medical")["actual"]
+    assert a["state"] == "conflict" and a["strategy_reason"] == "HR call of 28.10"
+
+
+def test_the_board_and_the_stages_go_by_martins_strategy(app):
+    """QA 07.11.2026: Martin's strategy wins on the board too. With his
+    "Incumbent with Rate Guarantee" (no proposals needed) and the strategy
+    task done, the card is at Update Policy, not Proposals."""
+    cid, ids = _book(med="TBC")
+    _commit(task_tracker([T(n=1, task_name="Renewal Strategy", status="Completed")]), "tt.xlsx")
+    from mart.services import board
+    stages = rs.detail(cid, ids["Medical"])["stages"]
+    assert board.renewal_column(stages) == "proposals"                  # BM+ says TBC
+    actuals.set_strategy(cid, ids["Medical"], "Incumbent with Rate Guarantee")
+    stages = rs.detail(cid, ids["Medical"])["stages"]
+    assert [s["state"] for s in stages] == ["done", "skipped", "missing"]
+    assert board.renewal_column(stages) == "update_policy"
+    medical = next(r for r in cs.explorer(cid, bundle=POLAND)["selected"]["renewals"]
+                   if r["policy_name"] == "Medical")
+    assert [s["state"] for s in medical["stages"]] == ["done", "skipped", "missing"]

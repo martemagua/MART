@@ -72,17 +72,23 @@ def preamble(text: Any) -> str | None:
     return head or None
 
 
-def latest_date(*texts: Any) -> str | None:
-    """Newest entry date across the given overview texts."""
-    return _latest_date(*(t if isinstance(t, str) or t is None else str(t) for t in texts))
+def latest_date(*texts: Any, until: str | None = None) -> str | None:
+    """Newest entry date across the given overview texts; with `until` (ISO),
+    only entries dated up to then: an entry dated in the future is a typo
+    ("05 Nov 2027:") and must not keep a renewal "fresh" for a year (QA
+    07.11.2026)."""
+    dates = _dates(*(t if isinstance(t, str) or t is None else str(t) for t in texts))
+    if until:
+        dates = tuple(d for d in dates if d <= until)
+    return dates[-1] if dates else None
 
 
-# The texts only change with an upload, but every page reads them: both
-# verdicts are cached by the texts themselves (bounded, so memory stays small).
+# The texts only change with an upload, but every page reads them: the
+# verdicts are cached by the texts themselves (bounded, so memory stays small),
+# never with today's date inside.
 @lru_cache(maxsize=8192)
-def _latest_date(*texts: str | None) -> str | None:
-    dates = [e["date"] for t in texts for e in entries(t)]
-    return max(dates) if dates else None
+def _dates(*texts: str | None) -> tuple[str, ...]:
+    return tuple(sorted(e["date"] for t in texts for e in entries(t)))
 
 
 def _lines(text: Any) -> list[str]:

@@ -19,6 +19,7 @@ M3f): mostly recorded by him as the mails arrive, and used to COMPARE them.
 from __future__ import annotations
 
 import re
+from collections import Counter
 from datetime import date
 from typing import Any
 
@@ -49,7 +50,13 @@ def parse_number(text: str | None, thousands: bool = True) -> float | None:
         return None
     if not re.search(r"\d", text):
         raise Invalid(f"“{text}” isn't a number.")
-    s = re.sub(r"[\s'’%+]|[A-Za-z€$£]", "", text)
+    # a currency may stand before or after it ("EUR 120'000", "120'000 CHF", "€120k" no);
+    # any other letter is refused, never dropped: "1.2m" or "120k" would have
+    # been stored as 1.2 or 120 (QA 07.11.2026)
+    s = re.sub(r"^\s*[A-Z]{3}\s+|\s+[A-Z]{3}\s*$|[€$£]", "", text)
+    if re.search(r"[A-Za-z]", s):
+        raise Invalid(f"“{text}” isn't a number: write it out in full, e.g. 1'200'000 (no k or m).")
+    s = re.sub(r"[\s'’%+]", "", s)
     neg = s.startswith("-")
     s = s.lstrip("-")
     if "," in s and "." in s:
@@ -132,7 +139,7 @@ def _one(p: dict[str, Any]) -> dict[str, Any]:
 def view(rows: list[dict[str, Any]]) -> dict[str, Any]:
     """The comparison for one renewal: one item per proposal with its quotes
     in order, the latest one counting; the lowest latest premium per currency
-    marked `lowest` (with two or more priced); plus the cards' summary."""
+    marked `lowest` (with two or more priced in that currency); plus the cards' summary."""
     items = [_one(p) for p in rows]
     priced = [i for i in items if i["latest"] and i["latest"]["premium"] is not None]
     lowest: dict[str | None, dict[str, Any]] = {}
@@ -140,10 +147,15 @@ def view(rows: list[dict[str, Any]]) -> dict[str, Any]:
         cur = i["latest"]["currency"]
         if cur not in lowest or i["latest"]["premium"] < lowest[cur]["latest"]["premium"]:
             lowest[cur] = i
-    lowest_ids = {i["id"] for i in lowest.values()} if len(priced) > 1 else set()
+    # "lowest" only where two or more were priced in THAT currency: a lone EUR
+    # quote beside a PLN one is not the lowest of anything (QA 07.11.2026)
+    per_currency = Counter(i["latest"]["currency"] for i in priced)
+    lowest_ids = {i["id"] for cur, i in lowest.items() if per_currency[cur] > 1}
     for i in items:
         i["lowest"] = i["id"] in lowest_ids
+    # by currency first, so premiums are only ordered against their own currency
     items.sort(key=lambda i: (not (i["latest"] and i["latest"]["premium"] is not None),
+                              (i["latest"] or {}).get("currency") or "",
                               (i["latest"] or {}).get("premium") or 0, i["insurer"].casefold()))
     return {"items": items, "count": len(items), "quotes": sum(len(i["quotes"]) for i in items),
             "insurers": sorted({i["insurer"] for i in items}, key=str.casefold),

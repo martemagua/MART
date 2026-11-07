@@ -60,6 +60,12 @@ def view(today: date | None = None, views: dict[int, dict[str, Any]] | None = No
                     "label": _bundle_label(b), "url": f"{base}?bundle={quote(b['key'], safe='')}",
                     "renewal_date": b["renewal_date"]}
             d = b["deadline"]
+            # a bundle whose renewals are all marked completed needs nothing more
+            # (QA 07.11.2026): no "gone quiet", and no BM+-suggested date; a
+            # deadline Martin set himself still counts
+            done = bool(b["renewals"]) and b["completed"] == len(b["renewals"])
+            if done and d and d["id"] is None:
+                d = None
             if d and d["state"] == "passed":
                 passed.append({**item, "deadline": d})
                 counts["passed"] += 1
@@ -67,7 +73,8 @@ def view(today: date | None = None, views: dict[int, dict[str, Any]] | None = No
                 soon.append({**item, "deadline": d})
                 counts["soon"] += 1
             # a bundle already listed for its passed deadline isn't listed again as quiet
-            if b["freshness"]["state"] == "red" and b["renewals"] and not (d and d["state"] == "passed"):
+            if b["freshness"]["state"] == "red" and b["renewals"] and not done \
+                    and not (d and d["state"] == "passed"):
                 reds = sum(1 for r in b["renewals"] if r["freshness"]["state"] == "red")
                 stale.append({**item, "freshness": b["freshness"], "red": reds, "of": len(b["renewals"])})
                 counts["stale"] += 1

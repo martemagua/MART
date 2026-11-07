@@ -74,7 +74,14 @@ def set_stage(client_id: int, key: str, stage: str | None, reason: str | None = 
     bm = b["bm_stage"]["column"]
     if stage == bm:
         stage = None                                    # where BM+ has it: follow BM+ again
-    if stage != (b["stage"]["row"] or {}).get("stage"):
+    # Store it unless it changes nothing: the same stage as stored, in the
+    # column the card already shows, with no new reason. (QA 07.11.2026: the
+    # check against the stored row alone dropped a move back to a stage that
+    # BM+ had since passed, and a reason added to the current stage.)
+    row = b["stage"]["row"] or {}
+    unchanged = stage == row.get("stage") and (stage or bm) == b["stage"]["column"] \
+        and (not reason or reason == row.get("reason"))
+    if not unchanged:
         with connection() as conn:
             board_repo.add(conn, client_id, key, stage, bm, reason)
     if complete and (stage or bm) == "done":

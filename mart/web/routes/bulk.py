@@ -37,7 +37,12 @@ def _n(count: int) -> str:
 
 @router.route("/clients/{client_id:int}/bulk/strategy", methods=("POST",))
 def bulk_strategy(request: Request, client_id: int) -> Response:
-    ids, value = _ids(request), request.arg("strategy")
+    ids, value = _ids(request), (request.arg("strategy") or "").strip()
+    # "go by BM+" is an explicit choice ("bm"), never an empty field: an empty
+    # one would clear the strategy of every ticked renewal by accident
+    if not value:
+        raise HTTPError(400, "Pick a strategy, or \"Go by BM+\" to drop yours.")
+    value = None if value == "bm" else value
     try:
         changed = actuals.set_strategy_many(client_id, ids, value, request.arg("reason"))
     except actuals.Invalid as exc:

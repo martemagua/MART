@@ -96,3 +96,13 @@ def test_overview_verdicts_are_cached_by_text():
     assert ov._flag.cache_info().hits == before + 1
     three_days_ago = (date.today() - timedelta(days=3)).isoformat()
     assert ov.latest_date(text, None) == ov.latest_date(text, None) == three_days_ago
+
+
+def test_an_entry_dated_in_the_future_doesnt_count():
+    """QA 07.11.2026: a typo like "05 Nov 2027:" kept a renewal "fresh" for a
+    year (and "new" on Home every day). Only entries up to today count."""
+    fields = {"overview_all": _ov("05 Nov 2027", "20 Oct 2026"), "overview_client_ready": None}
+    assert freshness.latest(fields, TODAY) == "2026-10-20"
+    assert freshness.of(freshness.latest(fields, TODAY), freshness.limits(TODAY))["state"] == "red"
+    assert freshness.latest({"overview_all": _ov("05 Nov 2027")}, TODAY) is None
+    assert freshness.latest(fields, date(2027, 11, 6)) == "2027-11-05"          # once that day has come

@@ -167,12 +167,15 @@ def explorer(client_id: int, bundle: str | None = None,
         stage_moves = board_repo.history_of_client(conn, client_id)
 
     lim = freshness.limits(today)
-    fresh_of = {r["id"]: freshness.of(freshness.latest(r["fields"]), lim) for r in renewals}
+    fresh_of = {r["id"]: freshness.of(freshness.latest(r["fields"], today), lim) for r in renewals}
     left_count = sum(1 for r in renewals if not r["in_latest_export"])
     shown = [r for r in renewals if show_all or r["in_latest_export"]]
     linked = renewal_service.link_tasks(shown, tasks)
-    stage_of = {r["id"]: renewal_service.stages(linked[r["id"]], today, r.get("upcoming_strategy"))
-                for r in shown}
+    # Martin's strategy wins on the board too (QA 07.11.2026): it decides
+    # whether the Proposals stage is needed at all
+    stage_of = {r["id"]: renewal_service.stages(
+        linked[r["id"]], today,
+        actuals.view(actual_rows.get(r["id"], []), r.get("upcoming_strategy"))["effective"]) for r in shown}
 
     bundles: dict[str, dict[str, Any]] = {}
     where: dict[int, str] = {}
