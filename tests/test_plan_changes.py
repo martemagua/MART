@@ -19,7 +19,6 @@ from tests.fixtures import R, renewal_tracker
 pytestmark = pytest.mark.usefixtures("configured")
 POLAND = "Poland|2027-01-01"
 JAN = datetime(2027, 1, 1, 1, 0)
-TODAY = date.today().isoformat()
 
 
 def _book() -> tuple[int, dict[str, int]]:
@@ -46,10 +45,12 @@ def test_a_change_moves_through_its_states():
     assert v["counts"]["implemented"] == 1 and v["live"] == 1
     pc.edit(cid, cid_, "Deductible 500 → 1'500", None)
     assert rs.detail(cid, m)["plan_changes"]["items"][0]["title"] == "Deductible 500 → 1'500"
+    before = date.today().isoformat()
     dropped = pc.add(cid, m, "Vision added", status="dropped")
+    after = date.today().isoformat()                  # a run across midnight dates it either day
     v = rs.detail(cid, m)["plan_changes"]
     assert [i["status"] for i in v["items"]] == ["implemented", "dropped"] and v["live"] == 1
-    assert v["items"][1]["since"] == TODAY
+    assert v["items"][1]["since"] in (before, after)
     pc.delete(cid, dropped)
     assert rs.detail(cid, m)["plan_changes"]["count"] == 1
     for bad in (lambda: pc.add(cid, m, ""), lambda: pc.add(cid, m, "x", status="done"),
