@@ -6,6 +6,23 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.21 — 07.11.2026 · QA fixes
+
+### Fixed
+- In a narrow (portrait) window, the bundle header's summary row
+  (Strategy · Board · BM+ workflow · Proposals · Plan design · Completed)
+  ran out of the window; it wraps now.
+- The board's cards cut long country names ("Nether…"); they wrap now.
+- **Settings → Save** answered with the page itself, so reloading it
+  offered to send the form again; it now returns to the settings page
+  with the same messages ("Settings saved.", "Database moved …").
+- A test failed when it ran across midnight (it kept the previous day's
+  date); MART itself was right.
+
+### What to try
+1. Make the window narrow and open a bundle: the summary row wraps.
+2. Settings → Save, then reload the page: nothing is sent again.
+
 ## 0.9.20 — 07.11.2026 · one Clients page, a large card per client
 
 ### Changed

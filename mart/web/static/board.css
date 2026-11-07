@@ -26,7 +26,7 @@
 .board-card.is-dragging { opacity: 0.5; }
 .board-card.is-mine { border-left: 3px solid var(--accent); }
 .bc-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; }
-.bc-name { font-weight: 600; color: var(--ink); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bc-name { font-weight: 600; color: var(--ink); text-decoration: none; min-width: 0; overflow-wrap: anywhere; }
 .bc-name:hover { color: var(--accent); text-decoration: underline; }
 .bc-head .icon-btn { width: 24px; height: 24px; font-size: 14px; flex: none; }
 .bc-sub { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }

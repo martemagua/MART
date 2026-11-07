@@ -71,8 +71,9 @@ def test_changing_the_data_folder_moves_the_database(app, configured, tmp_path):
     new_data = tmp_path / "moved"
     r = post(app, "/settings", {"data_dir": str(new_data), "backup_dir": configured.backup_dir,
                                 "backups_keep": "3", "port": "8070"})
-    html = r.body_bytes.decode()
-    assert r.status == 200 and "Database moved" in html
+    assert r.status == 303                         # post → redirect → get: a reload never re-sends it
+    html = get(app, dict(r.headers)["Location"]).body_bytes.decode()
+    assert "Settings saved." in html and "Database moved" in html
     assert (new_data / "mart.db").is_file() and not configured.db_path.exists()
 
 
@@ -82,7 +83,7 @@ def test_pointing_at_an_existing_database_never_overwrites_it(app, configured, t
     schema.ensure_schema(other / "mart.db")
     r = post(app, "/settings", {"data_dir": str(other), "backup_dir": configured.backup_dir,
                                 "backups_keep": "3", "port": "8070"})
-    assert "already existed" in r.body_bytes.decode()
+    assert "already existed" in get(app, dict(r.headers)["Location"]).body_bytes.decode()
     assert configured.db_path.exists()  # old one left untouched
 
 
