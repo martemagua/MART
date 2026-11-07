@@ -41,7 +41,7 @@ def _q(insurer, rnd="first", premium=None, currency="EUR", rate=None, on="2026-1
     ("120 000", True, 120000), ("120'000", True, 120000), ("120.000,50", True, 120000.5),
     ("120,000.50", True, 120000.5), ("12,5", True, 12.5), ("12,345", True, 12345),
     ("1.234.567", True, 1234567), ("+8", False, 8), ("-3,5 %", False, -3.5), ("8.5", False, 8.5),
-    ("", True, None), ("EUR 50000", True, 50000),
+    ("", True, None), ("EUR 50000", True, 50000), ("50'000 CHF", True, 50000), ("€50000", True, 50000),
 ])
 def test_numbers_as_typed(text, thousands, value):
     assert pr.parse_number(text, thousands) == value
@@ -51,6 +51,9 @@ def test_bad_input_is_refused():
     cid, ids = _book()
     for form, msg in [(_q(""), "Which insurer"), (_q("A", rnd="x"), "first, revised"),
                       (_q("A", premium="lots"), "isn't a number"),
+                      # letters are refused, never dropped (QA 07.11.2026)
+                      (_q("A", premium="1.2m"), "no k or m"), (_q("A", premium="120k"), "no k or m"),
+                      (_q("A", premium="1,2 Mio"), "no k or m"), (_q("A", premium="1e5"), "no k or m"),
                       (_q("A", premium="5", currency="EURO"), "three"),
                       (_q("A", on="31.12.2026"), "date"), (_q("A", premium="-5"), "negative"),
                       (_q("A", plan_design="x"), "plan design"), (_q("A", label="x" * 81), "label")]:
@@ -80,10 +83,11 @@ def test_one_proposal_holds_its_negotiation():
     assert [q["round"] for q in a["quotes"]] == ["first", "revised", "final"]
     assert a["latest"]["premium"] == 117000 and a["moved"] == -10.0 and a["next_round"] == "final"
     assert by[("Allianz", "changed")]["lowest"] and by[("Allianz", "changed")]["label"] == "without dental"
-    assert not a["lowest"] and by[("Zurich", "as_expiring")]["lowest"]       # lowest of ITS currency
+    assert not a["lowest"] and not by[("Zurich", "as_expiring")]["lowest"]   # alone in USD: not "lowest"
     assert by[("AXA", "as_expiring")]["latest"]["rate_change"] == 4.5
     assert by[("Generali", "as_expiring")]["next_round"] == "revised"
-    assert [i["insurer"] for i in v["items"]][:2] == ["Zurich", "Allianz"]   # by latest premium
+    # by currency, then latest premium: premiums are never ordered across currencies (QA 07.11.2026)
+    assert [i["insurer"] for i in v["items"]] == ["Allianz", "Allianz", "AXA", "Zurich", "Generali"]
     # the card and the panel agree
     card = next(r for r in cs.explorer(cid, bundle=POLAND)["selected"]["renewals"] if r["id"] == m)
     assert card["proposals"]["count"] == 5
@@ -174,3 +178,17 @@ def test_pages_and_routes(app):
     assert "★ Allianz" in get(app, f"{base}?bundle=Poland%7C2027-01-01").body_bytes.decode()
     qid = rs.detail(cid, ids["Medical"])["my_proposals"]["items"][0]["quotes"][0]["id"]
     assert post(app, f"{base}/quotes/{qid}/delete", {"back": back}).status == 303
+
+
+def test_lowest_is_decided_per_currency():
+    """QA 07.11.2026: one EUR and one PLN proposal were both marked lowest."""
+    cid, ids = _book()
+    m = ids["Medical"]
+    pr.add(cid, m, _q("Allianz", premium="100000", currency="EUR"))
+    pr.add(cid, m, _q("PZU", premium="450000", currency="PLN"))
+    v = rs.detail(cid, m)["my_proposals"]
+    assert not any(i["lowest"] for i in v["items"])
+    pr.add(cid, m, _q("Warta", premium="430000", currency="PLN"))
+    v = rs.detail(cid, m)["my_proposals"]
+    assert [(i["insurer"], i["lowest"]) for i in v["items"]] == [
+        ("Allianz", False), ("Warta", True), ("PZU", False)]

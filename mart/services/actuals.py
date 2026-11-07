@@ -140,7 +140,10 @@ def set_strategy_many(client_id: int, renewal_ids: list[int], value: str | None,
             same = (now["value"] if now else None) == value
             if same and (value is None or (now and now["reason"] == reason)):
                 continue                                # nothing changed
-            actuals_repo.add(conn, r["id"], "strategy", value, r.get("upcoming_strategy"), reason)
+            # only the reason changed: keep BM+'s value from when the strategy was
+            # set, or a conflict (BM+ moved since) would turn into "behind" (QA 07.11.2026)
+            bm_then = now["bm_value"] if same and now else r.get("upcoming_strategy")
+            actuals_repo.add(conn, r["id"], "strategy", value, bm_then, reason)
             changed += 1
     return changed
 

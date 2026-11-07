@@ -288,3 +288,9 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 
 **M3l** The board (0.9.11) places a card from BM+'s three tasks: **Decision** = proposals done, policy update not started; **Post-renewal review** = all three BM+ tasks done but not yet marked completed by you; **Done** = every renewal marked completed by you. Does that match how you read the stages, or should a column mean something else?
 → **Answered 06.11.2026:** the columns are as Martin imagined them. His guideline for the **renewal pipeline** (now under each column, PLANNING §5): Not started = not kicked off · Strategy = kicked off, strategy pending · Proposals / Marketing = strategy decided, terms and proposals being collected · Decision = final proposals in, client decision pending · Update Policy = confirmed with the client, BM+ data to be updated · Post-renewal review = review all data, key learnings, savings, plan design changes, policy documents uploaded to BM+ · Done = all tasks completed.
+
+**M3m** (QA, 07.11.2026) Home still has its "Your clients" cards, and the new Clients page (0.9.20) has larger ones. Should Home keep its small cards, link to the Clients page instead, or show only the clients that need you?
+→
+
+**M3n** (QA, 07.11.2026) On the bundle page, an empty "To-dos and notes on this bundle" is still a full card ("Nothing written here yet"). Should it become the slim one-line version the renewal page has (0.9.19)?
+→

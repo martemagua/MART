@@ -38,9 +38,11 @@ def limits(today: date | None = None) -> dict[str, Any]:
             "new_since": (today - timedelta(days=new)).isoformat() if new else None}
 
 
-def latest(fields: dict[str, Any]) -> str | None:
-    """Date of the newest entry in either overview text."""
-    return ov.latest_date(fields.get("overview_all"), fields.get("overview_client_ready"))
+def latest(fields: dict[str, Any], today: date | None = None) -> str | None:
+    """Date of the newest entry in either overview text, up to `today`
+    (default today): an entry dated in the future doesn't count."""
+    return ov.latest_date(fields.get("overview_all"), fields.get("overview_client_ready"),
+                          until=(today or date.today()).isoformat())
 
 
 def of(latest_iso: str | None, lim: dict[str, Any]) -> dict[str, Any]:

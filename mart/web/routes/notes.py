@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from mart.services import notes_service
 from mart.services.notes_service import Invalid
-from mart.web.framework import HTTPError, Request, Response, Router
+from mart.web.framework import HTTPError, Request, Response, Router, local_path
 from mart.web.templating import render
 
 router = Router()
@@ -13,9 +13,7 @@ router = Router()
 
 def _back(request: Request, anchor: str = "mine") -> Response:
     """Back to the page the form was on. Only a path on this site counts."""
-    back = request.arg("back") or "/todos"
-    if not back.startswith("/") or back.startswith("//") or "\\" in back:
-        back = "/todos"
+    back = local_path(request.arg("back"), "/todos")
     return Response.redirect(back.split("#", 1)[0] + "#" + anchor)
 
 

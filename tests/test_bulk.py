@@ -76,6 +76,25 @@ def test_strategy_for_the_ticked_renewals(app):
     assert _post(app, f"/clients/{cid}/bulk/strategy", ticked + [("strategy", "Whatever")]).status == 400
 
 
+def test_enter_in_the_edit_bar_never_clears_a_strategy(app):
+    """QA 07.11.2026: Enter in any edit-bar field submitted the form with its
+    first button, "Set the strategy", whose empty default cleared the strategy
+    of every ticked renewal. The default button is now a disabled one, and an
+    empty strategy is refused; "go by BM+" is an explicit choice."""
+    cid, ids = _book()
+    ticked = [("renewal", str(ids["Medical"])), ("renewal", str(ids["Life"]))]
+    _post(app, f"/clients/{cid}/bulk/strategy", ticked + [("strategy", "Remarketing")])
+    page = get(app, f"/clients/{cid}?bundle=Poland%7C2027-01-01&edit=1").body_bytes.decode()
+    form = page[page.index('id="bulk-form"'):]
+    assert form.index('<button type="submit" disabled hidden') < form.index('formaction=')   # the default
+    res = _post(app, f"/clients/{cid}/bulk/strategy", ticked + [("strategy", ""), ("insurer", "Allianz")])
+    assert res.status == 400
+    assert {r["policy_name"]: r["actual"]["strategy"] for r in _cards(cid)}["Life"] == "Remarketing"
+    res = _post(app, f"/clients/{cid}/bulk/strategy", ticked + [("strategy", "bm")])
+    assert "back+to+BM" in _location(res)
+    assert {r["policy_name"]: r["actual"]["strategy"] for r in _cards(cid)}["Life"] is None
+
+
 def test_proposal_for_the_whole_bundle_with_its_own_premiums(app):
     cid, ids = _book()
     allin = [("renewal", str(i)) for i in ids.values()]

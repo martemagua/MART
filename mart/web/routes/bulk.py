@@ -8,7 +8,7 @@ from __future__ import annotations
 from urllib.parse import parse_qsl, urlencode, urlsplit
 
 from mart.services import actuals, plan_changes, proposals
-from mart.web.framework import HTTPError, Request, Response, Router
+from mart.web.framework import HTTPError, Request, Response, Router, local_path
 
 router = Router()
 _PROPOSAL = ("insurer", "plan_design", "label", "round", "received_on", "currency", "rate_change", "note")
@@ -23,9 +23,7 @@ def _ids(request: Request) -> list[int]:
 
 def _done(request: Request, client_id: int, message: str) -> Response:
     """Back to the page the form was on (a path on MART), with `done=`."""
-    back = request.arg("back") or ""
-    if not back.startswith("/") or back.startswith("//") or "\\" in back:
-        back = f"/clients/{client_id}"
+    back = local_path(request.arg("back"), f"/clients/{client_id}")
     parts = urlsplit(back.split("#", 1)[0])
     query = [(k, v) for k, v in parse_qsl(parts.query) if k != "done"] + [("done", message)]
     return Response.redirect(f"{parts.path}?{urlencode(query)}")
@@ -37,7 +35,12 @@ def _n(count: int) -> str:
 
 @router.route("/clients/{client_id:int}/bulk/strategy", methods=("POST",))
 def bulk_strategy(request: Request, client_id: int) -> Response:
-    ids, value = _ids(request), request.arg("strategy")
+    ids, value = _ids(request), (request.arg("strategy") or "").strip()
+    # "go by BM+" is an explicit choice ("bm"), never an empty field: an empty
+    # one would clear the strategy of every ticked renewal by accident
+    if not value:
+        raise HTTPError(400, "Pick a strategy, or \"Go by BM+\" to drop yours.")
+    value = None if value == "bm" else value
     try:
         changed = actuals.set_strategy_many(client_id, ids, value, request.arg("reason"))
     except actuals.Invalid as exc:

@@ -1,48 +1,82 @@
 {% extends "base.html" %}
+{# The ONE page to pick a client (Martin, 06.11.2026: the Clients list and the
+   Board's client picker merged): a large card per client, leading to its
+   board or its explorer. services/client_cards. #}
 {% block title %}Clients{% endblock %}
 {% from "partials/mine.html" import mine_badges %}
 {% block content %}
 <header class="page-head">
   <h1>Clients</h1>
-  <p class="lead">Your clients. Open one to explore its renewals by bundle.</p>
+  <p class="lead">Your clients. Open one's <strong>board</strong> for a status call, or its <strong>explorer</strong> to work through its bundles.</p>
 </header>
 
 {% if clients %}
-<section class="card">
-  <div class="table-scroll">
-    <table class="table">
-      <thead><tr>
-        <th scope="col">Client</th>
-        <th scope="col" class="num">Renewals</th>
-        <th scope="col" class="num">Bundles</th>
-        <th scope="col" class="nowrap">Next renewal</th>
-        <th scope="col">Overview</th>
-        <th scope="col" class="nowrap" title="Report date of the last export that carried the overview (single-client)">Overview data</th>
-      </tr></thead>
-      <tbody>
-      {% for c in clients %}
-        <tr>
-          <td class="col-policy"><a href="/clients/{{ c.id }}">{{ c.name }}</a>
-            <a class="small board-link" href="/clients/{{ c.id }}/board" title="{{ c.name }}'s board: a card per bundle, in its actual stage">Board</a>
-            {% if client_notes.get(c.id) %}<a href="/clients/{{ c.id }}/notes" class="badge-link">{{ mine_badges(client_notes.get(c.id)) }}</a>{% endif %}</td>
-          <td class="num">{{ c.renewals }}</td>
-          <td class="num">{{ c.bundles }}</td>
-          <td class="nowrap">{% if c.next_renewal %}{{ c.next_renewal | dmy }} <span class="muted">· in {{ c.days_until }} days</span>{% else %}<span class="muted">—</span>{% endif %}</td>
-          <td><div class="pills">
-            {% if c.flags.no_cr %}<span class="pill pill-warn">{{ c.flags.no_cr }} without client-ready</span>{% endif %}
-            {% if c.flags.gaps %}<span class="pill pill-warn">{{ c.flags.gaps }} with gaps</span>{% endif %}
-            {% if c.flags.empty %}<span class="pill pill-soft">{{ c.flags.empty }} without overview</span>{% endif %}
-          </div></td>
-          <td class="nowrap">{% set fr = c.freshness %}
-            {% if fr.as_of %}<span class="{% if fr.stale %}pill pill-warn{% endif %}" title="Out of date after {{ fr.limit }} days (Settings)">{{ fr.as_of | dmy }} · {{ fr.age_days }} d</span>
-            {% else %}<span class="pill pill-warn" title="Upload a single-client Renewal Tracker for this client">not loaded</span>{% endif %}
-          </td>
-        </tr>
+<div class="ccards">
+  {% for c in clients %}
+  {% set base = "/clients/" ~ c.id %}
+  {% set k = c.counts %}
+  <article class="card ccard" aria-labelledby="cc-{{ c.id }}">
+    <header class="ccard-head">
+      <div class="ccard-title">
+        <h2 id="cc-{{ c.id }}"><a href="{{ base }}">{{ c.name }}</a></h2>
+        <p class="muted small">{{ c.renewals }} renewal{{ "s" if c.renewals != 1 }} in {{ c.bundles }} bundle{{ "s" if c.bundles != 1 }}
+          · {{ c.countries }} countr{{ "y" if c.countries == 1 else "ies" }}{% if c.regions %} <span title="This client's regions">({{ c.regions | join(", ") }})</span>{% endif %}{% if c.next_renewal %} · next renewal {{ c.next_renewal | dmy }} <span class="muted">(in {{ c.days_until }} days)</span>{% endif %}</p>
+      </div>
+      <div class="ccard-go">
+        <a class="btn btn-small btn-primary" href="{{ base }}/board" title="{{ c.name }}'s board: a card per bundle, in its stage">Board →</a>
+        <a class="btn btn-small" href="{{ base }}" title="{{ c.name }}'s bundles and renewals">Explorer →</a>
+      </div>
+    </header>
+
+    <a class="ccard-board" href="{{ base }}/board" aria-label="{{ c.board_total }} bundles on {{ c.name }}'s board">
+      {% for col in c.board %}
+      <span class="cb-col{% if not col.n %} is-empty{% endif %}" title="{{ col.label }}: {{ col.n }} bundle{{ 's' if col.n != 1 }}. {{ col.hint }}">
+        <span class="cb-n">{{ col.n }}</span><span class="cb-l">{{ col.label }}</span></span>
       {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</section>
+    </a>
+
+    <div class="ccard-cols">
+      <div>
+        <h3>Needs you</h3>
+        <ul class="cc-counts">
+          {% if k.passed %}<li class="cc-red">{{ k.passed }} expected update{{ "s" if k.passed != 1 }} passed</li>{% endif %}
+          {% if k.soon %}<li>{{ k.soon }} update{{ "s" if k.soon != 1 }} expected this week</li>{% endif %}
+          {% if k.new %}<li class="cc-new">{{ k.new }} new overview entr{{ "y" if k.new == 1 else "ies" }}</li>{% endif %}
+          {% if k.stale %}<li>{{ k.stale }} bundle{{ "s" if k.stale != 1 }} gone quiet</li>{% endif %}
+          {% if k.todos %}<li>{{ k.todos }} open to-do{{ "s" if k.todos != 1 }}</li>{% endif %}
+          {% if not (k.passed or k.soon or k.new or k.stale or k.todos) %}<li class="muted">nothing waiting</li>{% endif %}
+        </ul>
+      </div>
+      <div>
+        <h3>Recorded by you</h3>
+        <ul class="cc-counts">
+          <li>{{ c.completed }} of {{ c.renewal_total }} renewal{{ "s" if c.renewal_total != 1 }} completed</li>
+          {% if c.strategies_set %}<li>{{ c.strategies_set }} strateg{{ "y" if c.strategies_set == 1 else "ies" }} set{% if c.differs %} · <span class="warn">≠ BM+ on {{ c.differs }}</span>{% endif %}</li>{% endif %}
+          {% if c.proposals %}<li>{{ c.proposals }} proposal{{ "s" if c.proposals != 1 }} received</li>{% endif %}
+          {% if c.moved %}<li>{{ c.moved }} bundle{{ "s" if c.moved != 1 }} moved on the board</li>{% endif %}
+        </ul>
+      </div>
+      <div>
+        <h3>BM+ data</h3>
+        <ul class="cc-counts">
+          {% set fr = c.freshness %}
+          <li>{% if fr.as_of %}<span class="{% if fr.stale %}pill pill-warn{% endif %}" title="Report date of the last export that carried the overview (single-client); out of date after {{ fr.limit }} days (Settings)">overview as of {{ fr.as_of | dmy }} · {{ fr.age_days }} d</span>
+            {% else %}<span class="pill pill-warn" title="Upload a single-client Renewal Tracker for this client">overview not loaded</span>{% endif %}</li>
+          {% if c.flags.no_cr %}<li class="warn">{{ c.flags.no_cr }} without client-ready</li>{% endif %}
+          {% if c.flags.gaps %}<li class="warn">{{ c.flags.gaps }} with gaps</li>{% endif %}
+          {% if c.flags.empty %}<li class="muted">{{ c.flags.empty }} without overview</li>{% endif %}
+        </ul>
+      </div>
+    </div>
+
+    <footer class="ccard-foot small">
+      <a href="{{ base }}/notes">Client notes &amp; to-dos</a>{% if client_notes.get(c.id) %} {{ mine_badges(client_notes.get(c.id)) }}{% endif %}
+      · <a href="{{ base }}/plan-changes">Plan design changes</a>
+      · <a href="{{ base }}/regions">Regions</a>
+    </footer>
+  </article>
+  {% endfor %}
+</div>
 {% else %}
 <section class="card empty">
   <h2>No clients yet</h2>

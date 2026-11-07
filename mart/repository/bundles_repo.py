@@ -58,3 +58,51 @@ def set_name(conn: sqlite3.Connection, client_id: int, key: str, name: str | Non
     conn.execute("""INSERT INTO bundle_names (client_id, bundle_key, name) VALUES (?, ?, ?)
                     ON CONFLICT (client_id, bundle_key) DO UPDATE SET name = excluded.name""",
                  (client_id, key, name))
+
+
+# -- following a renewal date that BM+ changed (QA 07.11.2026) -------------------------
+# A default bundle's key is "<country>|<renewal date>", so when BM+ moves a
+# renewal date everything Martin put on the bundle would stay on the old key.
+_KEYED = ("bundle_stages", "deadlines", "bundle_names")
+
+
+def date_moves(conn: sqlite3.Connection, client_id: int, upload_id: int) -> list[dict[str, Any]]:
+    """The renewal date changes this upload recorded for the client's renewals
+    (history `changes`), with each renewal's country."""
+    return [dict(r) for r in conn.execute(
+        """SELECT r.id, r.country, c.old_value AS old_date, c.new_value AS new_date
+             FROM changes c JOIN renewals r ON r.id = c.item_id
+            WHERE c.upload_id = ? AND c.item_kind = 'renewal' AND c.field = 'renewal_date'
+              AND r.client_id = ?""", (upload_id, client_id))]
+
+
+def default_members(conn: sqlite3.Connection, client_id: int, country: str | None,
+                    renewal_date: str | None) -> int:
+    """How many of the client's renewals sit in this default bundle now (not
+    moved into a custom one)."""
+    return conn.execute(
+        """SELECT COUNT(*) FROM renewals r
+            WHERE r.client_id = ? AND r.country IS ? AND r.renewal_date IS ?
+              AND r.id NOT IN (SELECT rb.renewal_id FROM renewal_bundles rb)""",
+        (client_id, country, renewal_date)).fetchone()[0]
+
+
+def has_user_data(conn: sqlite3.Connection, client_id: int, key: str, ref: str) -> bool:
+    """Does anything of Martin's hang on this bundle key (stage, deadline, name,
+    notes, to-dos)?"""
+    for table in _KEYED:
+        if conn.execute(f"SELECT 1 FROM {table} WHERE client_id = ? AND bundle_key = ? LIMIT 1",
+                        (client_id, key)).fetchone():
+            return True
+    return any(conn.execute(f"SELECT 1 FROM {t} WHERE client_id = ? AND scope = 'bundle' AND ref = ? LIMIT 1",
+                            (client_id, ref)).fetchone() for t in ("notes", "todos"))
+
+
+def rekey(conn: sqlite3.Connection, client_id: int, old: str, new: str, old_ref: str, new_ref: str) -> None:
+    """Move everything Martin put on bundle `old` to bundle `new`."""
+    for table in _KEYED:
+        conn.execute(f"UPDATE {table} SET bundle_key = ? WHERE client_id = ? AND bundle_key = ?",
+                     (new, client_id, old))
+    for table in ("notes", "todos"):
+        conn.execute(f"UPDATE {table} SET ref = ? WHERE client_id = ? AND scope = 'bundle' AND ref = ?",
+                     (new_ref, client_id, old_ref))

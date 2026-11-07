@@ -81,3 +81,36 @@ def rename(client_id: int, key: str, name: str | None) -> str:
         else:
             raise Invalid("This bundle doesn't exist.")
     return key
+
+
+def follow_date_changes(conn, client_id: int, upload_id: int) -> list[tuple[str, str]]:
+    """After an upload (inside its transaction): when BM+ moved the renewal
+    date of EVERY renewal of a default bundle to the same new date, what
+    Martin put on that bundle (board stage, broker deadline, name, notes,
+    to-dos) moves along to the new bundle (QA 07.11.2026: it stayed on the
+    old key, an empty bundle nobody looks at). Nothing moves when the
+    renewals split over several dates, some stay behind, or the new bundle
+    already carries something of Martin's: then both stay visible (an emptied
+    bundle with notes, to-dos or a deadline is kept). Returns (old, new)."""
+    from mart.services.notes_service import bundle_ref
+    by_old: dict[str, set[str]] = {}
+    country_of: dict[str, tuple[str | None, str | None]] = {}
+    placed = bundles_repo.placements(conn, client_id)
+    for m in bundles_repo.date_moves(conn, client_id, upload_id):
+        if m["id"] in placed or m["old_date"] == m["new_date"]:
+            continue                                      # a custom bundle keeps its renewals anyway
+        old = bx.default_key(m["country"], m["old_date"])
+        by_old.setdefault(old, set()).add(bx.default_key(m["country"], m["new_date"]))
+        country_of[old] = (m["country"], m["old_date"])
+    moved = []
+    for old, news in sorted(by_old.items()):
+        if len(news) != 1 or bundles_repo.default_members(conn, client_id, *country_of[old]):
+            continue
+        new = next(iter(news))
+        old_ref, new_ref = bundle_ref(client_id, old), bundle_ref(client_id, new)
+        if not bundles_repo.has_user_data(conn, client_id, old, old_ref) \
+                or bundles_repo.has_user_data(conn, client_id, new, new_ref):
+            continue
+        bundles_repo.rekey(conn, client_id, old, new, old_ref, new_ref)
+        moved.append((old, new))
+    return moved

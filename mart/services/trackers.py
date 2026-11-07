@@ -24,7 +24,7 @@ from mart.ingestion.specs import insurer_capability as ic_spec
 from mart.ingestion.specs import renewal_tracker as rt_spec
 from mart.ingestion.specs import task_tracker as tt_spec
 from mart.repository import clients_repo, history_repo, renewals_repo, tasks_repo
-from mart.services import history, renewal_service
+from mart.services import bundle_service, history, renewal_service
 
 
 class UnknownFile(ValueError):
@@ -137,6 +137,8 @@ class RenewalAdapter:
         # "Overview as of": only an export that actually carries the overview counts.
         if rows and ({"overview_all", "overview_client_ready"} & set(ctx)):
             clients_repo.set_overview_as_of(conn, client_id, upload["report_date"], upload["id"])
+        # BM+ moved a bundle's renewal date: Martin's stage, deadline, name, notes follow
+        bundle_service.follow_date_changes(conn, client_id, upload["id"])
 
 
 class TaskAdapter:

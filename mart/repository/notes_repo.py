@@ -54,10 +54,13 @@ def todos_for(conn: sqlite3.Connection, targets: list[tuple[str, str]]) -> list[
 
 
 def all_todos(conn: sqlite3.Connection, done_since: str | None) -> list[dict[str, Any]]:
-    """Every open to-do, and those done since `done_since` (UTC; None = all done ones)."""
+    """Every open to-do of MY clients, and those done since `done_since` (UTC;
+    None = all done ones). A client no longer mine keeps its to-dos, hidden
+    until it is ticked as mine again (QA 07.11.2026: they were listed but
+    could be neither ticked nor opened)."""
     rows = conn.execute(
         """SELECT t.*, c.name AS client_name FROM todos t JOIN clients c ON c.id = t.client_id
-            WHERE t.done_at IS NULL OR ? IS NULL OR t.done_at >= ?
+            WHERE c.is_mine = 1 AND (t.done_at IS NULL OR ? IS NULL OR t.done_at >= ?)
             ORDER BY t.done_at IS NOT NULL, CASE t.urgency WHEN 'urgent' THEN 0 WHEN 'low' THEN 2 ELSE 1 END,
                      t.due_date IS NULL, t.due_date, t.id""",
         (done_since, done_since))

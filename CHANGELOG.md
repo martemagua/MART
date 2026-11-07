@@ -6,6 +6,91 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.22 — 07.11.2026 · QA: fixes from the code review
+
+### Fixed
+- **Edit renewals…: Enter in any field cleared your strategy** on every
+  ticked renewal (it fired "Set the strategy" with its empty default). Enter
+  now submits nothing; each action goes only through its own button, and
+  "Go by BM+ (drop yours)" is an explicit choice in the strategy list.
+- **BM+ moving a renewal date no longer strands your bundle data.** When
+  every renewal of a bundle moves to the same new date, its board stage,
+  expected update, name, notes and to-dos move with it. If the renewals
+  split over several dates, or the new bundle already has something of
+  yours, nothing moves and both bundles stay visible.
+- **A client spelled differently in an export** ("Acme Group AG") no longer
+  takes the renewals away from the client MART has them under; the upload
+  message says how many stayed.
+- **Your strategy now counts on the board**: with your "Incumbent with Rate
+  Guarantee" the Proposals stage is not needed, so the card moves on to
+  Update Policy (and "BM+'s stages are all done" can show).
+- Board: moving a card back to a stage BM+ has since passed is kept, and so
+  is a reason added to the stage a card is already in.
+- Changing only the reason of your strategy no longer hides that BM+ has
+  moved to another strategy since.
+- Home: a bundle whose renewals are all marked completed is no longer
+  listed as gone quiet, nor its BM+ date as passed (a date you set stays).
+- To-dos of a client that is no longer yours are hidden (not deleted)
+  instead of listed and impossible to tick or open.
+- Amounts: "1.2m", "120k" or "1e5" are refused instead of saved as 1.2,
+  120 or 15; write the number out ("EUR 120'000" and "120'000 CHF" work).
+- Proposals: "lowest" only when two or more are priced in the same
+  currency; the list is ordered by currency, then premium.
+- An overview entry dated in the future (a typo like 2027 for 2026) no
+  longer keeps a renewal "fresh" or "new".
+- The renewal page, client notes, plan design changes and regions pages
+  no longer build the bundle's cards they never show (0.59 s → 0.02 s on
+  a 300-renewal bundle).
+- A form's way back is checked by one rule (no other site, no control
+  characters), and a redirect refuses control characters.
+
+### What to try
+1. Edit renewals… → tick two → Proposal / quote… → type an insurer → press
+   Enter: nothing happens; "Add to the selected" adds it.
+2. Set "Incumbent with Rate Guarantee" as your strategy on a renewal whose
+   strategy task is done: its card moves to Update Policy.
+
+## 0.9.21 — 07.11.2026 · QA fixes
+
+### Fixed
+- In a narrow (portrait) window, the bundle header's summary row
+  (Strategy · Board · BM+ workflow · Proposals · Plan design · Completed)
+  ran out of the window; it wraps now.
+- The board's cards cut long country names ("Nether…"); they wrap now.
+- **Settings → Save** answered with the page itself, so reloading it
+  offered to send the form again; it now returns to the settings page
+  with the same messages ("Settings saved.", "Database moved …").
+- A test failed when it ran across midnight (it kept the previous day's
+  date); MART itself was right.
+
+### What to try
+1. Make the window narrow and open a bundle: the summary row wraps.
+2. Settings → Save, then reload the page: nothing is sent again.
+
+## 0.9.20 — 07.11.2026 · one Clients page, a large card per client
+
+### Changed
+- **The Clients list and the Board's client picker are one page**
+  (Martin, 06.11.2026): **Clients** shows a large card per client with
+  **Board →** and **Explorer →**, and on it:
+  - its renewals, bundles, countries (and the client's own regions) and
+    the next renewal;
+  - its **board in one row**: how many bundles sit in each of the seven
+    columns (hover for what a column means; click for the board);
+  - **Needs you**: passed / near expected updates, new overview entries,
+    bundles gone quiet, open to-dos (the same counts as Home);
+  - **Recorded by you**: renewals completed, strategies set (≠ BM+ on …),
+    proposals received, bundles moved on the board;
+  - **BM+ data**: how old the client's overview is, and renewals without
+    a client-ready overview, with gaps or with none;
+  - links to the client's notes & to-dos, plan design changes and regions.
+- The main menu's **Board** entry is gone: a board opens from its client's
+  card (or the explorer's side panel). `/board` still works: with one
+  client it opens that client's board, otherwise the Clients page.
+
+### What to try
+1. Clients → read a card; Board → for a status call; Explorer → to work.
+
 ## 0.9.19 — 06.11.2026 · a leaner renewal page, BM+ to the fore
 
 ### Changed

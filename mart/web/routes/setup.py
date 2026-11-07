@@ -68,6 +68,7 @@ def settings_form(request: Request) -> Response:
     notes = []
     if request.arg("saved"):
         notes.append("Settings saved.")
+        notes += [n for n in request.args("note") if n]
     msg = request.arg("backup")
     if msg:
         notes.append(msg)
@@ -84,10 +85,11 @@ def settings_save(request: Request) -> Response:
     if errors:
         return _settings_page(values, errors, [], status=400)
     result = setup_service.apply(new, old)
-    notes = ["Settings saved.", *result.notes]
+    notes = list(result.notes)
     if old is not None and old.port != new.port:
         notes.append(f"The new port {new.port} is used from the next start of MART.")
-    return _settings_page(_values_of(result.settings), [], notes)
+    # post → redirect → get, so reloading the page never sends the form again
+    return Response.redirect("/settings?saved=1" + "".join("&note=" + quote(n) for n in notes))
 
 
 @router.route("/settings/backup", methods=("POST",))

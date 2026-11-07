@@ -12,6 +12,11 @@
 
 {% macro bulk_bar(base, s, back, done) %}
 <form method="post" action="{{ base }}/bundles/move" id="bulk-form" class="move-bar bulk-bar is-editing" data-move-form data-bulk-form>
+  {# The form's DEFAULT button (the first) is disabled, so Enter in any of its
+     fields submits nothing: before, it fired "Set the strategy" with its
+     default and cleared the strategy of every ticked renewal (QA 07.11.2026).
+     Each action goes only through its own button. #}
+  <button type="submit" disabled hidden aria-hidden="true" tabindex="-1"></button>
   <input type="hidden" name="back" value="{{ back }}">
   <div class="move-pick">
     <strong>Edit renewals</strong>
@@ -22,10 +27,11 @@
   </div>
   <div class="bulk-actions">
     <details class="arrange">
-      <summary class="btn btn-small" data-pick-needed>Strategy…</summary>
+      <summary class="btn btn-small">Strategy…</summary>
       <div class="arrange-box stack-form">
         <label class="small muted">Your strategy for the selected renewals <select name="strategy">
-          <option value="">— go by BM+ (drop yours) —</option>
+          <option value="">— pick one —</option>
+          <option value="bm">Go by BM+ (drop yours)</option>
           {% for st in strategies %}<option value="{{ st }}">{{ st }}</option>{% endfor %}
         </select></label>
         <label class="small muted">Why (optional) <input type="text" name="reason" maxlength="500" placeholder="e.g. agreed with HR on the call of 28.10"></label>
@@ -33,7 +39,7 @@
       </div>
     </details>
     <details class="arrange">
-      <summary class="btn btn-small" data-pick-needed>Proposal / quote…</summary>
+      <summary class="btn btn-small">Proposal / quote…</summary>
       <div class="arrange-box stack-form prop-form bulk-prop">
         {{ proposal_fields(none, focus=false, required=false) }}
         <div class="pair">
@@ -57,14 +63,14 @@
       </div>
     </details>
     <details class="arrange">
-      <summary class="btn btn-small" data-pick-needed>Plan design…</summary>
+      <summary class="btn btn-small">Plan design…</summary>
       <div class="arrange-box stack-form prop-form">
         {{ change_fields(prefix="pdc_", focus=false, required=false) }}
         <div class="actions"><button type="submit" class="btn btn-small btn-primary" formaction="{{ base }}/bulk/plan-changes" data-pick-submit>Add to the selected</button></div>
       </div>
     </details>
     <details class="arrange">
-      <summary class="btn btn-small" data-pick-needed>Completed…</summary>
+      <summary class="btn btn-small">Completed…</summary>
       <div class="arrange-box stack-form">
         <label class="small muted">Completed on <input type="date" name="date" value="{{ today_iso() }}"></label>
         <label class="small muted">Note (optional) <input type="text" name="completed_note" maxlength="500" placeholder="e.g. all tasks approved in BM+"></label>
@@ -72,7 +78,7 @@
       </div>
     </details>
     <details class="arrange">
-      <summary class="btn btn-small" data-pick-needed>Move…</summary>
+      <summary class="btn btn-small">Move…</summary>
       <div class="arrange-box move-in-bulk">
         {{ move_fields(s) }}
         <div class="actions"><button type="submit" class="btn btn-small btn-primary" formaction="{{ base }}/bundles/move" data-pick-submit>Move</button></div>

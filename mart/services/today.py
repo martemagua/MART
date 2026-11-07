@@ -40,7 +40,9 @@ def _cap(items: list[dict[str, Any]]) -> dict[str, Any]:
     return {"items": items[:SHOWN], "more": max(len(items) - SHOWN, 0), "total": len(items)}
 
 
-def view(today: date | None = None) -> dict[str, Any]:
+def view(today: date | None = None, views: dict[int, dict[str, Any]] | None = None) -> dict[str, Any]:
+    """`views` = the clients' explorer views when the caller has them already
+    (the Clients page), so each is built once per request."""
     today = today or date.today()
     since = (today - timedelta(days=1)).isoformat()
     with connection() as conn:
@@ -49,7 +51,7 @@ def view(today: date | None = None) -> dict[str, Any]:
     passed, soon, stale, new = [], [], [], []
     cards = []
     for c in mine:
-        v = client_service.explorer(c["id"], today=today)
+        v = (views or {}).get(c["id"]) or client_service.explorer(c["id"], today=today, with_detail=False)
         base = f"/clients/{c['id']}"
         counts = {"passed": 0, "soon": 0, "stale": 0, "new": 0,
                   "todos": sum(1 for t in todos if t["client_id"] == c["id"])}
@@ -58,6 +60,12 @@ def view(today: date | None = None) -> dict[str, Any]:
                     "label": _bundle_label(b), "url": f"{base}?bundle={quote(b['key'], safe='')}",
                     "renewal_date": b["renewal_date"]}
             d = b["deadline"]
+            # a bundle whose renewals are all marked completed needs nothing more
+            # (QA 07.11.2026): no "gone quiet", and no BM+-suggested date; a
+            # deadline Martin set himself still counts
+            done = bool(b["renewals"]) and b["completed"] == len(b["renewals"])
+            if done and d and d["id"] is None:
+                d = None
             if d and d["state"] == "passed":
                 passed.append({**item, "deadline": d})
                 counts["passed"] += 1
@@ -65,7 +73,8 @@ def view(today: date | None = None) -> dict[str, Any]:
                 soon.append({**item, "deadline": d})
                 counts["soon"] += 1
             # a bundle already listed for its passed deadline isn't listed again as quiet
-            if b["freshness"]["state"] == "red" and b["renewals"] and not (d and d["state"] == "passed"):
+            if b["freshness"]["state"] == "red" and b["renewals"] and not done \
+                    and not (d and d["state"] == "passed"):
                 reds = sum(1 for r in b["renewals"] if r["freshness"]["state"] == "red")
                 stale.append({**item, "freshness": b["freshness"], "red": reds, "of": len(b["renewals"])})
                 counts["stale"] += 1

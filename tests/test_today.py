@@ -57,8 +57,35 @@ def test_the_lists(book):
     assert not v["nothing"]
 
 
+def test_completed_bundles_stop_asking(book):
+    """QA 07.11.2026: a bundle whose renewals are all marked completed is no
+    longer "gone quiet" and its BM+-suggested date no longer "passed"; a date
+    Martin set himself still is."""
+    cid, ids = book
+    from mart.services import actuals
+    actuals.set_completed(cid, [ids["Life"], ids["Dental"]], None)   # Spain quiet, Italy BM+ date passed
+    v = td.view()
+    assert v["stale"]["items"] == [] and v["deadlines_passed"]["items"] == []
+    dl.set_deadline(cid, "Italy|2027-03-01", (TODAY - timedelta(days=1)).isoformat(), "Broker I")
+    assert [x["country"] for x in td.view()["deadlines_passed"]["items"]] == ["Italy"]
+
+
 def test_the_page(book, app):
     page = get(app, "/").body_bytes.decode()
     assert "What needs you today" in page and "Expected updates passed" in page
     assert "New overview entries since yesterday" in page and "Gone quiet" in page
     assert 'class="card client-card"' in page and "Your data" in page
+
+
+def test_todos_of_a_client_no_longer_mine_are_hidden_not_lost(book):
+    """QA 07.11.2026: unticking a client hid its pages but kept listing its
+    to-dos, which then could be neither ticked nor opened."""
+    cid, ids = book
+    ns.add_todo("renewal", str(ids["Life"]), "Chase the broker", None, "urgent")
+    assert [t["title"] for t in ns.todo_list()["open"]] == ["Chase the broker"]
+    with connection() as conn:
+        conn.execute("UPDATE clients SET is_mine = 0 WHERE id = ?", (cid,))
+    assert ns.todo_list()["open"] == []
+    with connection() as conn:
+        conn.execute("UPDATE clients SET is_mine = 1 WHERE id = ?", (cid,))
+    assert [t["title"] for t in ns.todo_list()["open"]] == ["Chase the broker"]
