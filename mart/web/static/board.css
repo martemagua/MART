@@ -2,7 +2,8 @@
    (colours, radius) are mart.css's, so light and dark both work. */
 .content.content-board { padding: 20px 24px 32px; }
 .board-head { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
-.board-head h1 { margin: 0 0 4px; font-size: 22px; }
+.board-head h1 { margin: 0; font-size: 22px; }
+.board-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-bottom: 4px; }
 .board-head .muted { margin: 0; max-width: 70ch; }
 .nav-filters.board-filters { flex-direction: row; flex-wrap: wrap; align-items: flex-end; gap: 8px; margin: 0; padding: 0; }
 .board-filters .nav-filter { width: 220px; }

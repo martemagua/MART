@@ -74,7 +74,11 @@ def test_the_page(book, app):
     page = get(app, "/").body_bytes.decode()
     assert "What needs you today" in page and "Expected updates passed" in page
     assert "New overview entries since yesterday" in page and "Gone quiet" in page
-    assert 'class="card client-card"' in page and "Your data" in page
+    assert "Your data" in page
+    # Your clients, at the top: straight to each one's explorer or board (Martin, 07.11.2026)
+    assert page.index('id="go-h"') < page.index('id="today-h"') and 'class="go-list"' in page
+    cid = td.view()["clients"][0]["id"]
+    assert f'href="/clients/{cid}/board"' in page and f'href="/clients/{cid}"' in page
 
 
 def test_todos_of_a_client_no_longer_mine_are_hidden_not_lost(book):

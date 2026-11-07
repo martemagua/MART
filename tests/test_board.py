@@ -229,6 +229,13 @@ def test_one_clients_page_leads_to_board_and_explorer(app):
     board_service.set_stage(cid, CANADA, "decision", "quotes in")
     page = get(app, "/clients").body_bytes.decode()
     assert f'href="/clients/{cid}/board"' in page and "Explorer →" in page and "Board →" in page
+    # Explorer | Board: each page links to the other, its own button marked current (Martin, 07.11.2026)
+    explorer, board = f"/clients/{cid}", f"/clients/{cid}/board"
+    for url, here, other in ((explorer, explorer, board), (board, board, explorer)):
+        here, other = f'href="{here}"', f'href="{other}"'
+        p = get(app, url).body_bytes.decode()
+        sw = p[p.index('class="view-switch"'):p.index("</nav>", p.index('class="view-switch"'))]
+        assert f'{here} class="is-on" aria-current="page"' in sw and f'{other} class=""' in sw
     assert page.count('class="cb-col') == 7 and "Recorded by you" in page and "Needs you" in page
     assert "1 bundle moved on the board" in page and "0 of 3 renewals completed" in page
     c = client_cards.cards()[0]

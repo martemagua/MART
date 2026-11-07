@@ -1,0 +1,12 @@
+{# Explorer | Board: the two ways to look at one client, a click apart
+   (Martin, 07.11.2026). On the explorer's side panel and the board's header;
+   `current` = "explorer" or "board". #}
+{% macro view_switch(client_id, current) %}
+{% set base = "/clients/" ~ client_id %}
+<nav class="view-switch" aria-label="View">
+  <a href="{{ base }}" class="{% if current == 'explorer' %}is-on{% endif %}"{% if current == 'explorer' %} aria-current="page"{% endif %} title="The bundles one by one, with their renewals">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M1 2h4v12H1zm5 0h9v3H6zm0 4.5h9v3H6zm0 4.5h9v3H6z"/></svg>Explorer</a>
+  <a href="{{ base }}/board" class="{% if current == 'board' %}is-on{% endif %}"{% if current == 'board' %} aria-current="page"{% endif %} title="A card per bundle, in its stage">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M1 2h4v12H1zm5 0h4v8H6zm5 0h4v10h-4z"/></svg>Board</a>
+</nav>
+{% endmacro %}

@@ -10,6 +10,7 @@
 {% from "partials/actual.html" import strategy_pill %}
 {% from "partials/board_stage.html" import stage_form, stage_history %}
 {% from "partials/filters.html" import bundle_filters %}
+{% from "partials/view_switch.html" import view_switch %}
 {% block title %}Board · {{ client.name }}{% endblock %}
 {% block head %}<link rel="stylesheet" href="/static/board.css">{% endblock %}
 {% block content_class %}content-board{% endblock %}
@@ -63,7 +64,7 @@
 <header class="board-head">
   <div>
     <p class="crumbs"><a href="/clients">Clients</a> › <a href="{{ base }}">{{ client.name }}</a></p>
-    <h1>Board · {{ client.name }}</h1>
+    <div class="board-title"><h1>Board · {{ client.name }}</h1>{{ view_switch(client.id, "board") }}</div>
     <p class="muted small" data-board-summary>{{ card_count }} bundle{{ "s" if card_count != 1 }}{% if moved %} · {{ moved }} moved by you{% endif %}.
       A card sits at its least advanced renewal's stage until you drag it; your stage is kept beside BM+'s.
       {% if not has_task_data %}<strong>No Task Tracker uploaded yet:</strong> without BM+'s stages every card starts in Not started.{% endif %}</p>
