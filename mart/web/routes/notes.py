@@ -28,7 +28,7 @@ def _do(request: Request, action, anchor: str = "mine") -> Response:
 @router.route("/notes/add", methods=("POST",))
 def note_add(request: Request) -> Response:
     return _do(request, lambda: notes_service.add_note(
-        request.arg("scope") or "", request.arg("ref") or "", request.arg("body")))
+        request.arg("scope") or "", request.arg("ref") or "", request.arg("body"), request.arg("topic")))
 
 
 @router.route("/notes/{note_id:int}/save", methods=("POST",))
@@ -45,7 +45,7 @@ def note_delete(request: Request, note_id: int) -> Response:
 def todo_add(request: Request) -> Response:
     return _do(request, lambda: notes_service.add_todo(
         request.arg("scope") or "", request.arg("ref") or "", request.arg("title"), request.arg("due"),
-        request.arg("urgency")))
+        request.arg("urgency"), request.arg("topic")))
 
 
 DETAIL_FIELDS = ("description", "urgency", "status", "waiting_kind", "waiting_on", "waiting_since")

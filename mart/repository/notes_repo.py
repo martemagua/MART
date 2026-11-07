@@ -27,9 +27,10 @@ def notes_for(conn: sqlite3.Connection, targets: list[tuple[str, str]]) -> list[
         f"SELECT * FROM notes WHERE {where} ORDER BY created_at DESC, id DESC", args)]
 
 
-def add_note(conn: sqlite3.Connection, scope: str, ref: str, client_id: int, body: str) -> int:
-    cur = conn.execute("INSERT INTO notes (scope, ref, client_id, body) VALUES (?, ?, ?, ?)",
-                       (scope, ref, client_id, body))
+def add_note(conn: sqlite3.Connection, scope: str, ref: str, client_id: int, body: str,
+             topic_id: int | None = None) -> int:
+    cur = conn.execute("INSERT INTO notes (scope, ref, client_id, body, topic_id) VALUES (?, ?, ?, ?, ?)",
+                       (scope, ref, client_id, body, topic_id))
     return int(cur.lastrowid)
 
 
@@ -122,9 +123,10 @@ def delete_step(conn: sqlite3.Connection, step_id: int) -> None:
 
 
 def add_todo(conn: sqlite3.Connection, scope: str, ref: str, client_id: int, title: str,
-             due_date: str | None, urgency: str = "normal") -> int:
-    cur = conn.execute("""INSERT INTO todos (scope, ref, client_id, title, due_date, urgency)
-                          VALUES (?, ?, ?, ?, ?, ?)""", (scope, ref, client_id, title, due_date, urgency))
+             due_date: str | None, urgency: str = "normal", topic_id: int | None = None) -> int:
+    cur = conn.execute("""INSERT INTO todos (scope, ref, client_id, title, due_date, urgency, topic_id)
+                          VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                       (scope, ref, client_id, title, due_date, urgency, topic_id))
     return int(cur.lastrowid)
 
 

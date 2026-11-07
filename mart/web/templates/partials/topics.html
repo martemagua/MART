@@ -1,0 +1,104 @@
+{# The client notes page as a board of the client's TOPICS (services/topics,
+   M3 day 7; PLANNING §5b): a column per topic, its colour as a top stripe;
+   open to-dos first, then pinned notes (key facts), then the newest notes;
+   a footer "2 open · next due 08.11". General is the topic without a row:
+   always there, never renamed. Written in MART, so the mine rail. #}
+{% from "partials/mine.html" import todo_row, note_item %}
+
+{% macro topic_fields(tb, t=none) %}
+  <label class="small muted">Name <input type="text" name="name" maxlength="60" required value="{{ t.name if t else '' }}" placeholder="e.g. Partner tracker" data-focus-on-open></label>
+  <fieldset class="tc-pick"><legend class="small muted">Colour</legend>
+    {% for c in topic_colors %}<label class="tc-swatch tc-{{ c }}" title="{{ c }}"><input type="radio" name="color" value="{{ c }}" {% if (t.color if t else topic_colors[0]) == c %}checked{% endif %}><span aria-hidden="true"></span><span class="visually-hidden">{{ c }}</span></label>{% endfor %}
+  </fieldset>
+  <div class="pair">
+    <label class="small muted">Country (optional) <select name="country"><option value="">— none —</option>{% for c in tb.countries %}<option value="{{ c }}" {% if t and t.country == c %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></label>
+    <label class="small muted">State <select name="status">{% for k, v in topic_statuses.items() %}<option value="{{ k }}" {% if (t.status if t else "active") == k %}selected{% endif %}>{{ v }}</option>{% endfor %}</select></label>
+  </div>
+{% endmacro %}
+
+{% macro add_forms(tb, col, back) %}
+<div class="tcol-add">
+  <details class="arrange">
+    <summary class="btn btn-small">+ To-do</summary>
+    <form method="post" action="/todos/add" class="arrange-box stack-form">
+      <input type="hidden" name="scope" value="{{ tb.target.scope }}"><input type="hidden" name="ref" value="{{ tb.target.ref }}">
+      <input type="hidden" name="topic" value="{{ col.id or '' }}"><input type="hidden" name="back" value="{{ back }}">
+      <input type="text" name="title" placeholder="What is to be done? ({{ col.name }})" required maxlength="300" aria-label="New to-do in {{ col.name }}" data-focus-on-open>
+      <div class="todo-edit-row">
+        <label class="small muted">Due (optional) <input type="date" name="due"></label>
+        <label class="small muted">Urgency <select name="urgency">{% for k, label in todo_vocab.urgencies.items() %}<option value="{{ k }}" {% if k == "normal" %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+      </div>
+      <div class="actions"><button type="submit" class="btn btn-small btn-primary">Add to-do</button></div>
+    </form>
+  </details>
+  <details class="arrange">
+    <summary class="btn btn-small">+ Note</summary>
+    <form method="post" action="/notes/add" class="arrange-box stack-form">
+      <input type="hidden" name="scope" value="{{ tb.target.scope }}"><input type="hidden" name="ref" value="{{ tb.target.ref }}">
+      <input type="hidden" name="topic" value="{{ col.id or '' }}"><input type="hidden" name="back" value="{{ back }}">
+      <textarea name="body" rows="5" placeholder="New note in {{ col.name }}…" required aria-label="New note in {{ col.name }}" data-focus-on-open></textarea>
+      <div class="actions"><button type="submit" class="btn btn-small btn-primary">Add note</button></div>
+    </form>
+  </details>
+</div>
+{% endmacro %}
+
+{% macro column(tb, col, base, back) %}
+<section class="tcol tc-{{ col.color }}{% if col.status == 'on_hold' %} is-hold{% endif %}{% if col.status == 'done' %} is-done{% endif %}" id="topic-{{ col.id or 'general' }}" aria-labelledby="tcol-h-{{ col.id or 'general' }}">
+  <header class="tcol-head">
+    <h3 id="tcol-h-{{ col.id or 'general' }}">{% if col.country %}{{ col.country | flag }}{% endif %}{{ col.name }}
+      {% if col.status != "active" %}<span class="pill pill-soft">{{ topic_statuses[col.status] | lower }}</span>{% endif %}</h3>
+    {% if col.id %}
+    <details class="arrange">
+      <summary class="icon-btn icon-sm" title="Change or delete this topic" aria-label="Change the topic {{ col.name }}">✎</summary>
+      <div class="arrange-box arrange-right">
+        <form method="post" action="{{ base }}/topics/{{ col.id }}/save" class="stack-form">
+          <input type="hidden" name="back" value="{{ back }}">
+          {{ topic_fields(tb, col) }}
+          <div class="actions"><button type="submit" class="btn btn-small btn-primary">Save</button></div>
+        </form>
+        <form method="post" action="{{ base }}/topics/{{ col.id }}/delete" data-confirm="Delete the topic “{{ col.name }}”? Its notes and to-dos move to General.">
+          <input type="hidden" name="back" value="{{ back }}">
+          <button type="submit" class="btn btn-small btn-danger">Delete the topic</button>
+          <p class="hint">Its notes and to-dos move to General; nothing is lost.</p>
+        </form>
+      </div>
+    </details>
+    {% endif %}
+  </header>
+  {{ add_forms(tb, col, back) }}
+  {% if col.open %}<ul class="todo-list">{% for t in col.open %}{{ todo_row(t, back, topics=tb.topics) }}{% endfor %}</ul>{% endif %}
+  {% if col.pinned %}<ul class="note-list tcol-pinned">{% for n in col.pinned %}{{ note_item(n, back, topics=tb.topics) }}{% endfor %}</ul>{% endif %}
+  {% if col.notes %}<ul class="note-list">{% for n in col.notes %}{{ note_item(n, back, topics=tb.topics) }}{% endfor %}</ul>{% endif %}
+  {% if col.older %}<details class="done-fold"><summary>{{ col.older | length }} older note{{ "s" if col.older | length != 1 }}</summary><ul class="note-list">{% for n in col.older %}{{ note_item(n, back, topics=tb.topics) }}{% endfor %}</ul></details>{% endif %}
+  {% if col.done %}<details class="done-fold"><summary>{{ col.done | length }} done</summary><ul class="todo-list">{% for t in col.done %}{{ todo_row(t, back, topics=tb.topics) }}{% endfor %}</ul></details>{% endif %}
+  {% if not (col.open or col.pinned or col.notes or col.older or col.done) %}<p class="muted small">Nothing here yet.</p>{% endif %}
+  <footer class="tcol-foot small">
+    {{ col.open | length }} open{% if col.urgent %} · <span class="warn">{{ col.urgent }} urgent</span>{% endif %}{% if col.overdue %} · <span class="cc-red">{{ col.overdue }} overdue</span>{% endif %}{% if col.next_due %} · next due {{ col.next_due | dmy }}{% endif %}{% if col.pinned %} · 📌 {{ col.pinned | length }}{% endif %}
+  </footer>
+</section>
+{% endmacro %}
+
+{% macro topic_board(tb, base, client, back) %}
+<header class="bundle-head">
+  <div><h2 class="bundle-title">{{ client.name }} · notes and to-dos</h2>
+    <p class="muted">About the client as a whole, in topics. Notes on a single renewal or bundle stay there.</p></div>
+  <details class="arrange">
+    <summary class="btn btn-small btn-primary">+ Topic</summary>
+    <form method="post" action="{{ base }}/topics" class="arrange-box stack-form arrange-right">
+      <input type="hidden" name="back" value="{{ back }}">
+      {{ topic_fields(tb) }}
+      <div class="actions"><button type="submit" class="btn btn-small btn-primary">Add the topic</button></div>
+    </form>
+  </details>
+</header>
+<div class="topic-board sec-mine" id="mine">
+  {% for col in tb.columns %}{{ column(tb, col, base, back) }}{% endfor %}
+</div>
+{% if tb.done %}
+<details class="rd-section rd-fold topic-archive">
+  <summary>{{ tb.done | length }} done topic{{ "s" if tb.done | length != 1 }} <span class="sec-src">archived: open one to change it back</span></summary>
+  <div class="topic-board">{% for col in tb.done %}{{ column(tb, col, base, back) }}{% endfor %}</div>
+</details>
+{% endif %}
+{% endmacro %}

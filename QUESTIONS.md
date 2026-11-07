@@ -146,7 +146,7 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 - **out of MART:** report/output shapes (daily brief, client status, discrepancy list for brokers, meeting prep, post-renewal review), or
 - **into MART:** pulling structure *out of* emails, meeting notes or broker replies (e.g. "broker says update by Friday" → a deadline), or
 - both?
-→
+→ **Answered 07.11.2026 (at least "into MART"):** Martin's goal: Claude (Sonnet 5 / 4.6) connects over MCP and reads and EDITS MART's data. Example: a scheduled task goes through his emails, finds new proposals from an insurer (one with the expiring conditions, one with cost containment measures), records them as proposals and a plan design change, and writes a note in MART logging the message and its contents.
 
 **H3 ⭐** What may the agent *write*? Proposal: notes, to-dos, deadlines, seen-marks, contact log entries freely. **Actual-state changes only as suggestions you confirm.** Never BM+ data.
 →

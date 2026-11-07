@@ -15,6 +15,7 @@ from mart.services import (
     notes_service,
     proposals,
     renewal_service,
+    topics,
 )
 from mart.web.framework import HTTPError, Request, Response, Router, local_path
 from mart.web.templating import render
@@ -74,13 +75,15 @@ def renewal_page(request: Request, client_id: int, renewal_id: int) -> Response:
 
 @router.route("/clients/{client_id:int}/notes")
 def client_notes(request: Request, client_id: int) -> Response:
-    """The client's own notes and to-dos in the middle; the bundles stay."""
+    """The client's own notes and to-dos, as a board of its topics (day 7), in
+    the middle; the bundles stay."""
     view = _explorer(request, client_id, cards=False)
     try:
-        mine = notes_service.for_client(client_id)
+        topic_board = topics.board(client_id)
     except notes_service.Invalid as exc:
         raise HTTPError(404, str(exc)) from exc
-    return render("client_explorer.html", active="clients", here=request.url, client_mine=mine,
+    return render("client_explorer.html", active="clients", here=request.url, client_mine=topic_board,
+                  topic_board=topic_board, notice=request.arg("done"),
                   client_counts=_client_counts(client_id), **view)
 
 
