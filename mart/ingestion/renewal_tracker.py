@@ -23,6 +23,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -96,6 +97,14 @@ _NOT_CONTENT = {norm(h) for h in (*spec.IDENTITY_HEADERS, *spec.TEXT_STREAMS.val
 
 def _header_key(full_key: str) -> str:
     return norm(full_key.split(" › ")[-1])
+
+
+def currency_code(text: Any) -> str | None:
+    """General Information's reporting currency, "US Dollar (USD)" -> "USD";
+    a bare code passes; anything else -> None."""
+    t = str(text or "").strip()
+    m = re.search(r"\(([A-Z]{3})\)\s*$", t) or re.fullmatch(r"([A-Z]{3})", t)
+    return m.group(1) if m else None
 
 
 def insurer_or_provider(insurer: str | None, provider: str | None) -> str | None:

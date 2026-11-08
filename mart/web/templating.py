@@ -14,7 +14,17 @@ from typing import Any
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from mart import RELEASE_LABEL, __version__
-from mart.services import actuals, board, plan_changes, proposals, repeats, todo_details, topics, trackers
+from mart.services import (
+    actuals,
+    board,
+    plan_changes,
+    proposals,
+    repeats,
+    stewardship,
+    todo_details,
+    topics,
+    trackers,
+)
 from mart.web import colors, countries
 from mart.web.framework import Response
 
@@ -91,6 +101,8 @@ _env.globals["todo_vocab"] = {"urgencies": todo_details.URGENCIES, "statuses": t
 _env.globals["strategies"] = actuals.STRATEGIES
 _env.globals["tracker_label"] = lambda t: trackers.BY_TRACKER[t].label if t in trackers.BY_TRACKER else t
 _env.globals["plan_change_vocab"] = plan_changes.OUTCOMES
+_env.globals["saving_kinds"] = stewardship.KINDS
+_env.globals["saving_hints"] = stewardship.HINTS
 _env.globals["board_labels"] = board.LABELS
 _env.globals["board_hints"] = board.HINTS
 _env.globals["topic_colors"] = topics.COLORS

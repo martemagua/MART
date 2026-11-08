@@ -49,6 +49,10 @@ def get(conn: sqlite3.Connection, client_id: int) -> dict[str, Any] | None:
     return dict(row) if row else None
 
 
+def set_reporting_currency(conn: sqlite3.Connection, client_id: int, code: str) -> None:
+    conn.execute("UPDATE clients SET reporting_currency = ? WHERE id = ?", (code, client_id))
+
+
 def set_overview_as_of(conn: sqlite3.Connection, client_id: int, report_date: str | None,
                        upload_id: int) -> None:
     conn.execute("""UPDATE clients SET overview_as_of = COALESCE(?, date('now')),

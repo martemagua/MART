@@ -279,6 +279,7 @@ after finalizing the renewal, it's nexessary thst all data in the system (BM+) i
 
 **M3g** The stewardship meeting: which period does it cover (calendar year, the client's own stewardship year, since the last meeting)? Is it needed on screen only, or also as an Excel / PDF to send?
 → **Answered 05.11.2026:** **it depends on the client**: the period is set **per client**.
+→ **And 08.11.2026:** what matters most is that the reporting period says clearly **which policies are included**: a renewal counts in the period its renewal date falls in. Savings per renewal: **hard savings** (the client pays less: expiring premium − final premium), **cost avoidance** (first quote − final premium) and **unrealized savings** (cheaper options the client didn't take; a plan design change not implemented doesn't count). Plus a **key learning** per renewal. Auditing data and exporting master files for the stewardship: maybe one day, not now. → MART 0.9.30.
 
 **M3h** "Completed": per renewal only, or also a whole bundle at once?
 → **Answered 05.11.2026:** **also for the whole bundle** (built in 0.9.0).

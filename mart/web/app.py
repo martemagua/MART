@@ -156,13 +156,14 @@ def build_router() -> Router:
         proposals,
         regions,
         setup,
+        stewardship,
         topics,
         uploads,
     )
 
     router = Router()
     for module in (home, setup, uploads, clients, notes, proposals, insurers, bulk, plan_changes, regions,
-                   board, topics):
+                   board, topics, stewardship):
         router.include(module.router)
     return router
 

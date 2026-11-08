@@ -497,6 +497,29 @@ MIGRATIONS: list[tuple[int, str]] = [
         INSERT OR IGNORE INTO design_change_dismissed (renewal_id, line, created_at)
             SELECT renewal_id, title, created_at FROM plan_changes WHERE source = 'bm' AND status = 'dropped';
     """),
+    (19, """
+        -- M3 day 9, the stewardship (Martin, 08.11.2026). USER data.
+        -- What a renewal achieved, as Martin confirms it at the post-renewal
+        -- review: hard savings (expiring premium - final premium), cost
+        -- avoidance (first quote - final premium), unrealized savings (cheaper
+        -- options the client didn't take), in one currency, and one key
+        -- learning. MART suggests the savings from his quotes until he
+        -- confirms them (`savings_confirmed_at` NULL = only the suggestion).
+        CREATE TABLE renewal_reviews (
+            renewal_id            INTEGER PRIMARY KEY REFERENCES renewals(id),
+            hard_savings          REAL,
+            cost_avoidance        REAL,
+            unrealized_savings    REAL,
+            currency              TEXT,
+            savings_note          TEXT,
+            savings_confirmed_at  TEXT,
+            key_learning          TEXT,
+            updated_at            TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        -- the client's reporting currency (e.g. USD): BM+ gives premiums in it,
+        -- and only a single-client Renewal Tracker names it (General Information)
+        ALTER TABLE clients ADD COLUMN reporting_currency TEXT;
+    """),
 ]
 
 LATEST_VERSION = MIGRATIONS[-1][0]

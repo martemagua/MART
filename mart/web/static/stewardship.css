@@ -1,0 +1,50 @@
+/* The stewardship (M3 day 9): a renewal's savings + key learning
+   (partials/stewardship.html review_block, also in the renewal panel) and the
+   client's stewardship page. Loaded on the explorer's pages. */
+.sv-block { margin: 6px 0 10px; padding: 8px 0 8px 12px; display: flex; flex-direction: column; gap: 6px; }
+.sv-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.sv-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.sv-actions form { margin: 0; }
+.pill.sv-ok { background: var(--ok-bg); color: var(--ok-ink); }
+.sv-lines { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 4px 16px; margin: 0; }
+.sv-lines div { min-width: 0; }
+.sv-lines dt { font-size: 12px; color: var(--muted); cursor: help; }
+.sv-lines dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.sv-basis { display: block; font-size: 11px; font-weight: 400; color: var(--muted); }
+.sv-form .hint { display: block; font-size: 11px; }
+.sv-form .sv-cur { max-width: 7em; text-transform: uppercase; }
+.sv-learning { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-size: 14px; }
+
+.stw-head { align-items: flex-start; }
+.stw-period { margin: 2px 0; font-size: 15px; }
+.stw-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.stw-summary { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 0 0 16px; }
+.stw-tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--ink-2); }
+.stw-tile.stw-wide { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.stw-n { font-size: 24px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.stw-sav { border-collapse: collapse; font-size: 13px; }
+.stw-sav th, .stw-sav td { padding: 2px 12px 2px 0; text-align: left; }
+.stw-sav td.num { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.stw-country { margin: 0 0 14px; padding: 14px 18px; }
+.stw-country h3 { margin: 0 0 6px; font-size: 17px; }
+.stw-row { padding: 10px 0; border-top: 1px solid var(--border); display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(260px, 2fr); gap: 8px 20px; }
+.stw-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.stw-title a { font-weight: 600; }
+.stw-facts { margin: 6px 0 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 2px 12px; font-size: 13px; }
+.stw-facts div { display: contents; }
+.stw-facts dt { color: var(--muted); }
+.stw-facts dd { margin: 0; min-width: 0; }
+.stw-row .sv-block { margin: 0; }
+
+/* Print / PDF: the stewardship page alone, no menus, no buttons, each country together */
+@media print {
+  .sidebar, .bundle-nav, .no-print, .sv-actions, .sv-learning details, .sv-why, .crumbs, .notice,
+  [data-menu-toggle], details.arrange { display: none !important; }
+  .explorer, .content, .content-explorer { display: block !important; margin: 0 !important; padding: 0 !important; width: auto !important; }
+  body { background: #fff !important; color: #000 !important; }
+  .stw-country, .stw-tile { border-color: #bbb !important; box-shadow: none !important; break-inside: avoid; }
+  .stw-row { break-inside: avoid; }
+  a { color: inherit !important; text-decoration: none !important; }
+}

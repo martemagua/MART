@@ -132,6 +132,15 @@ def details_of(conn: sqlite3.Connection, ids: list[int]) -> dict[int, dict[str, 
     return {r["id"]: json.loads(r["details_json"] or "{}") for r in rows}
 
 
+def bm_of(conn: sqlite3.Connection, ids: list[int]) -> dict[int, dict[str, Any]]:
+    """renewal id -> the stored Overview row copy (one query for all ids)."""
+    if not ids:
+        return {}
+    marks = ",".join("?" * len(ids))
+    rows = conn.execute(f"SELECT id, bm_json FROM renewals WHERE id IN ({marks})", ids).fetchall()
+    return {r["id"]: json.loads(r["bm_json"] or "{}") for r in rows}
+
+
 def overview_texts_for_mine(conn: sqlite3.Connection) -> list[dict[str, Any]]:
     """Per renewal of my clients still in the export: the two overview texts and
     the bundle facts, for the Clients list (one query for all clients)."""

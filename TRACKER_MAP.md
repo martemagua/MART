@@ -111,7 +111,7 @@ MAPT ignored it:
 
 | Renewal Tracker | Task Tracker |
 |---|---|
-| Client Status (Active) · In Progress & Pending Kickoff (Included) · **Completed within Last 6 Months (Excluded)** · **Upcoming within Next 6 Months (Excluded)** · which report sheets are included · reporting currency (client file only) · FX month + source | Task Name · Policy Name · Date Type + From/To · Assignee · Client · Category · Location · Type · Task Status |
+| Client Status (Active) · In Progress & Pending Kickoff (Included) · **Completed within Last 6 Months (Excluded)** · **Upcoming within Next 6 Months (Excluded)** · which report sheets are included · reporting currency (client file only; MART keeps it per client since 0.9.30, `clients.reporting_currency`: BM+'s premiums are in it) · FX month + source | Task Name · Policy Name · Date Type + From/To · Assignee · Client · Category · Location · Type · Task Status |
 
 → MART can show *what an upload covers* and warn before a narrower export
 makes renewals look as if they had disappeared.
