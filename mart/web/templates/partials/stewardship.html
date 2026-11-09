@@ -1,0 +1,155 @@
+{# The stewardship (services/stewardship, M3 day 9, Martin 08.11.2026).
+   `review_block`: a renewal's savings (hard / cost avoidance / unrealized,
+   MART's suggestion until Martin confirms) and its key learning — in the
+   renewal panel's Savings section and on each line of the stewardship page.
+   `stewardship_page`: the client's renewals in its reporting period. #}
+
+{% set _pen %}<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M11.7 1.3a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4l-8.6 8.6-3.4.8.8-3.4 8.2-8.6zM3.6 11l-.4 1.8 1.8-.4L12.6 4.8 11.2 3.4 3.6 11z"/></svg>{% endset %}
+
+{% macro money(v, cur) %}{% if v %}{{ v | amount }}{% if cur %} {{ cur }}{% endif %}{% elif v is not none %}0{% else %}—{% endif %}{% endmacro %}
+
+{% macro basis(b) %}{% for label, v in b %}{{ label }} {{ v | amount }}{% if not loop.last %} − {% endif %}{% endfor %}{% endmacro %}
+
+{# The three figures, one line each, with what MART worked them out from. #}
+{% macro savings_lines(rv, kinds, hints) %}
+<dl class="sv-lines">
+  {% for k, label in kinds.items() %}
+  <div><dt title="{{ hints[k] }}">{{ label }}</dt>
+    <dd class="num">{{ money(rv.amounts[k], rv.currency) }}
+      {% if not rv.confirmed and rv.suggestion[k] %}<span class="sv-basis">{{ basis(rv.suggestion[k].basis) }}</span>
+        {% if rv.suggestion[k].check %}<span class="sv-basis warn sv-why">more than half of it: check the quotes are for the same cover</span>{% endif %}{% endif %}</dd></div>
+  {% endfor %}
+</dl>
+{% endmacro %}
+
+{% macro savings_form(base, rid, rv, back, kinds, hints) %}
+<form method="post" action="{{ base }}/renewals/{{ rid }}/savings" class="arrange-box stack-form arrange-right sv-form">
+  <input type="hidden" name="back" value="{{ back }}">
+  {% for k, label in kinds.items() %}
+  <label class="small muted">{{ label }} <span class="hint">{{ hints[k] }}</span>
+    <input type="text" name="{{ k }}" inputmode="decimal" maxlength="30" value="{{ rv.amounts[k] | amount if rv.amounts[k] is not none else '' }}" {% if loop.first %}data-focus-on-open{% endif %} placeholder="0"></label>
+  {% endfor %}
+  <label class="small muted">Currency <input type="text" name="currency" maxlength="3" value="{{ rv.currency or '' }}" placeholder="e.g. EUR" class="sv-cur"></label>
+  <label class="small muted">Note (optional) <input type="text" name="note" maxlength="1000" value="{{ rv.note or '' }}" placeholder="e.g. rate guarantee for two years"></label>
+  <div class="actions"><button type="submit" class="btn btn-small btn-primary">{{ "Save" if rv.confirmed else "Confirm" }}</button></div>
+</form>
+{% endmacro %}
+
+{% macro review_block(base, rid, rv, back, kinds, hints) %}
+<div class="mine-block sv-block" id="savings-{{ rid }}">
+  <div class="sv-head">
+    <span class="mine-tag" title="Recorded in MART">✎ yours</span>
+    {% if rv.confirmed %}<span class="pill sv-ok" title="You confirmed these figures">✓ confirmed</span>
+    {% elif rv.any %}<span class="pill pill-soft" title="Worked out by MART from your quotes and BM+'s expiring premium; confirm or correct them">suggested by MART</span>
+    {% else %}<span class="muted small sv-why">{{ rv.suggestion.why or "No savings recorded yet." }}</span>{% endif %}
+    <span class="sv-actions">
+      <details class="arrange">
+        <summary class="btn btn-small" title="Confirm or correct the savings">{{ "✎ Savings" if rv.confirmed else "Confirm…" }}</summary>
+        {{ savings_form(base, rid, rv, back, kinds, hints) }}
+      </details>
+      {% if rv.confirmed %}
+      <form method="post" action="{{ base }}/renewals/{{ rid }}/savings/reset" data-confirm="Forget your figures and go by MART's suggestion again?">
+        <input type="hidden" name="back" value="{{ back }}"><button type="submit" class="link-btn small">Use MART's suggestion</button></form>
+      {% endif %}
+    </span>
+  </div>
+  {% if rv.confirmed or rv.any %}{{ savings_lines(rv, kinds, hints) }}{% endif %}
+  {% if not rv.confirmed and rv.suggestion.hard_why %}<p class="hint sv-why">No hard savings suggested: {{ rv.suggestion.hard_why }}</p>{% endif %}
+  {% if rv.note %}<p class="prop-note">{{ rv.note }}</p>{% endif %}
+  <div class="sv-learning">
+    <strong class="small">Key learning</strong>
+    {% if rv.key_learning %}<span>{{ rv.key_learning }}</span>{% else %}<span class="muted small">none yet</span>{% endif %}
+    <details class="arrange">
+      <summary class="icon-btn icon-sm" title="Write the key learning of this renewal" aria-label="Write the key learning">{{ _pen }}</summary>
+      <form method="post" action="{{ base }}/renewals/{{ rid }}/learning" class="arrange-box stack-form arrange-right">
+        <input type="hidden" name="back" value="{{ back }}">
+        <label class="small muted">Key learning <textarea name="text" rows="3" maxlength="1000" data-focus-on-open placeholder="e.g. remarketing with three pooling partners brought the rate to +2 % instead of +9 %">{{ rv.key_learning or '' }}</textarea></label>
+        <div class="actions"><button type="submit" class="btn btn-small btn-primary">Save</button></div>
+      </form>
+    </details>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro stewardship_page(base, sv, back) %}
+{% set p, s = sv.period, sv.summary %}
+<header class="bundle-head stw-head">
+  <div>
+    <h2 class="bundle-title">Stewardship · {{ sv.client.name }}</h2>
+    <p class="stw-period"><strong>Reporting period {{ p.from | dmy }} – {{ p.until | dmy }}</strong>
+      {% if not p.custom %}({{ p.label }}{% if p.running %}, running{% endif %}){% endif %}</p>
+    <p class="muted small">Included: the {{ s.renewals }} renewal{{ "s" if s.renewals != 1 }} of {{ sv.client.name }} with a <strong>renewal date in this period</strong>{% if s.renewals %} ({{ s.completed }} completed, {{ s.renewals - s.completed }} still open), in {{ s.countries }} countr{{ "y" if s.countries == 1 else "ies" }}{% endif %}. A renewal BM+ no longer exports still counts.</p>
+  </div>
+  <div class="stw-tools no-print">
+    {% if not p.custom %}
+    <a class="btn btn-small" href="{{ base }}/stewardship?year={{ p.year - 1 }}" title="The period before">‹ {{ p.year - 1 if p.start_month == 1 else (p.year - 1) ~ "/" ~ (p.year | string)[2:] }}</a>
+    <a class="btn btn-small" href="{{ base }}/stewardship?year={{ p.year + 1 }}" title="The period after">{{ p.year + 1 if p.start_month == 1 else (p.year + 1) ~ "/" ~ ((p.year + 2) | string)[2:] }} ›</a>
+    {% else %}<a class="btn btn-small" href="{{ base }}/stewardship">Back to the reporting year</a>{% endif %}
+    <details class="arrange">
+      <summary class="btn btn-small" title="The client's reporting year, or other dates">Period…</summary>
+      <div class="arrange-box arrange-right stack-form">
+        <form method="post" action="{{ base }}/stewardship/period" class="stack-form">
+          <input type="hidden" name="back" value="{{ base }}/stewardship">
+          <label class="small muted">{{ sv.client.name }}'s reporting year starts on the 1st of
+            <select name="month" data-focus-on-open>{% for m in sv.months %}<option value="{{ loop.index }}" {% if loop.index == sv.start_month %}selected{% endif %}>{{ m }}</option>{% endfor %}</select></label>
+          <div class="actions"><button type="submit" class="btn btn-small btn-primary">Save</button></div>
+        </form>
+        <form method="get" action="{{ base }}/stewardship" class="stack-form">
+          <p class="hint">Or one-off dates:</p>
+          <div class="pair"><label class="small muted">From <input type="date" name="from" value="{{ p.from }}"></label>
+            <label class="small muted">Until <input type="date" name="until" value="{{ p.until }}"></label></div>
+          <div class="actions"><button type="submit" class="btn btn-small">Show</button></div>
+        </form>
+      </div>
+    </details>
+    <button type="button" class="btn btn-small btn-primary" onclick="window.print()" title="Print it, or save it as a PDF">Print / PDF</button>
+  </div>
+</header>
+
+{% if s.renewals %}
+<section class="stw-summary" aria-label="The period in numbers">
+  <div class="stw-tile"><span class="stw-n">{{ s.renewals }}</span><span>renewal{{ "s" if s.renewals != 1 }} · {{ s.completed }} completed</span></div>
+  <div class="stw-tile"><span class="stw-n">{{ s.remarketed }}</span><span>remarketed{% if s.insurer_changed %} · {{ s.insurer_changed }} changed insurer{% endif %}</span></div>
+  <div class="stw-tile"><span class="stw-n">{{ s.proposals }}</span><span>proposal{{ "s" if s.proposals != 1 }} from {{ s.insurers }} insurer{{ "s" if s.insurers != 1 }}</span></div>
+  <div class="stw-tile"><span class="stw-n">{{ s.changes.implemented }}</span><span>plan design change{{ "s" if s.changes.implemented != 1 }} implemented · {{ s.changes.not_implemented }} not{% if s.changes.open %} · {{ s.changes.open }} open{% endif %}</span></div>
+  <div class="stw-tile stw-wide">
+    {% if s.savings %}
+    <table class="stw-sav"><thead><tr><th></th>{% for k, label in sv.kinds.items() %}<th scope="col" title="{{ sv.hints[k] }}">{{ label }}</th>{% endfor %}</tr></thead>
+      <tbody>{% for cur, c in s.savings.items() %}<tr><th scope="row">{{ cur or "no currency" }}</th>{% for k in sv.kinds %}<td class="num">{{ c.get(k, 0) | amount if c.get(k) else "—" }}</td>{% endfor %}</tr>{% endfor %}</tbody></table>
+    <span class="small muted">{{ s.confirmed }} confirmed{% if s.suggested %} · <span class="warn">{{ s.suggested }} only suggested by MART</span>{% endif %} · never added across currencies</span>
+    {% else %}<span class="muted">No savings recorded or suggested yet.</span>{% endif %}
+  </div>
+  <div class="stw-tile stw-wide"><span class="small">Strategies:</span> {% for k, n in s.strategies %}<span class="pill pill-soft">{{ k }}{% if n > 1 %} ×{{ n }}{% endif %}</span> {% endfor %}
+    <span class="small muted">· {{ s.learnings }} key learning{{ "s" if s.learnings != 1 }}</span></div>
+</section>
+
+{% for country, rows in sv.countries.items() %}
+<section class="stw-country card">
+  <h3>{{ country | flag }}{{ country }} <span class="muted small">{{ rows | length }} renewal{{ "s" if rows | length != 1 }}</span></h3>
+  {% for x in rows %}
+  <article class="stw-row">
+    <div class="stw-main">
+      <div class="stw-title"><a href="{{ base }}/renewals/{{ x.id }}">{{ x.policy_name or "—" }}</a>
+        <span class="muted small">{{ x.entity or "" }}{% if x.product_groups %} · {{ x.product_groups | join(", ") }}{% endif %} · renews {{ x.renewal_date | dmy }}</span>
+        {% if x.completed %}<span class="pill sv-ok">completed {{ x.completed | dmy }}</span>{% else %}<span class="pill pill-soft">open</span>{% endif %}
+        {% if not x.in_latest_export %}<span class="pill pill-soft" title="BM+ no longer exports it; MART keeps it">no longer in BM+'s export</span>{% endif %}</div>
+      <dl class="stw-facts">
+        <div><dt>Strategy</dt><dd>{{ x.strategy or "—" }}{% if x.strategy_mine %} <span class="muted small">✎</span>{% endif %}</dd></div>
+        <div><dt>Insurer</dt><dd>{{ x.insurer or "—" }}{% if x.new_insurer and x.insurer_changed %} → <strong>{{ x.new_insurer }}</strong>{% endif %}</dd></div>
+        <div><dt>Proposals</dt><dd>{% if x.proposals.count %}{{ x.proposals.count }} from {{ x.proposals.insurers | join(", ") }}{% if x.proposals.chosen %} · ★ {{ x.proposals.chosen.insurer }}{% if x.proposals.chosen.latest and x.proposals.chosen.latest.premium is not none %} {{ x.proposals.chosen.latest.premium | amount }}{% if x.proposals.chosen.latest.currency %} {{ x.proposals.chosen.latest.currency }}{% endif %}{% endif %}{% if x.proposals.chosen.moved is not none %} ({{ x.proposals.chosen.moved | pct }} from first quote){% endif %}{% endif %}{% else %}—{% endif %}</dd></div>
+        {% if x.expected_change %}<div><dt>Expected change (BM+)</dt><dd>{{ x.expected_change }}</dd></div>{% endif %}
+        <div><dt>Plan design</dt><dd>{% set ch = x.changes %}{% if ch.implemented or ch.not_implemented or ch.open %}
+          {% for c in ch.implemented %}<div>✓ {{ c.title }}</div>{% endfor %}
+          {% for c in ch.not_implemented %}<div class="muted">✗ {{ c.title }}{% if c.reason %} — {{ c.reason }}{% endif %}</div>{% endfor %}
+          {% for c in ch.open %}<div class="muted">… {{ c.title }} (open)</div>{% endfor %}{% else %}—{% endif %}</dd></div>
+      </dl>
+    </div>
+    {{ review_block(base, x.id, x.review, back, sv.kinds, sv.hints) }}
+  </article>
+  {% endfor %}
+</section>
+{% endfor %}
+{% else %}
+<div class="card empty"><p>No renewal of {{ sv.client.name }} has a renewal date in this period.</p></div>
+{% endif %}
+{% endmacro %}

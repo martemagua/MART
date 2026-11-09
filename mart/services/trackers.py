@@ -137,6 +137,10 @@ class RenewalAdapter:
         # "Overview as of": only an export that actually carries the overview counts.
         if rows and ({"overview_all", "overview_client_ready"} & set(ctx)):
             clients_repo.set_overview_as_of(conn, client_id, upload["report_date"], upload["id"])
+        # the client's reporting currency (single-client exports only name it)
+        code = rt.currency_code((upload.get("info") or {}).get(rt_spec.REPORTING_CURRENCY))
+        if rows and code:
+            clients_repo.set_reporting_currency(conn, client_id, code)
         # BM+ moved a bundle's renewal date: Martin's stage, deadline, name, notes follow
         bundle_service.follow_date_changes(conn, client_id, upload["id"])
 

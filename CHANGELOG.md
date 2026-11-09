@@ -6,6 +6,49 @@ What changed in each MART version, newest first. The version is in
 **Changed**, **Fixed**; the "What to try" list is for testing it on the
 laptop.
 
+## 0.9.30 — 08.11.2026 · M3 day 9 · the stewardship
+
+### Added
+- **A stewardship page per client** (Explorer → "Stewardship →"): what the
+  client's renewals achieved over its **reporting period**, for the yearly
+  stewardship meeting.
+  - **Which policies are included** is said at the top: the renewals with
+    a **renewal date in the period** (completed or still open); a renewal
+    BM+ no longer exports still counts.
+  - The period is the client's **reporting year**, starting on the 1st of
+    its own month (Period… → "starts on the 1st of …"; calendar year until
+    set), ‹ › for the year before / after, or one-off from / until dates.
+  - A summary: renewals and how many completed, remarketed and insurers
+    changed, proposals and insurers, plan design changes implemented / not,
+    strategies, and the **savings per currency** (never added across).
+  - Then by country, each renewal: strategy, insurer (→ the new one when it
+    changed), proposals and the chosen one ★, BM+'s expected change, plan
+    design changes (✓ implemented, ✗ not and why), savings, key learning.
+  - **Print / PDF**: the page alone, without menus or buttons.
+- **Savings per renewal**, in the renewal panel's Savings section (yours
+  first, then BM+'s Savings sheet as "In BM+") and on the stewardship page:
+  - **hard savings** = expiring premium − final premium;
+  - **cost avoidance** = first quote − final premium (of the chosen proposal ★);
+  - **unrealized savings** = final premium − the cheapest option the client
+    didn't take.
+  MART suggests them from your quotes and BM+'s expiring premium, each with
+  what it was worked out from ("suggested by MART"); **Confirm…** keeps
+  your figures ("✓ confirmed"), "Use MART's suggestion" goes back. Only
+  amounts in the same currency are compared, never converted; BM+'s expiring
+  premium is in the client's reporting currency, so hard savings are
+  suggested when the final quote is in it. A suggestion above half of what
+  it is measured against is flagged: the quotes may be for another cover.
+- **A key learning per renewal**, one line, beside its savings.
+- MART now keeps each client's **reporting currency**, from a single-client
+  Renewal Tracker (the only export that names it).
+
+### What to try
+1. A renewal → Proposals: first and final quote of the chosen insurer ★, a
+   quote from another → Savings & key learning: the three suggestions. Confirm…
+2. Upload a single-client Renewal Tracker once, so MART knows the reporting
+   currency (needed for hard savings).
+3. Explorer → Stewardship → Period… → the client's reporting year → Print / PDF.
+
 ## 0.9.29 — 07.11.2026 · plan design changes, reshaped
 
 Martin, 07.11.2026 (QUESTIONS D1b): "BM+ suggests" wasn't intuitive. What a

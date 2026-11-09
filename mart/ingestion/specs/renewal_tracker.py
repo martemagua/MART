@@ -110,6 +110,10 @@ DATE_FIELDS = {"start_date", "end_date", "rate_guarantee_end", "kickoff_date",
                "renewal_date", "local_meeting_date", "client_approval_date"}
 PERSON_FIELDS = {"benefit_owner", "local_analyst"}
 
+# The client's reporting currency, "US Dollar (USD)": on the General Information
+# sheet of a SINGLE-client export only. BM+'s premiums are in it.
+REPORTING_CURRENCY = "Reporting Currency"
+
 # Labels on the General Information sheet worth showing in the preview.
 EXPORT_FILTERS = ["Client Status", "In Progress & Pending Kickoff",
                   "Completed within Last 6 Months", "Upcoming within Next 6 Months"]

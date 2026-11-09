@@ -7,12 +7,13 @@
 {% from "partials/actual.html" import strategy_cell, strategy_pill, completed_badge, completed_form %}
 {% from "partials/proposals.html" import proposals_line %}
 {% from "partials/plan_changes.html" import plan_changes_line, plan_overview_page, plan_changes_block %}
+{% from "partials/stewardship.html" import stewardship_page %}
 {% from "partials/board_stage.html" import stage_pill %}
 {% from "partials/filters.html" import bundle_filters %}
 {% from "partials/view_switch.html" import view_switch %}
 {% block title %}{{ client.name }}{% endblock %}
 {% block content_class %}content-explorer{% endblock %}
-{% block head %}{% if topic_board %}<link rel="stylesheet" href="/static/topics.css">{% endif %}{% endblock %}
+{% block head %}<link rel="stylesheet" href="/static/stewardship.css">{% if topic_board %}<link rel="stylesheet" href="/static/topics.css">{% endif %}{% endblock %}
 {% block content %}
 {% set base = "/clients/" ~ client.id %}
 {% set q_all = "&all=1" if show_all else "" %}
@@ -37,6 +38,7 @@
       <span class="cn-text"><span class="cn-title">Client notes &amp; to-dos</span><span class="cn-sub">about {{ client.name }} as a whole</span></span>
       {{ mine_badges(client_counts) }}</a>
     <p class="client-pages">
+      <a class="client-pages-link {% if stewardship %}is-selected{% endif %}" href="{{ base }}/stewardship" title="What the renewals of the client's reporting period achieved: for the stewardship meeting">Stewardship →</a>
       <a class="client-pages-link {% if plan_overview %}is-selected{% endif %}" href="{{ base }}/plan-changes{{ q_all1 }}">Plan design changes →</a>
       <a class="client-pages-link {% if region_page %}is-selected{% endif %}" href="{{ base }}/regions{{ q_all1 }}" title="This client's own regions, per country">Regions →</a>
     </p>
@@ -79,7 +81,9 @@
   {# ── middle: the selected bundle ─────────────────────────────────────── #}
   <section class="bundle-view" aria-live="polite">
     {% if notice %}<div class="notice notice-ok" role="status">{{ notice }}</div>{% endif %}
-    {% if plan_overview %}
+    {% if stewardship %}
+    {{ stewardship_page(base, stewardship, here) }}
+    {% elif plan_overview %}
     {{ plan_overview_page(base, client, plan_overview) }}
     {% elif region_page %}
     {% include "partials/regions.html" %}

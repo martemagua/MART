@@ -14,6 +14,7 @@
 {% from "partials/actual.html" import strategy_control, completed_control, strategy_pill %}
 {% from "partials/proposals.html" import proposals_section, net_pills %}
 {% from "partials/plan_changes.html" import plan_changes_block %}
+{% from "partials/stewardship.html" import review_block %}
 {% from "partials/board_stage.html" import stage_pill %}
 {% set r = detail.renewal %}
 {% set f = detail.fields %}
@@ -104,10 +105,11 @@
   {% endif %}
 </section>
 
-{% set no_savings = not (detail.savings or detail.savings_amounts) %}
-<section class="rd-section{% if no_savings %} rd-slim{% endif %}" aria-labelledby="sav-h">
-  <h3 id="sav-h">Savings {{ older("savings") }}</h3>
-  {% if detail.savings or detail.savings_amounts %}
+{# his savings (MART's suggestion until he confirms) and key learning, then BM+'s Savings sheet (day 9) #}
+<section class="rd-section" aria-labelledby="sav-h" id="savings">
+  <h3 id="sav-h">Savings &amp; key learning <span class="sec-src">Savings sheet · ✎ = yours</span> {{ older("savings") }}</h3>
+  {% if detail.review %}{{ review_block(base, r.id, detail.review, here, saving_kinds, saving_hints) }}{% endif %}
+  {% if detail.savings or detail.savings_amounts %}<h4>In BM+</h4>
     {{ facts(detail.savings) }}
     {% if detail.savings_amounts %}<h4>Amounts (reporting currency)</h4>
     <dl class="facts">{% for h, val in detail.savings_amounts %}<dt>{{ h }}</dt><dd class="num">{{ "{:,.0f}".format(val).replace(",", "'") }}</dd>{% endfor %}</dl>{% endif %}
